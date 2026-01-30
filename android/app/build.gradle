@@ -1,0 +1,67 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace "com.example.cosarc_shell"
+    compileSdkVersion 34
+    
+    // Explicitly setting the NDK version stops the red [CXX] warnings
+    ndkVersion "23.1.7779620"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    defaultConfig {
+        applicationId "com.example.cosarc_shell"
+        minSdkVersion 24 
+        targetSdkVersion 34
+        
+        // This MUST be hardcoded to fix the "versionCode not found" error
+        versionCode 1
+        versionName "1.0"
+
+        // ADDED THIS: Forces the manifest merger to accept these values
+        // even if Unity tries to provide its own.
+        manifestPlaceholders = [
+            applicationName: "io.flutter.app.FlutterApplication",
+            versionCode: 1,
+            versionName: "1.0"
+        ]
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            // Keep these false for now to ensure the build completes
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation project(':unityLibrary')
+}
