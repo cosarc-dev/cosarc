@@ -1,5 +1,5 @@
-name: cosarc_shell
-description: "A new Flutter project."
+name: cosarc
+description: "Cosarc - Cinematic Fitness & Discipline"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -11,16 +11,39 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # Icons for iOS
-  cupertino_icons: ^1.0.6
-  
-  # REQUIRED: The Unity Widget integration
+  # 🏥 The Unity Bridge (DO NOT CHANGE THIS VERSION)
   flutter_unity_widget: ^2022.2.1
+
+  # 🌌 Cosmos UI Essentials (From Atharva)
+  google_fonts: ^6.2.1
+  video_player: ^2.8.2
+  
+  # 🧍‍♂️ 3D GLB viewer (Optional, but kept for compatibility)
+  webview_flutter: ^4.0.0
+
+  # Icons
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  
+  # 🚀 App launcher icon generator
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+
+  assets:
+    # From Atharva's Repo
+    - assets/backgrounds/
+    - assets/icons/
+    - assets/models/
+    # Note: gym_bg.jpg removed as it is now inside Unity
+
+# 🎯 LAUNCHER ICON CONFIG
+flutter_icons:
+  android: true
+  ios: true
+  image_path: assets/icons/icon_grey.png
