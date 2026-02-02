@@ -16,6 +16,7 @@ class FoodLogAdapter extends TypeAdapter<FoodLog> {
       quantity: reader.readDouble(),
       mealType: reader.readString(),
       dateTime: DateTime.fromMillisecondsSinceEpoch(reader.readInt()),
+      unit: reader.readString(),
     );
   }
 
@@ -29,5 +30,6 @@ class FoodLogAdapter extends TypeAdapter<FoodLog> {
     writer.writeDouble(obj.quantity);
     writer.writeString(obj.mealType);
     writer.writeInt(obj.dateTime.millisecondsSinceEpoch);
+    writer.writeString(obj.unit);
   }
 }

@@ -1,14 +1,16 @@
 import 'package:hive/hive.dart';
 
+@HiveType(typeId: 0)
 class FoodLog extends HiveObject {
-  String name;
-  double calories;
-  double protein;
-  double carbs;
-  double fat;
-  double quantity; // grams
-  String mealType; // breakfast, lunch, dinner, snack
-  DateTime dateTime;
+  @HiveField(0) String name;
+  @HiveField(1) double calories;
+  @HiveField(2) double protein;
+  @HiveField(3) double carbs;
+  @HiveField(4) double fat;
+  @HiveField(5) double quantity;
+  @HiveField(6) String mealType;
+  @HiveField(7) DateTime dateTime;
+  @HiveField(8) String unit; // 'g', 'ml', or 'pc'
 
   FoodLog({
     required this.name,
@@ -19,16 +21,6 @@ class FoodLog extends HiveObject {
     required this.quantity,
     required this.mealType,
     required this.dateTime,
+    this.unit = 'g',
   });
-
-  // 👇 Helpers (extra lines, useful later)
-  bool get isBreakfast => mealType == "Breakfast";
-  bool get isLunch => mealType == "Lunch";
-  bool get isDinner => mealType == "Dinner";
-  bool get isSnack => mealType == "Snack";
-
-  double get caloriesPerGram {
-    if (quantity == 0) return 0;
-    return calories / quantity;
-  }
 }
