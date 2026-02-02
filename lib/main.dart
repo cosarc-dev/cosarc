@@ -1,17 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-// Atharva's Screen Imports
+// Entry screen
 import 'package:cosarc/screens/app_start/app_start_screen.dart';
 
-// Anish's Unity Screen Import
-// (Note: If you moved this file into a folder, update the path below)
-import 'package:cosarc/screens/dashboard/my_gym_screen.dart';
+// Hive
+import 'package:cosarc/models/food_log.dart';
+import 'package:cosarc/models/food_adapter.dart';
 
-void main() {
-  // 1. Necessary for Unity & Video Player to initialize before the app starts
+Future<void> main() async {
+  // REQUIRED for Hive, video_player, unity
   WidgetsFlutterBinding.ensureInitialized();
 
+  // INIT HIVE
+  await Hive.initFlutter();
+
+  // REGISTER ADAPTER (ONLY ONCE)
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(FoodLogAdapter());
+  }
+
+  // 🔴 CRITICAL: OPEN BOX BEFORE runApp
+  if (!Hive.isBoxOpen('daily_logs')) {
+    await Hive.openBox<FoodLog>('daily_logs');
+  }
+
+  // START APP
   runApp(const CosarcApp());
 }
 
@@ -21,28 +36,38 @@ class CosarcApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cosarc',
       debugShowCheckedModeBanner: false,
+      title: 'Cosarc',
 
-      // 2. Cinematic Dark Theme (From Atharva's Repo)
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF0C0C0C),
+
         textTheme: GoogleFonts.montserratTextTheme(
-          Theme.of(context).textTheme.apply(bodyColor: Colors.white),
+          Theme.of(context).textTheme.apply(
+                bodyColor: Colors.white,
+                displayColor: Colors.white,
+              ),
         ),
+
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+        ),
+
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: const Color(0xFF161616),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
           ),
-          labelStyle: const TextStyle(color: Colors.white70),
+          hintStyle: const TextStyle(color: Colors.white54),
         ),
       ),
 
-      // 3. The Entry Point (Starts with Atharva's cinematic intro)
+      // ENTRY
       home: const AppStartScreen(),
     );
   }

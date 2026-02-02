@@ -10,35 +10,51 @@ class AppStartScreen extends StatefulWidget {
 }
 
 class _AppStartScreenState extends State<AppStartScreen> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
+  bool _navigated = false;
 
   @override
   void initState() {
     super.initState();
+    _initVideo();
+  }
 
-    _controller = VideoPlayerController.asset(
-      'assets/backgrounds/app_intro.mp4',
-    )..initialize().then((_) {
-        _controller
-          ..setVolume(0)
-          ..play();
+  Future<void> _initVideo() async {
+    try {
+      final controller = VideoPlayerController.asset(
+        'assets/backgrounds/app_intro.mp4',
+      );
 
-        setState(() {});
+      await controller.initialize();
 
-        // Navigate exactly after video duration
-        Future.delayed(_controller.value.duration, () {
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-        });
-      });
+      controller
+        ..setVolume(0)
+        ..play();
+
+      _controller = controller;
+      setState(() {});
+
+      // Navigate after video
+      Future.delayed(controller.value.duration, _goNext);
+    } catch (e) {
+      // VIDEO FAILED → still move forward
+      Future.delayed(const Duration(seconds: 2), _goNext);
+    }
+  }
+
+  void _goNext() {
+    if (!mounted || _navigated) return;
+    _navigated = true;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -48,20 +64,20 @@ class _AppStartScreenState extends State<AppStartScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _controller.value.isInitialized
+      body: _controller != null && _controller!.value.isInitialized
           ? SizedBox(
               width: size.width,
               height: size.height,
               child: FittedBox(
-                fit: BoxFit.cover, // 🔥 THIS IS THE KEY FIX
+                fit: BoxFit.cover,
                 child: SizedBox(
-                  width: _controller.value.size.width,
-                  height: _controller.value.size.height,
-                  child: VideoPlayer(_controller),
+                  width: _controller!.value.size.width,
+                  height: _controller!.value.size.height,
+                  child: VideoPlayer(_controller!),
                 ),
               ),
             )
-          : const SizedBox.shrink(), // 🚫 no loader, no flash
+          : const SizedBox.expand(), // BLACK SCREEN ONLY
     );
   }
 }

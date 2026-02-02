@@ -24,6 +24,12 @@ dependencies:
   # Icons
   cupertino_icons: ^1.0.6
 
+  http: ^1.1.0                # To talk to the Open Food Facts API
+  hive: ^2.2.3                # The Database
+  hive_flutter: ^1.1.0        # Hive helpers for Flutter
+  path_provider: ^2.1.1       # To find where to save the DB on the phone
+  intl: ^0.18.1               # For date formatting
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -40,6 +46,7 @@ flutter:
     - assets/backgrounds/
     - assets/icons/
     - assets/models/
+    - assets/backgrounds/cosarc_intro.mp4
     # Note: gym_bg.jpg removed as it is now inside Unity
 
 # 🎯 LAUNCHER ICON CONFIG

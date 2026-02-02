@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // REQUIRED
 import '../../widgets/dynamic_island_streak.dart';
 import 'workout_log_screen.dart';
+
+// IMPORTANT: Ensure these paths match your project exactly
+import 'package:cosarc/services/nutrition_tracker.dart'; 
+import 'package:cosarc/models/food_log.dart'; 
 
 const Color cosarcPink = Color(0xFFE91E63);
 
@@ -16,7 +21,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
   late VideoPlayerController _controller;
 
   bool workoutDone = false;
-  bool eatCleanDone = false;
+  // bool eatCleanDone = false; // We now use Hive for this
   int waterMl = 0;
   int steps = 3200;
   bool moodSubmitted = false;
@@ -27,14 +32,19 @@ class _CosmosScreenState extends State<CosmosScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize Video
     _controller = VideoPlayerController.asset(
       'assets/backgrounds/cosarc_intro.mp4',
     )
       ..setLooping(true)
       ..setVolume(0)
       ..initialize().then((_) {
-        _controller.play();
-        setState(() {});
+        if (mounted) {
+          _controller.play();
+          setState(() {});
+        }
+      }).catchError((error) {
+        debugPrint("Video Error: $error");
       });
   }
 
@@ -44,11 +54,22 @@ class _CosmosScreenState extends State<CosmosScreen> {
     super.dispose();
   }
 
-  bool get contractComplete =>
-      workoutDone &&
-      eatCleanDone &&
-      waterMl >= waterTarget &&
-      steps >= stepTarget;
+  // Helper to check if food was logged today in Hive
+  bool isFoodLoggedToday() {
+    final box = Hive.box<FoodLog>('daily_logs');
+    final now = DateTime.now();
+    return box.values.any((log) => 
+      log.dateTime.day == now.day && 
+      log.dateTime.month == now.month && 
+      log.dateTime.year == now.year);
+  }
+
+  bool get contractComplete {
+    return workoutDone &&
+           isFoodLoggedToday() &&
+           waterMl >= waterTarget &&
+           steps >= stepTarget;
+  }
 
   String timeState() {
     final h = DateTime.now().hour;
@@ -63,152 +84,166 @@ class _CosmosScreenState extends State<CosmosScreen> {
     final topInset = MediaQuery.of(context).padding.top;
     final height = MediaQuery.of(context).size.height;
 
-    return Stack(
-      children: [
-        CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // ================= HERO =================
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: height * 0.70,
-                width: double.infinity,
-                child: Stack(
-                  children: [
-                    // 🎬 VIDEO
-                    if (_controller.value.isInitialized)
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(36),
-                          bottomRight: Radius.circular(36),
-                        ),
-                        child: SizedBox.expand(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                              width: _controller.value.size.width,
-                              height: _controller.value.size.height,
-                              child: VideoPlayer(_controller),
+    // Wrap in ValueListenableBuilder so the UI updates when food is logged
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<FoodLog>('daily_logs').listenable(),
+      builder: (context, Box<FoodLog> box, _) {
+        bool eatCleanDone = isFoodLoggedToday();
+
+        return Stack(
+          children: [
+            CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // ================= HERO =================
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: height * 0.70,
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        // 🎬 VIDEO
+                        if (_controller.value.isInitialized)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(36),
+                              bottomRight: Radius.circular(36),
                             ),
-                          ),
-                        ),
-                      ),
-
-                    // 🌑 GRADIENT
-                    Positioned.fill(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black87,
-                              Colors.transparent,
-                              Colors.black,
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // 🔠 HEADER
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
-                            Text(
-                              "cosarc",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            child: SizedBox.expand(
+                              child: FittedBox(
+                                fit: BoxFit.cover,
+                                child: SizedBox(
+                                  width: _controller.value.size.width,
+                                  height: _controller.value.size.height,
+                                  child: VideoPlayer(_controller),
+                                ),
                               ),
                             ),
-                            CircleAvatar(
-                              backgroundColor: Colors.white24,
-                              child: Icon(Icons.person, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                          )
+                        else
+                          Container(color: Colors.black), // Fallback while loading
 
-                    // 🧠 QUOTE (INSIDE HERO — SAFE)
-                    Positioned(
-                      left: 20,
-                      right: 20,
-                      bottom: 36,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "“",
-                            style: TextStyle(
-                              fontSize: 44,
-                              color: Colors.white70,
+                        // 🌑 GRADIENT
+                        Positioned.fill(
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.black87,
+                                  Colors.transparent,
+                                  Colors.black,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
                             ),
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            "the quiet space\nbetween who you are\nand who you are meant to be.",
-                            style: TextStyle(
-                              fontSize: 18,
-                              height: 1.35,
-                              color: Colors.white70,
+                        ),
+
+                        // 🔠 HEADER
+                        SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  "cosarc",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    decoration: TextDecoration.none,
+                                  ),
+                                ),
+                                CircleAvatar(
+                                  backgroundColor: Colors.white24,
+                                  child: Icon(Icons.person, color: Colors.white),
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(height: 6),
-                          Text(
-                            "— cosarc",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white38,
-                            ),
+                        ),
+
+                        // 🧠 QUOTE
+                        Positioned(
+                          left: 20,
+                          right: 20,
+                          bottom: 36,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "“",
+                                style: TextStyle(
+                                  fontSize: 44,
+                                  color: Colors.white70,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "the quiet space\nbetween who you are\nand who you are meant to be.",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  height: 1.35,
+                                  color: Colors.white70,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "— cosarc",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white38,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
+
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 32),
+                ),
+
+                // ================= CONTRACT =================
+                _section("today’s contract"),
+                _headline("Order does not sustain itself."),
+                _hint(timeState()),
+
+                _ruleWorkout(context),
+                _ruleEatClean(eatCleanDone),
+                _ruleWater(),
+                _ruleSteps(),
+
+                _section("reflection"),
+                _reflection(),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              ],
+            ),
+
+            // 🔥 DYNAMIC ISLAND
+            Positioned(
+              top: topInset + 8,
+              left: 0,
+              right: 0,
+              child: const Center(
+                child: DynamicIslandStreak(streak: 7),
               ),
             ),
-
-            // ✅ SAFE GAP — THIS FIXES EVERYTHING
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 32),
-            ),
-
-            // ================= CONTRACT =================
-            _section("today’s contract"),
-            _headline("Order does not sustain itself."),
-            _hint(timeState()),
-
-            _ruleWorkout(context),
-            _ruleEatClean(),
-            _ruleWater(),
-            _ruleSteps(),
-
-            _section("reflection"),
-            _reflection(),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
-        ),
-
-        // 🔥 DYNAMIC ISLAND
-        Positioned(
-          top: topInset + 8,
-          left: 0,
-          right: 0,
-          child: const Center(
-            child: DynamicIslandStreak(streak: 7),
-          ),
-        ),
-      ],
+        );
+      }
     );
   }
 
@@ -223,6 +258,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
+            decoration: TextDecoration.none,
           ),
         ),
       ),
@@ -239,6 +276,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
             fontSize: 26,
             fontWeight: FontWeight.w600,
             height: 1.2,
+            color: Colors.white,
+            decoration: TextDecoration.none,
           ),
         ),
       ),
@@ -256,7 +295,11 @@ class _CosmosScreenState extends State<CosmosScreen> {
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(
+            color: Colors.white70,
+            decoration: TextDecoration.none,
+            fontSize: 14,
+          ),
         ),
       ),
     );
@@ -282,14 +325,20 @@ class _CosmosScreenState extends State<CosmosScreen> {
     );
   }
 
-  SliverToBoxAdapter _ruleEatClean() {
+  SliverToBoxAdapter _ruleEatClean(bool completed) {
     return _ruleCard(
       title: "Eat clean",
       main: "Fuel determines trajectory.",
-      sub: eatCleanDone
-          ? "Verified automatically."
-          : "Awaiting verification.",
-      completed: eatCleanDone,
+      sub: completed
+          ? "Fuel logged. Trajectory locked."
+          : "Awaiting fuel input.",
+      completed: completed,
+      onTap: () {
+        Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (context) => const NutritionScreen())
+        );
+      },
     );
   }
 
@@ -314,8 +363,6 @@ class _CosmosScreenState extends State<CosmosScreen> {
     );
   }
 
-  // ================= REFLECTION =================
-
   SliverToBoxAdapter _reflection() {
     return SliverToBoxAdapter(
       child: Container(
@@ -326,10 +373,10 @@ class _CosmosScreenState extends State<CosmosScreen> {
           borderRadius: BorderRadius.circular(24),
         ),
         child: contractComplete
-            ? const Text("Reflection unlocked.")
+            ? const Text("Reflection unlocked.", style: TextStyle(color: Colors.white))
             : const Text(
                 "Reflection permitted once order is restored.",
-                style: TextStyle(color: Colors.white54),
+                style: TextStyle(color: Colors.white54, fontSize: 14, decoration: TextDecoration.none),
               ),
       ),
     );
@@ -350,7 +397,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
         main: main,
         sub: sub,
         completed: completed,
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70),
         onTap: onTap,
       ),
     );
@@ -380,7 +427,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                     color: Colors.white12,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text("+300 ml"),
+                  child: const Text("+300 ml", style: TextStyle(color: Colors.white, fontSize: 12)),
                 ),
               ),
         progress: progress,
@@ -406,42 +453,47 @@ class _CosmosScreenState extends State<CosmosScreen> {
           color: Colors.white10,
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
+            width: 2,
             color: completed
-                ? cosarcPink.withOpacity(0.6)
+                ? cosarcPink.withOpacity(0.8)
                 : Colors.transparent,
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+        child: Material( // Wrap in material to prevent text rendering issues
+          color: Colors.transparent,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-                if (trailing != null) trailing,
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(main, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 6),
-            Text(sub, style: const TextStyle(color: Colors.white70)),
-            if (progress != null) ...[
-              const SizedBox(height: 16),
-              LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.white24,
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(cosarcPink),
+                  if (trailing != null) trailing,
+                ],
               ),
+              const SizedBox(height: 10),
+              Text(main, style: const TextStyle(fontSize: 16, color: Colors.white)),
+              const SizedBox(height: 6),
+              Text(sub, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              if (progress != null) ...[
+                const SizedBox(height: 16),
+                LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.white24,
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(cosarcPink),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
