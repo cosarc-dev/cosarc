@@ -1,65 +1,100 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:cosarc/models/food_log.dart';
 
-// Cosarc Cinematic Palette
+// Cinematic Professional Palette
 const Color cosarcPink = Color(0xFFE91E63);
 const Color cosarcDark = Color(0xFF080808);
 const Color cosarcSurface = Color(0xFF141414);
-const Color cosarcAccent = Color(0xFF00E676); // Progress Green
+const Color cosarcAccent = Color(0xFF00E676);
 
 /// ======================================================
-/// 1. NUTRITION SERVICE (India-Specific Logic)
+/// 1. APEX NUTRITION SERVICE (OFF + USDA + Indian Dataset)
 /// ======================================================
 class NutritionService {
-  static const String _baseUrl = 'https://in.openfoodfacts.org/cgi/search.pl';
+  final String _usdaKey = 'DEMO_KEY'; // Replace with a free key for higher limits
 
   Future<List<Map<String, dynamic>>> searchFood(String query) async {
-    if (query.trim().length < 3) return [];
+    final q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
 
-    final url = Uri.parse(
-      '$_baseUrl?search_terms=$query&search_simple=1&action=process&json=1&page_size=30&cc=in&lc=en&sort_by=unique_scans_n'
-    );
-    
+    // Parallel fetch from all professional datasets
+    final results = await Future.wait([
+      _fetchOFF(q),
+      _fetchUSDA(q),
+    ]);
+
+    List<Map<String, dynamic>> combined = results.expand((x) => x).toList();
+
+    // 🏆 MEAL-FIRST RANKING ALGORITHM
+    combined.sort((a, b) {
+      final mealKeywords = ['burger', 'pizza', 'sandwich', 'meal', 'platter', 'thali', 'roll'];
+      bool aIsMeal = mealKeywords.any((k) => a['name'].toString().toLowerCase().contains(k));
+      bool bIsMeal = mealKeywords.any((k) => b['name'].toString().toLowerCase().contains(k));
+      
+      if (aIsMeal && !bIsMeal) return -1;
+      if (!aIsMeal && bIsMeal) return 1;
+      return 0;
+    });
+
+    return combined;
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchOFF(String query) async {
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List products = data['products'] ?? [];
-
-        return products.map((p) {
-          final n = p['nutriments'] ?? {};
-          final String name = p['product_name'] ?? 'Unknown Item';
-          final String brands = p['brands'] ?? 'Generic';
-          
-          double cals = _parse(n['energy-kcal_100g']);
-          if (cals <= 0 && !name.toLowerCase().contains("water")) return null;
-
-          return {
-            'name': name,
-            'brand': brands,
-            'calories': cals,
-            'protein': _parse(n['proteins_100g']),
-            'carbs': _parse(n['carbohydrates_100g']),
-            'fat': _parse(n['fat_100g']),
-          };
-        }).whereType<Map<String, dynamic>>().toList();
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
+      final url = Uri.parse('https://world.openfoodfacts.org/cgi/search.pl?search_terms=$query&search_simple=1&action=process&json=1&page_size=30&cc=in');
+      final res = await http.get(url).timeout(const Duration(seconds: 5));
+      if (res.statusCode != 200) return [];
+      final products = json.decode(res.body)['products'] as List;
+      return products.map((p) {
+        final n = p['nutriments'] ?? {};
+        return {
+          'name': p['product_name'] ?? 'Unknown',
+          'brand': p['brands'] ?? 'Retail Brand',
+          'calories': _num(n['energy-kcal_100g']),
+          'protein': _num(n['proteins_100g']),
+          'carbs': _num(n['carbohydrates_100g']),
+          'fat': _num(n['fat_100g']),
+          'servingWeight': _num(p['serving_quantity']) > 0 ? _num(p['serving_quantity']) : 100.0,
+          'type': 'Packaged',
+        };
+      }).where((i) => i['calories'] > 0).toList();
+    } catch (_) { return []; }
   }
 
-  double _parse(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is num) return value.toDouble();
-    return double.tryParse(value.toString()) ?? 0.0;
+  Future<List<Map<String, dynamic>>> _fetchUSDA(String query) async {
+    try {
+      final url = Uri.parse('https://api.nal.usda.gov/fdc/v1/foods/search?query=$query&pageSize=20&api_key=$_usdaKey');
+      final res = await http.get(url).timeout(const Duration(seconds: 5));
+      if (res.statusCode != 200) return [];
+      final foods = json.decode(res.body)['foods'] as List;
+      return foods.map((f) {
+        final nuts = f['foodNutrients'] as List;
+        return {
+          'name': f['description'] ?? 'Unknown',
+          'brand': f['brandOwner'] ?? 'Generic/Scientific',
+          'calories': _findUSDA(nuts, 1008),
+          'protein': _findUSDA(nuts, 1003),
+          'carbs': _findUSDA(nuts, 1005),
+          'fat': _findUSDA(nuts, 1004),
+          'servingWeight': 100.0,
+          'type': 'Scientific/Shop',
+        };
+      }).toList();
+    } catch (_) { return []; }
   }
+
+  double _findUSDA(List nuts, int id) {
+    final n = nuts.firstWhere((e) => e['nutrientId'] == id, orElse: () => null);
+    return n != null ? (n['value'] as num).toDouble() : 0.0;
+  }
+
+  double _num(dynamic v) => (v is num) ? v.toDouble() : (double.tryParse(v?.toString() ?? "0") ?? 0.0);
 }
 
 /// ======================================================
@@ -73,7 +108,6 @@ class NutritionScreen extends StatefulWidget {
 
 class _NutritionScreenState extends State<NutritionScreen> {
   final double dailyTarget = 2500;
-  DateTime selectedDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -97,13 +131,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(child: _buildEnergyDashboard(tCal, tP, tC, tF)),
-              
-              _mealGroup("Breakfast", Icons.wb_twilight_rounded, logs.where((l) => l.mealType == "Breakfast").toList()),
-              _mealGroup("Lunch", Icons.wb_sunny_rounded, logs.where((l) => l.mealType == "Lunch").toList()),
-              _mealGroup("Dinner", Icons.dark_mode_rounded, logs.where((l) => l.mealType == "Dinner").toList()),
-              _mealGroup("Snacks", Icons.cookie_outlined, logs.where((l) => l.mealType == "Snack").toList()),
-              
+              SliverToBoxAdapter(child: _buildHeader(tCal, tP, tC, tF)),
+              _mealGroup("Breakfast", logs.where((l) => l.mealType == "Breakfast").toList()),
+              _mealGroup("Lunch", logs.where((l) => l.mealType == "Lunch").toList()),
+              _mealGroup("Dinner", logs.where((l) => l.mealType == "Dinner").toList()),
+              _mealGroup("Snacks", logs.where((l) => l.mealType == "Snack").toList()),
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           );
@@ -112,54 +144,46 @@ class _NutritionScreenState extends State<NutritionScreen> {
     );
   }
 
-  Widget _buildEnergyDashboard(double c, double p, double carb, double f) {
+  Widget _buildHeader(double c, double p, double carb, double f) {
     double rem = dailyTarget - c;
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: cosarcSurface, borderRadius: BorderRadius.circular(30)),
+      margin: const EdgeInsets.all(20), padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: cosarcSurface, borderRadius: BorderRadius.circular(35), border: Border.all(color: Colors.white.withOpacity(0.05))),
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          _stat("REMAINING", rem < 0 ? "0" : rem.toInt().toString(), cosarcAccent),
-          _stat("CONSUMED", c.toInt().toString(), cosarcPink),
+          _statCol("REMAINING", rem < 0 ? "0" : rem.toInt().toString(), cosarcAccent),
+          _statCol("CONSUMED", c.toInt().toString(), cosarcPink),
         ]),
-        const SizedBox(height: 20),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(value: (c/dailyTarget).clamp(0, 1), minHeight: 10, backgroundColor: Colors.white10, color: cosarcPink),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 25),
+        ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(value: (c/dailyTarget).clamp(0,1), minHeight: 12, backgroundColor: Colors.white10, color: cosarcPink)),
+        const SizedBox(height: 25),
         Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          _miniMacro("PROT", p, Colors.blueAccent),
-          _miniMacro("CARB", carb, Colors.orangeAccent),
-          _miniMacro("FAT", f, Colors.purpleAccent),
+          _miniStat("P", p, Colors.blue), _miniStat("C", carb, Colors.orange), _miniStat("F", f, Colors.purple),
         ])
       ]),
     );
   }
 
-  Widget _stat(String l, String v, Color col) => Column(children: [
+  Widget _statCol(String l, String v, Color col) => Column(children: [
     Text(l, style: const TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 2)),
     Text(v, style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: col)),
   ]);
 
-  Widget _miniMacro(String l, double v, Color col) => Column(children: [
-    Text(l, style: const TextStyle(color: Colors.white24, fontSize: 9)),
-    Text("${v.toInt()}g", style: TextStyle(color: col, fontWeight: FontWeight.bold, fontSize: 15)),
+  Widget _miniStat(String l, double v, Color col) => Row(children: [
+    Text("$l: ", style: const TextStyle(color: Colors.white24, fontSize: 11)),
+    Text("${v.toInt()}g", style: TextStyle(color: col, fontWeight: FontWeight.bold, fontSize: 14)),
   ]);
 
-  Widget _mealGroup(String name, IconData icon, List<FoodLog> logs) {
-    double mCals = logs.fold(0, (s, i) => s + i.calories);
+  Widget _mealGroup(String name, List<FoodLog> logs) {
+    double total = logs.fold(0, (s, i) => s + i.calories);
     return SliverMainAxisGroup(slivers: [
       SliverToBoxAdapter(child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
         child: Row(children: [
-          Icon(icon, color: cosarcPink, size: 18),
-          const SizedBox(width: 10),
           Expanded(child: Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-          Text("${mCals.toInt()} kcal", style: const TextStyle(color: Colors.white38)),
-          const SizedBox(width: 10),
-          IconButton(onPressed: () => _openSearch(context, name), icon: const Icon(Icons.add_circle, color: cosarcAccent, size: 28)),
+          Text("${total.toInt()} kcal", style: const TextStyle(color: Colors.white38, fontSize: 14)),
+          const SizedBox(width: 12),
+          IconButton(onPressed: () => _openSearch(context, name), icon: const Icon(Icons.add_circle_rounded, color: cosarcAccent, size: 32)),
         ]),
       )),
       SliverList(delegate: SliverChildBuilderDelegate((_, i) => _foodTile(logs[i]), childCount: logs.length)),
@@ -169,28 +193,26 @@ class _NutritionScreenState extends State<NutritionScreen> {
   Widget _foodTile(FoodLog log) => Dismissible(
     key: Key(log.dateTime.toString()),
     onDismissed: (_) => log.delete(),
-    background: Container(color: Colors.redAccent, alignment: Alignment.centerRight, child: const Icon(Icons.delete)),
+    direction: DismissDirection.endToStart,
+    background: Container(color: Colors.redAccent.withOpacity(0.1), alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), child: const Icon(Icons.delete_forever, color: Colors.redAccent)),
     child: Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(15)),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 2), padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(20)),
       child: Row(children: [
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(log.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-          Text("${log.quantity.toInt()}g • P: ${log.protein.toInt()}g", style: const TextStyle(color: Colors.white24, fontSize: 11)),
+          Text(log.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+          Text("${log.quantity.toInt()} ${log.unit} • P: ${log.protein.toInt()}g", style: const TextStyle(color: Colors.white24, fontSize: 11)),
         ])),
-        Text("${log.calories.toInt()}", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+        Text("${log.calories.toInt()}", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white)),
       ]),
     ),
   );
 
-  void _openSearch(BuildContext context, String meal) {
-    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (_) => FoodSearchComponent(preSelectedMeal: meal));
-  }
+  void _openSearch(BuildContext ctx, String m) => showModalBottomSheet(context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (_) => FoodSearchComponent(preSelectedMeal: m));
 }
 
 /// ======================================================
-/// 3. SMART SEARCH UI (Precision Portions + Debouncing)
+/// 3. SMART SEARCH UI (Click Info + Plus Add)
 /// ======================================================
 class FoodSearchComponent extends StatefulWidget {
   final String preSelectedMeal;
@@ -202,11 +224,13 @@ class FoodSearchComponent extends StatefulWidget {
 class _FoodSearchComponentState extends State<FoodSearchComponent> {
   final NutritionService _service = NutritionService();
   final TextEditingController _searchCtrl = TextEditingController();
-  final TextEditingController _qtyCtrl = TextEditingController(text: "100");
+  final TextEditingController _qtyCtrl = TextEditingController(text: "1");
   
   List<Map<String, dynamic>> _results = [];
   bool _loading = false;
   Timer? _debounce;
+  String selectedUnit = 'servings';
+  final List<String> _units = ['grams', 'ml', 'servings', 'tsp', 'tbsp'];
 
   void _onSearch(String q) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -219,92 +243,106 @@ class _FoodSearchComponentState extends State<FoodSearchComponent> {
   }
 
   @override
-  void dispose() {
-    _debounce?.cancel();
-    _searchCtrl.dispose();
-    _qtyCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     double qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
-
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFF0F0F0F), borderRadius: BorderRadius.vertical(top: Radius.circular(35))),
+      decoration: const BoxDecoration(color: Color(0xFF0A0A0A), borderRadius: BorderRadius.vertical(top: Radius.circular(40))),
       height: MediaQuery.of(context).size.height * 0.9,
       child: Column(children: [
         const SizedBox(height: 15),
-        Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(10))),
-        
-        Padding(padding: const EdgeInsets.all(20), child: TextField(
+        Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10))),
+        Padding(padding: const EdgeInsets.all(24), child: TextField(
           controller: _searchCtrl, onChanged: _onSearch, autofocus: true,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            hintText: "Search brands (Amul, Maggi, Oreo)...",
-            prefixIcon: const Icon(Icons.search, color: cosarcPink),
-            filled: true, fillColor: Colors.white.withOpacity(0.04),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none)
+            hintText: "Search Shop or Brands...", 
+            prefixIcon: const Icon(Icons.search, color: cosarcPink), 
+            filled: true, fillColor: Colors.white.withOpacity(0.04), 
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none)
           ),
         )),
         
-        // Precision Portion Row
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Row(children: [
-          const Text("PORTION:", style: TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),
-          const SizedBox(width: 10),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: Row(children: [
           Expanded(child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(15)),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20)),
             child: TextField(
-              controller: _qtyCtrl, keyboardType: TextInputType.number, 
-              style: const TextStyle(color: cosarcAccent, fontWeight: FontWeight.bold, fontSize: 20),
-              decoration: const InputDecoration(border: InputBorder.none, suffixText: "grams", suffixStyle: TextStyle(color: Colors.white24)),
-              onChanged: (_) => setState((){}),
+              controller: _qtyCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true), 
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+              style: const TextStyle(color: cosarcAccent, fontWeight: FontWeight.bold, fontSize: 24), 
+              decoration: const InputDecoration(border: InputBorder.none, hintText: "Qty"), onChanged: (_) => setState((){}),
             ),
           )),
-          const SizedBox(width: 10),
-          _qBtn(100), _qBtn(250),
+          const SizedBox(width: 15),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(border: Border.all(color: Colors.white10), borderRadius: BorderRadius.circular(20)),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedUnit, dropdownColor: cosarcSurface, icon: const Icon(Icons.unfold_more, color: cosarcPink, size: 20),
+                items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))).toList(),
+                onChanged: (v) => setState(() => selectedUnit = v!),
+              ),
+            ),
+          ),
         ])),
 
-        if (_loading) const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: cosarcPink, strokeWidth: 2)),
+        if (_loading) const Padding(padding: EdgeInsets.all(30), child: CircularProgressIndicator(color: cosarcPink, strokeWidth: 3)),
         
-        Expanded(child: ListView.builder(itemCount: _results.length, padding: const EdgeInsets.all(16), itemBuilder: (_, i) {
-          final item = _results[i];
-          double f = qty / 100;
+        Expanded(child: ListView.builder(
+          itemCount: _results.length, padding: const EdgeInsets.all(20),
+          itemBuilder: (_, i) {
+            final item = _results[i];
+            double base = item['servingWeight'];
+            double factor = 1.0;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.02), borderRadius: BorderRadius.circular(15)),
-            child: ListTile(
-              title: Text(item['name'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              subtitle: Text("${item['brand']} • P: ${(item['protein']*f).toStringAsFixed(1)}g", style: const TextStyle(color: Colors.white24, fontSize: 11)),
-              trailing: Text("${(item['calories'] * f).toInt()} kcal", style: const TextStyle(color: cosarcPink, fontWeight: FontWeight.w900, fontSize: 18)),
-              onTap: () {
-                Hive.box<FoodLog>('daily_logs').add(FoodLog(
-                  name: "${item['name']} (${item['brand']})",
-                  calories: item['calories'] * f,
-                  protein: item['protein'] * f,
-                  carbs: item['carbs'] * f,
-                  fat: item['fat'] * f,
-                  quantity: qty,
-                  mealType: widget.preSelectedMeal,
-                  dateTime: DateTime.now(),
-                ));
-                Navigator.pop(context);
-              },
-            ),
-          );
-        })),
+            if (selectedUnit == 'servings') factor = (qty * base) / 100;
+            else if (selectedUnit == 'grams' || selectedUnit == 'ml') factor = qty / 100;
+            else if (selectedUnit == 'tsp') factor = (qty * 5) / 100;
+            else if (selectedUnit == 'tbsp') factor = (qty * 15) / 100;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.02), borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.white.withOpacity(0.01))),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                title: Text(item['name'], style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                subtitle: Text("${item['brand']} • 1 Serv ≈ ${base.toInt()}g", style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_circle, color: cosarcPink, size: 34),
+                  onPressed: () {
+                    Hive.box<FoodLog>('daily_logs').add(FoodLog(
+                      name: "${item['name']} (${item['brand']})", 
+                      calories: item['calories'] * factor, protein: item['protein'] * factor,
+                      carbs: item['carbs'] * factor, fat: item['fat'] * factor,
+                      quantity: qty, mealType: widget.preSelectedMeal, dateTime: DateTime.now(), unit: selectedUnit,
+                    ));
+                    Navigator.pop(context);
+                  },
+                ),
+                onTap: () => _showDetail(item, factor), // 👈 Tap card for details
+              ),
+            );
+          },
+        )),
       ]),
     );
   }
 
-  Widget _qBtn(int v) => Padding(
-    padding: const EdgeInsets.only(left: 6),
-    child: ActionChip(
-      label: Text("${v}g", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)), 
-      onPressed: () => setState(() => _qtyCtrl.text = v.toString()),
-      backgroundColor: Colors.white10,
-    ),
-  );
+  void _showDetail(Map item, double f) {
+    showDialog(context: context, builder: (_) => AlertDialog(
+      backgroundColor: cosarcSurface, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      title: Text("Nutritional Intelligence", style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 2)),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(item['name'], style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 20),
+        _detailRow("Energy", "${(item['calories'] * f).toInt()} kcal", cosarcPink),
+        _detailRow("Protein", "${(item['protein'] * f).toStringAsFixed(1)} g", Colors.blueAccent),
+        _detailRow("Carbs", "${(item['carbs'] * f).toStringAsFixed(1)} g", Colors.orangeAccent),
+        _detailRow("Fat", "${(item['fat'] * f).toStringAsFixed(1)} g", Colors.purpleAccent),
+      ]),
+    ));
+  }
+
+  Widget _detailRow(String l, String v, Color c) => Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(l, style: const TextStyle(color: Colors.white54)), Text(v, style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 18))]));
 }

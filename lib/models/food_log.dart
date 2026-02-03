@@ -10,7 +10,7 @@ class FoodLog extends HiveObject {
   @HiveField(5) double quantity;
   @HiveField(6) String mealType;
   @HiveField(7) DateTime dateTime;
-  @HiveField(8) String unit; // 'g', 'ml', or 'pc'
+  @HiveField(8) String unit;
 
   FoodLog({
     required this.name,
@@ -21,6 +21,6 @@ class FoodLog extends HiveObject {
     required this.quantity,
     required this.mealType,
     required this.dateTime,
-    this.unit = 'g',
+    this.unit = 'grams',
   });
 }
