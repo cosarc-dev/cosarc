@@ -3,6 +3,7 @@ import 'package:video_player/video_player.dart';
 import 'package:hive_flutter/hive_flutter.dart'; // REQUIRED
 import '../../widgets/dynamic_island_streak.dart';
 import 'workout_log_screen.dart';
+import 'package:cosarc/screens/dashboard/enhanced_nutrition_screen.dart';
 
 // IMPORTANT: Ensure these paths match your project exactly
 import 'package:cosarc/services/nutrition_tracker.dart'; 
@@ -336,7 +337,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
       onTap: () {
         Navigator.push(
           context, 
-          MaterialPageRoute(builder: (context) => const NutritionScreen())
+          MaterialPageRoute(builder: (context) => const EnhancedNutritionScreen())
         );
       },
     );
