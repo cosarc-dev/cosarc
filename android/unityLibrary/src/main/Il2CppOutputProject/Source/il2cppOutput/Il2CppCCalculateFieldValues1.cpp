@@ -50,8 +50,8 @@ struct Dictionary_2_tD74A089D3CFE69E54B1617003276B07F5B82B598;
 struct Dictionary_2_tDBB219D9459E13F073641D0B84B8AB9AF3839287;
 // System.Collections.Generic.Dictionary`2<System.String,UnityEngine.GUIStyle>
 struct Dictionary_2_tEFC8016EC28460E6CE058A5F413FAB656883AA5F;
-// System.Collections.Generic.Dictionary`2<System.String,UnityEngine.MeshRenderer>
-struct Dictionary_2_tFB1A68F6E592E787806776E10276560764781082;
+// System.Collections.Generic.Dictionary`2<System.String,UnityEngine.Renderer>
+struct Dictionary_2_t617A0CC15CBE0AD6D352A1CD3C40683BABE0F167;
 // System.Collections.Generic.Dictionary`2<System.UInt32,UnityEngine.TextCore.Text.Character>
 struct Dictionary_2_t93CDF0F4011A5A3024EB73A492F9512E3046EACB;
 // System.Collections.Generic.Dictionary`2<System.UInt32,UnityEngine.TextCore.Glyph>
@@ -4259,8 +4259,8 @@ struct HighlightBridge_tC5036A1227AF24210FFCA20A0B0D01ED4F6B028B  : public MonoB
 	Material_t18053F08F347D0DCA5E1140EC7EC4533DD8A14E3* ___neutralMaterial_4;
 	// UnityEngine.Material HighlightBridge::highlightMaterial
 	Material_t18053F08F347D0DCA5E1140EC7EC4533DD8A14E3* ___highlightMaterial_5;
-	// System.Collections.Generic.Dictionary`2<System.String,UnityEngine.MeshRenderer> HighlightBridge::parts
-	Dictionary_2_tFB1A68F6E592E787806776E10276560764781082* ___parts_6;
+	// System.Collections.Generic.Dictionary`2<System.String,UnityEngine.Renderer> HighlightBridge::parts
+	Dictionary_2_t617A0CC15CBE0AD6D352A1CD3C40683BABE0F167* ___parts_6;
 };
 
 // Mono.Security.ASN1
