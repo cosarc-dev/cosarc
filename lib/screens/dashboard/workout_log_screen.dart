@@ -140,7 +140,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
     
     return Container(
       constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.35, // 55% of screen
+        maxHeight: screenHeight * 0.25, // 55% of screen
       ),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.95),
