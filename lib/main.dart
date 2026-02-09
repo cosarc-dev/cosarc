@@ -1,3 +1,4 @@
+import 'package:cosarc/screens/dashboard/dashboard_root.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -8,6 +9,8 @@ import 'package:cosarc/screens/app_start/app_start_screen.dart';
 // Hive
 import 'package:cosarc/models/food_log.dart';
 import 'package:cosarc/models/food_adapter.dart';
+
+
 
 Future<void> main() async {
   // REQUIRED for Hive, video_player, unity
@@ -69,6 +72,8 @@ class CosarcApp extends StatelessWidget {
 
       // ENTRY
       home: const AppStartScreen(),
+      // In your app:
+      
     );
   }
 }

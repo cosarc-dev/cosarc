@@ -34,6 +34,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  build_runner: ^2.4.8
+  hive_generator: ^2.0.1
   
   # 🚀 App launcher icon generator
   flutter_launcher_icons: ^0.13.1
@@ -47,10 +49,11 @@ flutter:
     - assets/icons/
     - assets/models/
     - assets/backgrounds/cosarc_intro.mp4
-    # Note: gym_bg.jpg removed as it is now inside Unity
-
-# 🎯 LAUNCHER ICON CONFIG
-flutter_icons:
+    
+# 🎯 LAUNCHER ICON CONFIG (FIXED!)
+flutter_launcher_icons:  # ← CHANGED from flutter_icons
   android: true
   ios: true
-  image_path: assets/icons/icon_grey.png
+  image_path: "assets/icons/icon_grey.png"  # ← CHANGED to relative path
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/icons/icon_grey.png"  # ← ADDED this

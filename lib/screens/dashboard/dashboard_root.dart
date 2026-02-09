@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'cosmos_screen.dart';
 import 'my_gym_screen.dart';
 import 'nutriwave_screen.dart';
-import 'search_screen.dart';
+import 'cosarc_ai_screen.dart';
 
 const Color cosarcPink = Color(0xFFE91E63);
 
@@ -14,68 +14,112 @@ class DashboardRoot extends StatefulWidget {
 }
 
 class _DashboardRootState extends State<DashboardRoot> {
-  int index = 0;
+  int _currentIndex = 0;
 
-  final pages = const [
+  final List<Widget> _screens = const [
     CosmosScreen(),
     MyGymScreen(),
     NutriwaveScreen(),
-    SearchScreen(),
+    CosarcAIScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // 🌌 GALAXY BACKGROUND (DASHBOARD ONLY)
-          Positioned.fill(
-            child: Image.asset(
-              'assets/backgrounds/galaxy_bg.jpg', // ✅ FIXED PATH
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          // DARK OVERLAY (READABILITY)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.55),
-            ),
-          ),
-
-          // CONTENT
-          IndexedStack(
-            index: index,
-            children: pages,
-          ),
-        ],
+      backgroundColor: Colors.black,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border(
+            top: BorderSide(
+              color: Colors.white.withOpacity(0.1),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'Cosmos',
+                  index: 0,
+                ),
+                _buildNavItem(
+                  icon: Icons.fitness_center_rounded,
+                  label: 'My Gym',
+                  index: 1,
+                ),
+                _buildNavItem(
+                  icon: Icons.restaurant_rounded,
+                  label: 'Nutriwave',
+                  index: 2,
+                ),
+                _buildNavItem(
+                  icon: Icons.search_rounded,
+                  label: 'AI',
+                  index: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
-        onTap: (i) => setState(() => index = i),
-        backgroundColor: Colors.black.withOpacity(0.85),
-        selectedItemColor: cosarcPink,
-        unselectedItemColor: Colors.white54,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.auto_awesome),
-            label: 'cosmos',
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
+    final isSelected = _currentIndex == index;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _currentIndex = index),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                padding: EdgeInsets.all(isSelected ? 8 : 6),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? cosarcPink.withOpacity(0.15)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: isSelected ? cosarcPink : Colors.white.withOpacity(0.5),
+                  size: isSelected ? 26 : 24,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? cosarcPink : Colors.white.withOpacity(0.5),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: 'my gym',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant),
-            label: 'nutriwave',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'search',
-          ),
-        ],
+        ),
       ),
     );
   }

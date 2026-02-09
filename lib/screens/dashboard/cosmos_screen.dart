@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:hive_flutter/hive_flutter.dart'; // REQUIRED
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/dynamic_island_streak.dart';
 import 'workout_log_screen.dart';
-import 'package:cosarc/screens/dashboard/enhanced_nutrition_screen.dart';
-
-// IMPORTANT: Ensure these paths match your project exactly
-import 'package:cosarc/services/nutrition_tracker.dart'; 
-import 'package:cosarc/models/food_log.dart'; 
+import 'enhanced_nutrition_screen.dart';
+import 'profile_screen.dart';
+import '../../models/food_log.dart';
 
 const Color cosarcPink = Color(0xFFE91E63);
 
@@ -20,23 +19,21 @@ class CosmosScreen extends StatefulWidget {
 
 class _CosmosScreenState extends State<CosmosScreen> {
   late VideoPlayerController _controller;
-
   bool workoutDone = false;
-  // bool eatCleanDone = false; // We now use Hive for this
   int waterMl = 0;
   int steps = 3200;
-  bool moodSubmitted = false;
-
+  
   static const int waterTarget = 3000;
   static const int stepTarget = 10000;
 
   @override
   void initState() {
     super.initState();
-    // Initialize Video
-    _controller = VideoPlayerController.asset(
-      'assets/backgrounds/cosarc_intro.mp4',
-    )
+    _initVideo();
+  }
+
+  void _initVideo() {
+    _controller = VideoPlayerController.asset('assets/backgrounds/cosarc_intro.mp4')
       ..setLooping(true)
       ..setVolume(0)
       ..initialize().then((_) {
@@ -55,29 +52,21 @@ class _CosmosScreenState extends State<CosmosScreen> {
     super.dispose();
   }
 
-  // Helper to check if food was logged today in Hive
-  bool isFoodLoggedToday() {
+  bool _isFoodLoggedToday() {
     final box = Hive.box<FoodLog>('daily_logs');
     final now = DateTime.now();
     return box.values.any((log) => 
       log.dateTime.day == now.day && 
       log.dateTime.month == now.month && 
-      log.dateTime.year == now.year);
+      log.dateTime.year == now.year
+    );
   }
 
-  bool get contractComplete {
+  bool get _contractComplete {
     return workoutDone &&
-           isFoodLoggedToday() &&
+           _isFoodLoggedToday() &&
            waterMl >= waterTarget &&
            steps >= stepTarget;
-  }
-
-  String timeState() {
-    final h = DateTime.now().hour;
-    if (h < 11) return "The system is stable — for now.";
-    if (h < 17) return "Input pending.";
-    if (h < 21) return "Stability is deteriorating.";
-    return "Final correction window.";
   }
 
   @override
@@ -85,235 +74,191 @@ class _CosmosScreenState extends State<CosmosScreen> {
     final topInset = MediaQuery.of(context).padding.top;
     final height = MediaQuery.of(context).size.height;
 
-    // Wrap in ValueListenableBuilder so the UI updates when food is logged
     return ValueListenableBuilder(
       valueListenable: Hive.box<FoodLog>('daily_logs').listenable(),
       builder: (context, Box<FoodLog> box, _) {
-        bool eatCleanDone = isFoodLoggedToday();
+        bool eatCleanDone = _isFoodLoggedToday();
 
-        return Stack(
-          children: [
-            CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // ================= HERO =================
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: height * 0.70,
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        // 🎬 VIDEO
-                        if (_controller.value.isInitialized)
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(36),
-                              bottomRight: Radius.circular(36),
-                            ),
-                            child: SizedBox.expand(
-                              child: FittedBox(
-                                fit: BoxFit.cover,
-                                child: SizedBox(
-                                  width: _controller.value.size.width,
-                                  height: _controller.value.size.height,
-                                  child: VideoPlayer(_controller),
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Stack(
+            children: [
+              Positioned.fill(
+              child: Image.asset(
+                  'assets/backgrounds/galaxy_bg.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  // Hero video section - NO DUPLICATE QUOTE
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: height * 0.65,
+                      child: Stack(
+                        children: [
+                          // Video background
+                          if (_controller.value.isInitialized)
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(40),
+                                  bottomRight: Radius.circular(40),
                                 ),
-                              ),
-                            ),
-                          )
-                        else
-                          Container(color: Colors.black), // Fallback while loading
-
-                        // 🌑 GRADIENT
-                        Positioned.fill(
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.black87,
-                                  Colors.transparent,
-                                  Colors.black,
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // 🔠 HEADER
-                        SafeArea(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Text(
-                                  "cosarc",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    decoration: TextDecoration.none,
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: SizedBox(
+                                    width: _controller.value.size.width,
+                                    height: _controller.value.size.height,
+                                    child: VideoPlayer(_controller),
                                   ),
                                 ),
-                                CircleAvatar(
-                                  backgroundColor: Colors.white24,
-                                  child: Icon(Icons.person, color: Colors.white),
+                              ),
+                            )
+                          else
+                            Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(40),
+                                  bottomRight: Radius.circular(40),
                                 ),
-                              ],
+                              ),
+                            ),
+                          
+                          // Gradient overlay
+                          Positioned.fill(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black54,
+                                    Colors.transparent,
+                                    Colors.black87,
+                                  ],
+                                  stops: [0.0, 0.4, 1.0],
+                                ),
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(40),
+                                  bottomRight: Radius.circular(40),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-
-                        // 🧠 QUOTE
-                        Positioned(
-                          left: 20,
-                          right: 20,
-                          bottom: 36,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "“",
-                                style: TextStyle(
-                                  fontSize: 44,
-                                  color: Colors.white70,
-                                  decoration: TextDecoration.none,
-                                ),
+                          
+                          // Top bar - using cosarc font style
+                          SafeArea(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "cosarc",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w300,
+                                      color: Colors.white,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const ProfileScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.15),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.2),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.person_outline_rounded,
+                                        color: Colors.white,
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                "the quiet space\nbetween who you are\nand who you are meant to be.",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  height: 1.35,
-                                  color: Colors.white70,
-                                  decoration: TextDecoration.none,
-                                ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                "— cosarc",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white38,
-                                  decoration: TextDecoration.none,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 32),
-                ),
-
-                // ================= CONTRACT =================
-                _section("today’s contract"),
-                _headline("Order does not sustain itself."),
-                _hint(timeState()),
-
-                _ruleWorkout(context),
-                _ruleEatClean(eatCleanDone),
-                _ruleWater(),
-                _ruleSteps(),
-
-                _section("reflection"),
-                _reflection(),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 120)),
-              ],
-            ),
-
-            // 🔥 DYNAMIC ISLAND
-            Positioned(
-              top: topInset + 8,
-              left: 0,
-              right: 0,
-              child: const Center(
-                child: DynamicIslandStreak(streak: 7),
+                  
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  
+                  _buildSectionHeader("Today's Contract"),
+                  
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                  
+                  _buildWorkoutCard(),
+                  _buildFuelCard(eatCleanDone),
+                  _buildWaterCard(),
+                  _buildStepsCard(),
+                  
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  
+                  _buildSectionHeader("Reflection"),
+                  _buildReflectionCard(),
+                  
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                ],
               ),
-            ),
-          ],
+              
+              // Dynamic Island - properly positioned
+              Positioned(
+                top: topInset + 12,
+                left: 0,
+                right: 0,
+                child: const Center(
+                  child: DynamicIslandStreak(streak: 7),
+                ),
+              ),
+            ],
+          ),
         );
-      }
+      },
     );
   }
 
-  // ================= UI HELPERS =================
-
-  static SliverPadding _section(String text) {
+  Widget _buildSectionHeader(String title) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
       sliver: SliverToBoxAdapter(
         child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            decoration: TextDecoration.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  static SliverToBoxAdapter _headline(String text) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 26,
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 24,
             fontWeight: FontWeight.w600,
-            height: 1.2,
             color: Colors.white,
-            decoration: TextDecoration.none,
+            letterSpacing: -0.5,
           ),
         ),
       ),
     );
   }
 
-  static SliverToBoxAdapter _hint(String text) {
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white70,
-            decoration: TextDecoration.none,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================= RULES =================
-
-  SliverToBoxAdapter _ruleWorkout(BuildContext context) {
-    return _ruleCard(
-      title: "Workout",
-      main: "The body degrades without resistance.",
-      sub: workoutDone ? "Logged. Signal accepted." : "Tap to log workout.",
+  Widget _buildWorkoutCard() {
+    return _buildContractCard(
+      title: "Workout Log",
+      subtitle: workoutDone ? "Logged. Signal accepted." : "Tap to log workout.",
       completed: workoutDone,
+      icon: Icons.fitness_center_rounded,
       onTap: () async {
         final result = await Navigator.push(
           context,
@@ -326,175 +271,285 @@ class _CosmosScreenState extends State<CosmosScreen> {
     );
   }
 
-  SliverToBoxAdapter _ruleEatClean(bool completed) {
-    return _ruleCard(
-      title: "Eat clean",
-      main: "Fuel determines trajectory.",
-      sub: completed
-          ? "Fuel logged. Trajectory locked."
-          : "Awaiting fuel input.",
+  Widget _buildFuelCard(bool completed) {
+    return _buildContractCard(
+      title: "Fuel Log",
+      subtitle: completed ? "Fuel logged. Trajectory locked." : "Awaiting fuel input.",
       completed: completed,
+      icon: Icons.restaurant_rounded,
       onTap: () {
         Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (context) => const EnhancedNutritionScreen())
+          context,
+          MaterialPageRoute(builder: (_) => const EnhancedNutritionScreen()),
         );
       },
     );
   }
 
-  SliverToBoxAdapter _ruleWater() {
+  Widget _buildWaterCard() {
     final progress = (waterMl / waterTarget).clamp(0.0, 1.0);
-    return _ruleMeter(
-      title: "Water · 3L",
-      main: "Hydration sustains cognition.",
-      sub: "$waterMl ml logged",
+    return _buildProgressCard(
+      title: "Water Intake Log • 3L",
+      subtitle: "$waterMl ml logged",
       progress: progress,
-      action: () => setState(() => waterMl += 300),
+      icon: Icons.water_drop_outlined,
+      onAddPressed: () {
+        setState(() {
+          if (waterMl < waterTarget) {
+            waterMl += 300;
+          }
+        });
+      },
     );
   }
 
-  SliverToBoxAdapter _ruleSteps() {
+  Widget _buildStepsCard() {
     final progress = (steps / stepTarget).clamp(0.0, 1.0);
-    return _ruleMeter(
-      title: "Steps · 10,000",
-      main: "Motion prevents decay.",
-      sub: "$steps / $stepTarget",
+    return _buildProgressCard(
+      title: "Steps • 10,000",
+      subtitle: "$steps / $stepTarget steps",
       progress: progress,
+      icon: Icons.directions_walk_rounded,
+      showButton: false,
     );
   }
 
-  SliverToBoxAdapter _reflection() {
+  Widget _buildContractCard({
+    required String title,
+    required String subtitle,
+    required bool completed,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return SliverToBoxAdapter(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: contractComplete
-            ? const Text("Reflection unlocked.", style: TextStyle(color: Colors.white))
-            : const Text(
-                "Reflection permitted once order is restored.",
-                style: TextStyle(color: Colors.white54, fontSize: 14, decoration: TextDecoration.none),
-              ),
-      ),
-    );
-  }
-
-  // ================= COMPONENTS =================
-
-  SliverToBoxAdapter _ruleCard({
-    required String title,
-    required String main,
-    required String sub,
-    required bool completed,
-    VoidCallback? onTap,
-  }) {
-    return SliverToBoxAdapter(
-      child: _shell(
-        title: title,
-        main: main,
-        sub: sub,
-        completed: completed,
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  SliverToBoxAdapter _ruleMeter({
-    required String title,
-    required String main,
-    required String sub,
-    required double progress,
-    VoidCallback? action,
-  }) {
-    return SliverToBoxAdapter(
-      child: _shell(
-        title: title,
-        main: main,
-        sub: sub,
-        completed: progress >= 1,
-        trailing: action == null
-            ? null
-            : GestureDetector(
-                onTap: action,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white12,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text("+300 ml", style: TextStyle(color: Colors.white, fontSize: 12)),
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(24),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(completed ? 0.08 : 0.04),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: completed 
+                      ? cosarcPink.withOpacity(0.6)
+                      : Colors.white.withOpacity(0.08),
+                  width: completed ? 2 : 1,
                 ),
               ),
-        progress: progress,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: (completed ? cosarcPink : Colors.white).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: completed ? cosarcPink : Colors.white.withOpacity(0.6),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.inter(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      completed ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
+                      color: completed ? cosarcPink : Colors.white.withOpacity(0.3),
+                      size: completed ? 28 : 18,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _shell({
+  Widget _buildProgressCard({
     required String title,
-    required String main,
-    required String sub,
-    required bool completed,
-    Widget? trailing,
-    double? progress,
-    VoidCallback? onTap,
+    required String subtitle,
+    required double progress,
+    required IconData icon,
+    VoidCallback? onAddPressed,
+    bool showButton = true,
   }) {
-    return GestureDetector(
-      onTap: onTap,
+    final completed = progress >= 1.0;
+    
+    return SliverToBoxAdapter(
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 26),
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(28),
+          color: Colors.white.withOpacity(completed ? 0.08 : 0.04),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            width: 2,
-            color: completed
-                ? cosarcPink.withOpacity(0.8)
-                : Colors.transparent,
+            color: completed 
+                ? cosarcPink.withOpacity(0.6)
+                : Colors.white.withOpacity(0.08),
+            width: completed ? 2 : 1,
           ),
         ),
-        child: Material( // Wrap in material to prevent text rendering issues
-          color: Colors.transparent,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: (completed ? cosarcPink : Colors.white).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: completed ? cosarcPink : Colors.white.withOpacity(0.6),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.inter(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (showButton && onAddPressed != null)
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: progress < 1.0 ? onAddPressed : null,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: progress < 1.0 
+                              ? cosarcPink.withOpacity(0.15)
+                              : Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: progress < 1.0 
+                                ? cosarcPink.withOpacity(0.3)
+                                : Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          "+300ml",
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: progress < 1.0 ? cosarcPink : Colors.white.withOpacity(0.3),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  if (trailing != null) trailing,
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(main, style: const TextStyle(fontSize: 16, color: Colors.white)),
-              const SizedBox(height: 6),
-              Text(sub, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-              if (progress != null) ...[
-                const SizedBox(height: 16),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.white24,
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(cosarcPink),
-                ),
               ],
-            ],
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: Colors.white.withOpacity(0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  completed ? cosarcPink : cosarcPink.withOpacity(0.8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReflectionCard() {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: _contractComplete 
+              ? cosarcPink.withOpacity(0.1)
+              : Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: _contractComplete 
+                ? cosarcPink.withOpacity(0.3)
+                : Colors.white.withOpacity(0.08),
+            width: 1,
           ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              _contractComplete ? Icons.auto_awesome_rounded : Icons.lock_outline_rounded,
+              color: _contractComplete ? cosarcPink : Colors.white.withOpacity(0.3),
+              size: 32,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _contractComplete 
+                  ? "Reflection unlocked"
+                  : "Complete today's contract to unlock",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: _contractComplete 
+                    ? Colors.white 
+                    : Colors.white.withOpacity(0.5),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
