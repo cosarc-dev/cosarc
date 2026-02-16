@@ -3,6 +3,8 @@ import 'package:video_player/video_player.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/dynamic_island_streak.dart';
+import '../../services/auth_service.dart';
+import '../../core/supabase_config.dart';
 import 'workout_log_screen.dart';
 import 'enhanced_nutrition_screen.dart';
 import 'profile_screen.dart';
@@ -19,10 +21,13 @@ class CosmosScreen extends StatefulWidget {
 
 class _CosmosScreenState extends State<CosmosScreen> {
   late VideoPlayerController _controller;
-  bool workoutDone = false;
-  int waterMl = 0;
-  int steps = 3200;
-  
+
+  final _authService = AuthService();
+  String? _memberId;
+  Map<String, dynamic>? _todayContract;
+  Map<String, dynamic>? _streakData;
+  bool _isLoading = true;
+
   static const int waterTarget = 3000;
   static const int stepTarget = 10000;
 
@@ -30,20 +35,79 @@ class _CosmosScreenState extends State<CosmosScreen> {
   void initState() {
     super.initState();
     _initVideo();
+    _loadData();
   }
 
   void _initVideo() {
-    _controller = VideoPlayerController.asset('assets/backgrounds/cosarc_intro.mp4')
-      ..setLooping(true)
-      ..setVolume(0)
-      ..initialize().then((_) {
-        if (mounted) {
-          _controller.play();
-          setState(() {});
-        }
-      }).catchError((error) {
-        debugPrint("Video Error: $error");
-      });
+    _controller =
+        VideoPlayerController.asset('assets/backgrounds/cosarc_intro.mp4')
+          ..setLooping(true)
+          ..setVolume(0)
+          ..initialize().then((_) {
+            if (mounted) {
+              _controller.play();
+              setState(() {});
+            }
+          }).catchError((error) {
+            debugPrint("Video Error: $error");
+          });
+  }
+
+  Future<void> _loadData() async {
+    try {
+      _memberId = await _authService.getMemberId();
+      if (_memberId == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      var contract = await supabase
+          .from('daily_contracts')
+          .select()
+          .eq('member_id', _memberId!)
+          .eq('contract_date', today)
+          .maybeSingle();
+
+      if (contract == null) {
+        await supabase.from('daily_contracts').insert({
+          'member_id': _memberId,
+          'contract_date': today,
+        });
+        contract = await supabase
+            .from('daily_contracts')
+            .select()
+            .eq('member_id', _memberId!)
+            .eq('contract_date', today)
+            .single();
+      }
+
+      var streak = await supabase
+          .from('streaks')
+          .select()
+          .eq('member_id', _memberId!)
+          .maybeSingle();
+
+      if (streak == null) {
+        await supabase.from('streaks').insert({'member_id': _memberId});
+        streak = await supabase
+            .from('streaks')
+            .select()
+            .eq('member_id', _memberId!)
+            .single();
+      }
+
+      if (mounted) {
+        setState(() {
+          _todayContract = contract;
+          _streakData = streak;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading data: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -53,21 +117,20 @@ class _CosmosScreenState extends State<CosmosScreen> {
   }
 
   bool _isFoodLoggedToday() {
-    final box = Hive.box<FoodLog>('daily_logs');
-    final now = DateTime.now();
-    return box.values.any((log) => 
-      log.dateTime.day == now.day && 
-      log.dateTime.month == now.month && 
-      log.dateTime.year == now.year
-    );
+    return _todayContract?['nutrition_logged'] ?? false;
   }
 
   bool get _contractComplete {
-    return workoutDone &&
-           _isFoodLoggedToday() &&
-           waterMl >= waterTarget &&
-           steps >= stepTarget;
+    return (_todayContract?['workout_completed'] ?? false) &&
+        (_todayContract?['nutrition_logged'] ?? false) &&
+        ((_todayContract?['water_intake_ml'] ?? 0) >= waterTarget) &&
+        ((_todayContract?['steps_count'] ?? 0) >= stepTarget);
   }
+
+  bool get workoutDone => _todayContract?['workout_completed'] ?? false;
+  int get waterMl => _todayContract?['water_intake_ml'] ?? 0;
+  int get steps => _todayContract?['steps_count'] ?? 0;
+  int get currentStreak => _streakData?['current_streak'] ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -84,21 +147,20 @@ class _CosmosScreenState extends State<CosmosScreen> {
           body: Stack(
             children: [
               Positioned.fill(
-              child: Image.asset(
+                child: Image.asset(
                   'assets/backgrounds/galaxy_bg.jpg',
                   fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(color: Colors.black),
                 ),
               ),
               CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // Hero video section - NO DUPLICATE QUOTE
                   SliverToBoxAdapter(
                     child: SizedBox(
                       height: height * 0.65,
                       child: Stack(
                         children: [
-                          // Video background
                           if (_controller.value.isInitialized)
                             Positioned.fill(
                               child: ClipRRect(
@@ -126,8 +188,6 @@ class _CosmosScreenState extends State<CosmosScreen> {
                                 ),
                               ),
                             ),
-                          
-                          // Gradient overlay
                           Positioned.fill(
                             child: Container(
                               decoration: const BoxDecoration(
@@ -148,13 +208,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
                               ),
                             ),
                           ),
-                          
-                          // Top bar - using cosarc font style
                           SafeArea(
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "cosarc",
@@ -199,34 +258,25 @@ class _CosmosScreenState extends State<CosmosScreen> {
                       ),
                     ),
                   ),
-                  
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  
                   _buildSectionHeader("Today's Contract"),
-                  
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                  
                   _buildWorkoutCard(),
                   _buildFuelCard(eatCleanDone),
                   _buildWaterCard(),
                   _buildStepsCard(),
-                  
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  
                   _buildSectionHeader("Reflection"),
                   _buildReflectionCard(),
-                  
                   const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
-              
-              // Dynamic Island - properly positioned
               Positioned(
                 top: topInset + 12,
                 left: 0,
                 right: 0,
-                child: const Center(
-                  child: DynamicIslandStreak(streak: 7),
+                child: Center(
+                  child: DynamicIslandStreak(streak: currentStreak),
                 ),
               ),
             ],
@@ -256,7 +306,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
   Widget _buildWorkoutCard() {
     return _buildContractCard(
       title: "Workout Log",
-      subtitle: workoutDone ? "Logged. Signal accepted." : "Tap to log workout.",
+      subtitle:
+          workoutDone ? "Logged. Signal accepted." : "Tap to log workout.",
       completed: workoutDone,
       icon: Icons.fitness_center_rounded,
       onTap: () async {
@@ -265,7 +316,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
           MaterialPageRoute(builder: (_) => const WorkoutLogScreen()),
         );
         if (result == true) {
-          setState(() => workoutDone = true);
+          await _loadData();
         }
       },
     );
@@ -274,7 +325,9 @@ class _CosmosScreenState extends State<CosmosScreen> {
   Widget _buildFuelCard(bool completed) {
     return _buildContractCard(
       title: "Fuel Log",
-      subtitle: completed ? "Fuel logged. Trajectory locked." : "Awaiting fuel input.",
+      subtitle: completed
+          ? "Fuel logged. Trajectory locked."
+          : "Awaiting fuel input.",
       completed: completed,
       icon: Icons.restaurant_rounded,
       onTap: () {
@@ -293,12 +346,20 @@ class _CosmosScreenState extends State<CosmosScreen> {
       subtitle: "$waterMl ml logged",
       progress: progress,
       icon: Icons.water_drop_outlined,
-      onAddPressed: () {
-        setState(() {
-          if (waterMl < waterTarget) {
-            waterMl += 300;
-          }
-        });
+      onAddPressed: () async {
+        if (_isLoading || _todayContract == null) return;
+        if (waterMl >= waterTarget) return;
+
+        final newAmount = waterMl + 300;
+
+        try {
+          await supabase.from('daily_contracts').update(
+              {'water_intake_ml': newAmount}).eq('id', _todayContract!['id']);
+
+          await _loadData();
+        } catch (e) {
+          print('Error updating water: $e');
+        }
       },
     );
   }
@@ -334,7 +395,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                 color: Colors.white.withOpacity(completed ? 0.08 : 0.04),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: completed 
+                  color: completed
                       ? cosarcPink.withOpacity(0.6)
                       : Colors.white.withOpacity(0.08),
                   width: completed ? 2 : 1,
@@ -347,12 +408,15 @@ class _CosmosScreenState extends State<CosmosScreen> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: (completed ? cosarcPink : Colors.white).withOpacity(0.1),
+                        color: (completed ? cosarcPink : Colors.white)
+                            .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
                         icon,
-                        color: completed ? cosarcPink : Colors.white.withOpacity(0.6),
+                        color: completed
+                            ? cosarcPink
+                            : Colors.white.withOpacity(0.6),
                         size: 24,
                       ),
                     ),
@@ -381,8 +445,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
                       ),
                     ),
                     Icon(
-                      completed ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
-                      color: completed ? cosarcPink : Colors.white.withOpacity(0.3),
+                      completed
+                          ? Icons.check_circle_rounded
+                          : Icons.arrow_forward_ios_rounded,
+                      color: completed
+                          ? cosarcPink
+                          : Colors.white.withOpacity(0.3),
                       size: completed ? 28 : 18,
                     ),
                   ],
@@ -404,7 +472,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
     bool showButton = true,
   }) {
     final completed = progress >= 1.0;
-    
+
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
@@ -413,7 +481,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
           color: Colors.white.withOpacity(completed ? 0.08 : 0.04),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: completed 
+            color: completed
                 ? cosarcPink.withOpacity(0.6)
                 : Colors.white.withOpacity(0.08),
             width: completed ? 2 : 1,
@@ -427,12 +495,14 @@ class _CosmosScreenState extends State<CosmosScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: (completed ? cosarcPink : Colors.white).withOpacity(0.1),
+                    color: (completed ? cosarcPink : Colors.white)
+                        .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
                     icon,
-                    color: completed ? cosarcPink : Colors.white.withOpacity(0.6),
+                    color:
+                        completed ? cosarcPink : Colors.white.withOpacity(0.6),
                     size: 24,
                   ),
                 ),
@@ -467,14 +537,15 @@ class _CosmosScreenState extends State<CosmosScreen> {
                       onTap: progress < 1.0 ? onAddPressed : null,
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: progress < 1.0 
+                          color: progress < 1.0
                               ? cosarcPink.withOpacity(0.15)
                               : Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: progress < 1.0 
+                            color: progress < 1.0
                                 ? cosarcPink.withOpacity(0.3)
                                 : Colors.white.withOpacity(0.1),
                             width: 1,
@@ -485,7 +556,9 @@ class _CosmosScreenState extends State<CosmosScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: progress < 1.0 ? cosarcPink : Colors.white.withOpacity(0.3),
+                            color: progress < 1.0
+                                ? cosarcPink
+                                : Colors.white.withOpacity(0.3),
                           ),
                         ),
                       ),
@@ -517,12 +590,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: _contractComplete 
+          color: _contractComplete
               ? cosarcPink.withOpacity(0.1)
               : Colors.white.withOpacity(0.03),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: _contractComplete 
+            color: _contractComplete
                 ? cosarcPink.withOpacity(0.3)
                 : Colors.white.withOpacity(0.08),
             width: 1,
@@ -531,20 +604,24 @@ class _CosmosScreenState extends State<CosmosScreen> {
         child: Column(
           children: [
             Icon(
-              _contractComplete ? Icons.auto_awesome_rounded : Icons.lock_outline_rounded,
-              color: _contractComplete ? cosarcPink : Colors.white.withOpacity(0.3),
+              _contractComplete
+                  ? Icons.auto_awesome_rounded
+                  : Icons.lock_outline_rounded,
+              color: _contractComplete
+                  ? cosarcPink
+                  : Colors.white.withOpacity(0.3),
               size: 32,
             ),
             const SizedBox(height: 16),
             Text(
-              _contractComplete 
+              _contractComplete
                   ? "Reflection unlocked"
                   : "Complete today's contract to unlock",
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 15,
-                color: _contractComplete 
-                    ? Colors.white 
+                color: _contractComplete
+                    ? Colors.white
                     : Colors.white.withOpacity(0.5),
                 fontWeight: FontWeight.w500,
               ),

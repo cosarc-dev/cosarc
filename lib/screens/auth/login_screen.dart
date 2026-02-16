@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/auth_service.dart';
+import '../dashboard/dashboard_root.dart';
+import '../onboarding/onboarding_wrapper.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,14 +13,77 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _authService = AuthService();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showError('Please enter email and password');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      print('🔵 Attempting login...');
+
+      await _authService.signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      print('✅ Login successful, checking onboarding status...');
+
+      // Check if user needs onboarding
+      final needsOnboarding = await _authService.needsOnboarding();
+
+      if (mounted) {
+        if (needsOnboarding) {
+          print('🔵 User needs onboarding');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const OnboardingWrapper()),
+          );
+        } else {
+          print('🔵 User completed onboarding, going to dashboard');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const DashboardRoot()),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Login error: $e');
+      _showError('Invalid email or password');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // ---------- DOODLE BACKGROUND (WHATSAPP STYLE) ----------
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -25,13 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 image: const DecorationImage(
                   image: AssetImage('assets/backgrounds/gym_doodles.png'),
                   fit: BoxFit.cover,
-                  opacity: 0.08, // subtle premium
+                  opacity: 0.08,
                 ),
               ),
             ),
           ),
-
-          // ---------- LOGIN CONTENT ----------
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -40,30 +104,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 40),
-
                     Text(
                       "cosarc",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(
                         fontSize: 44,
-                        fontWeight: FontWeight.w600, // slightly bold
+                        fontWeight: FontWeight.w600,
                         letterSpacing: -0.3,
                         color: Colors.white,
                       ),
                     ),
-
                     const SizedBox(height: 50),
-
                     TextField(
+                      controller: _emailController,
                       style: GoogleFonts.montserrat(color: Colors.white),
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         labelText: "Email",
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     TextField(
+                      controller: _passwordController,
                       obscureText: _obscurePassword,
                       style: GoogleFonts.montserrat(color: Colors.white),
                       decoration: InputDecoration(
@@ -82,12 +144,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                       ),
+                      onSubmitted: (_) => _login(),
                     ),
-
                     const SizedBox(height: 30),
-
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
@@ -96,17 +157,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: Text(
-                        "Login",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : Text(
+                              "Login",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
-
                     const SizedBox(height: 20),
-
                     GestureDetector(
                       onTap: () {
                         Navigator.push(

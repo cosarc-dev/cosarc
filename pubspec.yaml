@@ -14,21 +14,26 @@ dependencies:
   # 🏥 The Unity Bridge (DO NOT CHANGE THIS VERSION)
   flutter_unity_widget: ^2022.2.1
 
-  # 🌌 Cosmos UI Essentials (From Atharva)
+  # 🌌 Cosmos UI Essentials
   google_fonts: ^6.2.1
   video_player: ^2.8.2
   
-  # 🧍‍♂️ 3D GLB viewer (Optional, but kept for compatibility)
-  webview_flutter: ^4.0.0
-
-  # Icons
+  # 🔐 Backend & Auth
+  supabase_flutter: ^1.10.25
+  google_sign_in: ^6.2.1
+  
+  # 🌐 Web & OAuth
+  webview_flutter: ^4.4.2
+  http: ^1.1.0
+  
+  # 💾 Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.1
+  
+  # 🛠️ Utilities
+  intl: ^0.18.1
   cupertino_icons: ^1.0.6
-
-  http: ^1.1.0                # To talk to the Open Food Facts API
-  hive: ^2.2.3                # The Database
-  hive_flutter: ^1.1.0        # Hive helpers for Flutter
-  path_provider: ^2.1.1       # To find where to save the DB on the phone
-  intl: ^0.18.1               # For date formatting
 
 dev_dependencies:
   flutter_test:
@@ -44,16 +49,15 @@ flutter:
   uses-material-design: true
 
   assets:
-    # From Atharva's Repo
     - assets/backgrounds/
     - assets/icons/
     - assets/models/
     - assets/backgrounds/cosarc_intro.mp4
     
-# 🎯 LAUNCHER ICON CONFIG (FIXED!)
-flutter_launcher_icons:  # ← CHANGED from flutter_icons
+# 🎯 LAUNCHER ICON CONFIG
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/icon_grey.png"  # ← CHANGED to relative path
+  image_path: "assets/icons/icon_grey.png"
   adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/icons/icon_grey.png"  # ← ADDED this
+  adaptive_icon_foreground: "assets/icons/icon_grey.png"

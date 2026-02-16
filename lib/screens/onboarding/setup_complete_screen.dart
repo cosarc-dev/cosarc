@@ -15,14 +15,15 @@ class _SetupCompleteScreenState extends State<SetupCompleteScreen> {
   void initState() {
     super.initState();
 
-    // show success briefly, then go to dashboard
     Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const DashboardRoot(),
-        ),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const DashboardRoot(),
+          ),
+        );
+      }
     });
   }
 
