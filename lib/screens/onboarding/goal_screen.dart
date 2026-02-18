@@ -6,10 +6,10 @@ class GoalScreen extends StatefulWidget {
   const GoalScreen({super.key});
 
   @override
-  State<GoalScreen> createState() => _GoalScreenState();
+  State<GoalScreen> createState() => GoalScreenState();
 }
 
-class _GoalScreenState extends State<GoalScreen> {
+class GoalScreenState extends State<GoalScreen> {
   String selected = '';
 
   Widget goal(String text) {

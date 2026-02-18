@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/supabase_config.dart';
@@ -53,23 +54,61 @@ class AuthService {
   }
 
   Future<bool> signInWithGoogle() async {
-    try {
-      print('🔵 Starting Google Sign-In...');
+    if (kIsWeb) {
+      return await signInWithGoogleWeb();
+    }
+    return await signInWithGoogleNative();
+  }
 
-      // Clear any existing session
+  Future<bool> signInWithGoogleWeb() async {
+    try {
+      print('🔵 Starting Google OAuth (Web)...');
+
+      // Get current URL for redirect
+      final currentUrl = Uri.base.toString();
+      print('🔵 Current URL: $currentUrl');
+
+      // Start OAuth flow
+      await supabase.auth.signInWithOAuth(
+        Provider.google,
+        redirectTo: currentUrl,
+        authScreenLaunchMode: LaunchMode.platformDefault,
+      );
+
+      // Wait a moment for redirect to complete
+      await Future.delayed(Duration(seconds: 1));
+
+      // Check if user is now logged in
+      final session = supabase.auth.currentSession;
+      if (session != null) {
+        print('✅ Session found after OAuth');
+        await _ensureMemberExists();
+        return true;
+      }
+
+      print('⚠️ No session yet, user will be redirected');
+      return true;
+    } catch (e) {
+      print('❌ Google OAuth error: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> signInWithGoogleNative() async {
+    try {
+      print('🔵 Starting Google Sign-In (Native)...');
+
       await _googleSignIn.signOut();
 
-      // Start sign-in flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        print('⚠️ User cancelled sign-in');
+        print('⚠️ User cancelled');
         return false;
       }
 
-      print('✅ Google account selected: ${googleUser.email}');
+      print('✅ Google user: ${googleUser.email}');
 
-      // Get authentication tokens
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
@@ -77,73 +116,67 @@ class AuthService {
       final idToken = googleAuth.idToken;
 
       if (accessToken == null || idToken == null) {
-        print('❌ Missing authentication tokens');
-        throw Exception('Failed to get authentication tokens from Google');
+        throw Exception('Missing tokens');
       }
 
-      print('🔵 Tokens received, authenticating with Supabase...');
-      print('Access Token: ${accessToken.substring(0, 20)}...');
-      print('ID Token: ${idToken.substring(0, 20)}...');
-
-      // Authenticate with Supabase
       final response = await supabase.auth.signInWithIdToken(
         provider: Provider.google,
         idToken: idToken,
         accessToken: accessToken,
       );
 
-      if (response.user == null) {
-        throw Exception('Failed to create Supabase session');
+      if (response.user != null) {
+        await _ensureMemberExists();
+        return true;
       }
 
-      print('✅ Supabase session created for: ${response.user!.email}');
+      return false;
+    } catch (e) {
+      print('❌ Native Google error: $e');
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+      rethrow;
+    }
+  }
 
-      // Check if member record exists
+  Future<void> _ensureMemberExists() async {
+    if (!isLoggedIn) return;
+
+    try {
+      final user = currentUser!;
+
       final existingMember = await supabase
           .from('members')
-          .select('id, age')
-          .eq('auth_user_id', response.user!.id)
+          .select('id')
+          .eq('auth_user_id', user.id)
           .maybeSingle();
 
       if (existingMember == null) {
-        print('🔵 Creating new member record...');
+        print('🔵 Creating member for OAuth user');
 
         await supabase.from('members').insert({
-          'auth_user_id': response.user!.id,
-          'email': response.user!.email,
-          'name': googleUser.displayName ??
-              response.user!.email?.split('@')[0] ??
+          'auth_user_id': user.id,
+          'email': user.email,
+          'name': user.userMetadata?['full_name'] ??
+              user.email?.split('@')[0] ??
               'User',
         });
 
         final member = await supabase
             .from('members')
             .select('id')
-            .eq('auth_user_id', response.user!.id)
+            .eq('auth_user_id', user.id)
             .single();
 
         await supabase.from('streaks').insert({
           'member_id': member['id'],
         });
 
-        print('✅ New member record created');
-      } else {
-        print('✅ Existing member found');
+        print('✅ Member created');
       }
-
-      return true;
-    } catch (e, stackTrace) {
-      print('❌ Google sign-in error: $e');
-      print('Stack trace: $stackTrace');
-
-      // Clean up on error
-      try {
-        await _googleSignIn.signOut();
-      } catch (cleanupError) {
-        print('⚠️ Cleanup failed: $cleanupError');
-      }
-
-      rethrow;
+    } catch (e) {
+      print('❌ Error ensuring member: $e');
     }
   }
 
@@ -158,11 +191,8 @@ class AuthService {
           .single();
 
       final age = member['age'];
-      bool needs = age == null || age == 0;
-      print('🔵 User needs onboarding: $needs');
-      return needs;
+      return age == null || age == 0;
     } catch (e) {
-      print('❌ Error checking onboarding status: $e');
       return true;
     }
   }
@@ -172,17 +202,12 @@ class AuthService {
     required String password,
   }) async {
     try {
-      print('🔵 Signing in: $email');
-
       final response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-
-      print('✅ Login successful');
       return response;
     } catch (e) {
-      print('❌ Login error: $e');
       rethrow;
     }
   }
@@ -190,10 +215,9 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await supabase.auth.signOut();
-      await _googleSignIn.signOut();
-      print('✅ Signed out');
+      if (!kIsWeb) await _googleSignIn.signOut();
     } catch (e) {
-      print('❌ Signout error: $e');
+      print('Signout error: $e');
     }
   }
 
@@ -201,10 +225,7 @@ class AuthService {
   bool get isLoggedIn => currentUser != null;
 
   Future<String?> getMemberId() async {
-    if (!isLoggedIn) {
-      print('❌ No user logged in');
-      return null;
-    }
+    if (!isLoggedIn) return null;
 
     try {
       final data = await supabase
@@ -212,8 +233,6 @@ class AuthService {
           .select('id')
           .eq('auth_user_id', currentUser!.id)
           .single();
-
-      print('✅ Member ID: ${data['id']}');
       return data['id'];
     } catch (e) {
       print('❌ Error getting member ID: $e');
