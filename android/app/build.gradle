@@ -6,23 +6,23 @@ plugins {
 
 android {
     namespace "com.example.cosarc"
-    compileSdkVersion 34
+    compileSdk 34
     
     // Explicitly setting the NDK version stops the red [CXX] warnings
     ndkVersion "23.1.7779620"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '1.8'
     }
 
     defaultConfig {
         applicationId "com.example.cosarc"
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 34
         
         // This MUST be hardcoded to fix the "versionCode not found" error
