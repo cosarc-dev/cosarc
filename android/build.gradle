@@ -33,28 +33,21 @@ subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
             project.android {
-                // 1. Force SDK 34
-                compileSdkVersion 34
-                defaultConfig {
-                    minSdkVersion 24
-                    targetSdkVersion 34
-                }
-
-                // 2. Fix Namespace Error for Unity Widget
+                // 1. Fix Namespace Error: Match the package name from the error log
                 if (namespace == null) {
                     if (project.name == "flutter_unity_widget") {
-                        namespace "com.rexraphael.flutterunitywidget"
+                        namespace "com.xraph.plugin.flutter_unity_widget"
                     }
                 }
 
-                // 3. Force Java 17 compatibility
+                // 2. Force Java 17 (Required for your project)
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17
                 }
             }
             
-            // 4. Force Kotlin 17 compatibility
+            // 3. Force Kotlin 17
             project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
                 kotlinOptions {
                     jvmTarget = "17"
