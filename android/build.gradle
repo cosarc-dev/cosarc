@@ -1,12 +1,11 @@
 buildscript {
-    ext.kotlin_version = '1.9.0'
+    ext.kotlin_version = '1.8.22'
     repositories {
         google()
         mavenCentral()
     }
-
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath 'com.android.tools.build:gradle:8.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -15,31 +14,59 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url "https://storage.googleapis.com/download.flutter.io" }
+        
+        // This allows the Widget to find the unity-classes.jar without us adding it twice
+        flatDir {
+            dirs "${rootDir}/unityLibrary/libs"
+        }
     }
 }
 
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-    
-    // FORCE ALL SUBPROJECTS TO USE JAVA 1.8
-    afterEvaluate {
+}
+
+// --- MASTER FIX FOR ALL PLUGINS ---
+subprojects {
+    afterEvaluate { project ->
         if (project.hasProperty("android")) {
-            android {
-                compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_1_8
-                    targetCompatibility JavaVersion.VERSION_1_8
+            project.android {
+                // 1. Force SDK 34
+                compileSdkVersion 34
+                defaultConfig {
+                    minSdkVersion 24
+                    targetSdkVersion 34
                 }
-                
-                // For Kotlin projects
-                tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-                    kotlinOptions {
-                        jvmTarget = "1.8"
+
+                // 2. Fix Namespace Error for Unity Widget
+                if (namespace == null) {
+                    if (project.name == "flutter_unity_widget") {
+                        namespace "com.rexraphael.flutterunitywidget"
                     }
+                }
+
+                // 3. Force Java 17 compatibility
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+            
+            // 4. Force Kotlin 17 compatibility
+            project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    jvmTarget = "17"
                 }
             }
         }
     }
+}
+// ----------------------------------
+
+subprojects {
+    project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
