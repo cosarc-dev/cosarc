@@ -6,10 +6,10 @@ class ActivityLevelScreen extends StatefulWidget {
   const ActivityLevelScreen({super.key});
 
   @override
-  State<ActivityLevelScreen> createState() => _ActivityLevelScreenState();
+  State<ActivityLevelScreen> createState() => ActivityLevelScreenState();
 }
 
-class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
+class ActivityLevelScreenState extends State<ActivityLevelScreen> {
   String selected = '';
 
   Widget block({
@@ -58,14 +58,12 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // 🔝 SCROLLABLE CONTENT
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
                 const SizedBox(height: 16),
-
                 const Text(
                   "How active are you?",
                   style: TextStyle(
@@ -75,11 +73,9 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 32),
-
                 GridView.count(
-                  shrinkWrap: true, // 🔥 IMPORTANT
+                  shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
@@ -104,16 +100,11 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
               ],
             ),
           ),
         ),
-
-        // 🔽 NOTE:
-        // The Continue button is handled by OnboardingWrapper
-        // DO NOT add it here
       ],
     );
   }

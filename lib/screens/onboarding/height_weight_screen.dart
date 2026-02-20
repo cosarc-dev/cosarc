@@ -6,10 +6,10 @@ class HeightWeightScreen extends StatefulWidget {
   const HeightWeightScreen({super.key});
 
   @override
-  State<HeightWeightScreen> createState() => _HeightWeightScreenState();
+  State<HeightWeightScreen> createState() => HeightWeightScreenState();
 }
 
-class _HeightWeightScreenState extends State<HeightWeightScreen> {
+class HeightWeightScreenState extends State<HeightWeightScreen> {
   bool isFtKg = true;
 
   final heightController = TextEditingController(text: "5.8");
@@ -81,7 +81,6 @@ class _HeightWeightScreenState extends State<HeightWeightScreen> {
           style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
-
         ToggleButtons(
           isSelected: [isFtKg, !isFtKg],
           borderRadius: BorderRadius.circular(20),
@@ -100,9 +99,7 @@ class _HeightWeightScreenState extends State<HeightWeightScreen> {
             ),
           ],
         ),
-
         const SizedBox(height: 32),
-
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(

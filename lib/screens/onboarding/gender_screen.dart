@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 const Color cosarcPink = Color(0xFFE91E63);
 
 class GenderScreen extends StatefulWidget {
-  const GenderScreen({super.key});
+  final void Function(String gender)? onChanged;
+  const GenderScreen({super.key, this.onChanged});
 
   @override
-  State<GenderScreen> createState() => _GenderScreenState();
+  State<GenderScreen> createState() => GenderScreenState();
 }
 
-class _GenderScreenState extends State<GenderScreen> {
+class GenderScreenState extends State<GenderScreen> {
   String selected = '';
 
   Widget option(String label, IconData icon) {
     final isSelected = selected == label;
     return GestureDetector(
-      onTap: () => setState(() => selected = label),
+      onTap: () {
+        setState(() => selected = label);
+        widget.onChanged?.call(label);
+      },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         padding: const EdgeInsets.all(18),

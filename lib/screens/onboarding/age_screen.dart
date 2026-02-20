@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 const Color cosarcPink = Color(0xFFE91E63);
 
 class AgeScreen extends StatefulWidget {
-  const AgeScreen({super.key});
+  final void Function(int age)? onChanged;
+  const AgeScreen({super.key, this.onChanged});
 
   @override
-  State<AgeScreen> createState() => _AgeScreenState();
+  State<AgeScreen> createState() => AgeScreenState();
 }
 
-class _AgeScreenState extends State<AgeScreen> {
+class AgeScreenState extends State<AgeScreen> {
   double age = 18;
 
   @override
@@ -36,11 +37,14 @@ class _AgeScreenState extends State<AgeScreen> {
         ),
         Slider(
           value: age,
-          min: 5,          // ✅ changed
-          max: 100,        // ✅ changed
+          min: 5,
+          max: 100,
           divisions: 95,
           activeColor: cosarcPink,
-          onChanged: (v) => setState(() => age = v),
+          onChanged: (v) {
+            setState(() => age = v);
+            widget.onChanged?.call(v.toInt());
+          },
         ),
       ],
     );

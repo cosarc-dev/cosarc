@@ -7,10 +7,10 @@ class TrainingFrequencyScreen extends StatefulWidget {
 
   @override
   State<TrainingFrequencyScreen> createState() =>
-      _TrainingFrequencyScreenState();
+      TrainingFrequencyScreenState();
 }
 
-class _TrainingFrequencyScreenState extends State<TrainingFrequencyScreen> {
+class TrainingFrequencyScreenState extends State<TrainingFrequencyScreen> {
   double days = 3;
 
   String getEmoji() {

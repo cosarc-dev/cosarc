@@ -7,10 +7,10 @@ class WorkoutPreferenceScreen extends StatefulWidget {
 
   @override
   State<WorkoutPreferenceScreen> createState() =>
-      _WorkoutPreferenceScreenState();
+      WorkoutPreferenceScreenState();
 }
 
-class _WorkoutPreferenceScreenState extends State<WorkoutPreferenceScreen> {
+class WorkoutPreferenceScreenState extends State<WorkoutPreferenceScreen> {
   String selected = '';
 
   Widget option(String text, IconData icon) {

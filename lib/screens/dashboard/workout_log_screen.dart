@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
+import '../../services/auth_service.dart';
+import '../../core/supabase_config.dart';
 
 const Color cosarcPink = Color(0xFFE91E63);
 
@@ -12,15 +14,33 @@ class WorkoutLogScreen extends StatefulWidget {
 
 class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   UnityWidgetController? _unityController;
-  
+  final _authService = AuthService();
+  String? _memberId;
+
   Set<String> selectedMuscles = {};
   final TextEditingController _notesController = TextEditingController();
   double _duration = 30;
   double _intensity = 50;
 
   final List<String> muscleGroups = [
-    'Abs', 'Arms', 'Back', 'Chest', 'Legs', 'Shoulders', 'Traps'
+    'Abs',
+    'Arms',
+    'Back',
+    'Chest',
+    'Legs',
+    'Shoulders',
+    'Traps'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMemberId();
+  }
+
+  Future<void> _loadMemberId() async {
+    _memberId = await _authService.getMemberId();
+  }
 
   @override
   void dispose() {
@@ -40,7 +60,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
         selectedMuscles.add(muscle);
       }
     });
-    
+
     if (_unityController != null) {
       _unityController!.postMessage(
         'FlutterCommunication',
@@ -57,7 +77,8 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   }
 
   bool get _canSubmit {
-    return selectedMuscles.isNotEmpty && _notesController.text.trim().isNotEmpty;
+    return selectedMuscles.isNotEmpty &&
+        _notesController.text.trim().isNotEmpty;
   }
 
   @override
@@ -66,15 +87,12 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Unity 3D Model - FULL SCREEN - FULL BODY VISIBLE
           Positioned.fill(
             child: UnityWidget(
               onUnityCreated: _onUnityCreated,
               fullscreen: false,
             ),
           ),
-          
-          // UI Overlays
           SafeArea(
             child: Column(
               children: [
@@ -135,12 +153,11 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   }
 
   Widget _buildBottomSheet() {
-    // FIXED: Constrained height with SingleChildScrollView for scrolling
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Container(
       constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.25, // 55% of screen
+        maxHeight: screenHeight * 0.35, // 55% of screen
       ),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.95),
@@ -155,7 +172,6 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
           const SizedBox(height: 12),
           Container(
             width: 40,
@@ -166,8 +182,6 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          
-          // Scrollable content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -175,37 +189,23 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Target Muscles
                   _buildSectionTitle('Target Muscles'),
                   const SizedBox(height: 12),
                   _buildMuscleSelector(),
-                  
                   const SizedBox(height: 20),
-                  
-                  // Notes
                   _buildSectionTitle('What did you do?'),
                   const SizedBox(height: 12),
                   _buildNotesField(),
-                  
                   const SizedBox(height: 20),
-                  
-                  // Duration
                   _buildSectionTitle('Duration'),
                   const SizedBox(height: 12),
                   _buildDurationSlider(),
-                  
                   const SizedBox(height: 20),
-                  
-                  // Intensity
                   _buildSectionTitle('Intensity'),
                   const SizedBox(height: 12),
                   _buildIntensitySlider(),
-                  
                   const SizedBox(height: 24),
-                  
-                  // Submit button
                   _buildSubmitButton(),
-                  
                   const SizedBox(height: 16),
                 ],
               ),
@@ -239,14 +239,12 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected 
+              color: isSelected
                   ? cosarcPink.withOpacity(0.2)
                   : Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected 
-                    ? cosarcPink 
-                    : Colors.white.withOpacity(0.1),
+                color: isSelected ? cosarcPink : Colors.white.withOpacity(0.1),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -412,7 +410,45 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _canSubmit ? () => Navigator.pop(context, true) : null,
+        onTap: _canSubmit
+            ? () async {
+                if (_memberId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please login first')),
+                  );
+                  return;
+                }
+
+                try {
+                  await supabase.from('workout_logs').insert({
+                    'member_id': _memberId,
+                    'workout_date':
+                        DateTime.now().toIso8601String().split('T')[0],
+                    'target_muscles': selectedMuscles.toList(),
+                    'exercises': _notesController.text,
+                    'duration_minutes': _duration.toInt(),
+                    'intensity': _intensity.toInt(),
+                  });
+
+                  final today = DateTime.now().toIso8601String().split('T')[0];
+                  await supabase
+                      .from('daily_contracts')
+                      .update({'workout_completed': true})
+                      .eq('member_id', _memberId!)
+                      .eq('contract_date', today);
+
+                  await supabase.rpc('calculate_streak',
+                      params: {'p_member_id': _memberId});
+
+                  if (mounted) Navigator.pop(context, true);
+                } catch (e) {
+                  print('Error logging workout: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            : null,
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
@@ -441,7 +477,8 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: _canSubmit ? Colors.white : Colors.white.withOpacity(0.3),
+                color:
+                    _canSubmit ? Colors.white : Colors.white.withOpacity(0.3),
                 letterSpacing: 0.5,
               ),
             ),

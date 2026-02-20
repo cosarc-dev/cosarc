@@ -11,3 +11,7 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Force Git to track Unity Library files
+!android/unityLibrary/libs/*.jar
+!android/unityLibrary/src/main/jniLibs/**/*.so
+!android/unityLibrary/src/main/Il2CppOutputProject

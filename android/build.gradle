@@ -1,7 +1,25 @@
+buildscript {
+    ext.kotlin_version = '1.8.22'
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url "https://storage.googleapis.com/download.flutter.io" }
+        
+        // This allows the Widget to find the unity-classes.jar without us adding it twice
+        flatDir {
+            dirs "${rootDir}/unityLibrary/libs"
+        }
     }
 }
 
@@ -10,23 +28,35 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
+// --- MASTER FIX FOR ALL PLUGINS ---
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
             project.android {
-                compileSdkVersion 34
-                namespace = (project.name == "flutter_unity_widget") ? 
-                            "com.xraph.plugin.flutter_unity_widget" : 
-                            (namespace ?: "com.plugin.${project.name.replaceAll("-", "_")}")
+                // 1. Fix Namespace Error: Match the package name from the error log
+                if (namespace == null) {
+                    if (project.name == "flutter_unity_widget") {
+                        namespace "com.xraph.plugin.flutter_unity_widget"
+                    }
+                }
 
+                // 2. Force Java 17 (Required for your project)
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17
                 }
             }
+            
+            // 3. Force Kotlin 17
+            project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    jvmTarget = "17"
+                }
+            }
         }
     }
 }
+// ----------------------------------
 
 subprojects {
     project.evaluationDependsOn(':app')

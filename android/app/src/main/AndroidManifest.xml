@@ -2,18 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:label="cosarc"
+        android:label="cosarc_shell"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:extractNativeLibs="true"
-        android:allowBackup="false"
-        android:supportsRtl="true"
-        android:theme="@style/LaunchTheme"
-        tools:replace="android:label,android:icon,android:allowBackup,android:supportsRtl">
+        android:icon="@mipmap/ic_launcher">
         
+        <!-- Flutter Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -30,6 +25,18 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+
+        <!-- UNITY ACTIVITY (Override Configuration) -->
+        <!-- This block forces Android to use YOUR settings, preventing merge crashes -->
+        <activity
+            android:name="com.unity3d.player.UnityPlayerActivity"
+            android:theme="@style/UnityThemeSelector"
+            android:screenOrientation="fullSensor"
+            android:launchMode="singleTask"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+            android:hardwareAccelerated="true"
+            tools:replace="android:hardwareAccelerated,android:screenOrientation,android:launchMode">
         </activity>
 
         <meta-data
