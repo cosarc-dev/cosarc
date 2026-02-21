@@ -16,7 +16,7 @@ allprojects {
         mavenCentral()
         maven { url "https://storage.googleapis.com/download.flutter.io" }
         
-        // This allows the Widget to find the unity-classes.jar without us adding it twice
+        // Allow finding the Unity jar file
         flatDir {
             dirs "${rootDir}/unityLibrary/libs"
         }
@@ -28,26 +28,35 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
-// --- MASTER FIX FOR ALL PLUGINS ---
+// --- MASTER FIX ---
+// This forces ALL plugins (including the hidden Apple one inside Supabase) 
+// to use the correct Android SDK version so they don't crash.
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
             project.android {
-                // 1. Fix Namespace Error: Match the package name from the error log
+                // 1. Force SDK 34 (Fixes 'Java 9+' errors in old plugins)
+                compileSdkVersion 34
+                defaultConfig {
+                    minSdkVersion 24
+                    targetSdkVersion 34
+                }
+
+                // 2. Fix Namespace for Unity Widget
                 if (namespace == null) {
                     if (project.name == "flutter_unity_widget") {
                         namespace "com.xraph.plugin.flutter_unity_widget"
                     }
                 }
 
-                // 2. Force Java 17 (Required for your project)
+                // 3. Force Java 17
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17
                 }
             }
             
-            // 3. Force Kotlin 17
+            // 4. Force Kotlin 17
             project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
                 kotlinOptions {
                     jvmTarget = "17"
@@ -56,7 +65,7 @@ subprojects {
         }
     }
 }
-// ----------------------------------
+// ------------------
 
 subprojects {
     project.evaluationDependsOn(':app')

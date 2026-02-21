@@ -19,6 +19,8 @@ dependencies:
   video_player: ^2.8.2
   
   # 🔐 Backend & Auth
+  # We removed the explicit 'sign_in_with_apple' to stop the conflict.
+  # Supabase handles its own dependencies now.
   supabase_flutter: ^1.10.25
   google_sign_in: ^6.2.1
   
