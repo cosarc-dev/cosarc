@@ -43,7 +43,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
         VideoPlayerController.asset('assets/backgrounds/cosarc_intro.mp4')
           ..setLooping(true)
           ..setVolume(0)
-          ..initialize().then((_) {
+          ..initialize().timeout(const Duration(seconds: 6)).then((_) {
             if (mounted) {
               _controller.play();
               setState(() {});
@@ -67,34 +67,39 @@ class _CosmosScreenState extends State<CosmosScreen> {
           .select()
           .eq('member_id', _memberId!)
           .eq('contract_date', today)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (contract == null) {
         await supabase.from('daily_contracts').insert({
           'member_id': _memberId,
           'contract_date': today,
-        });
+        }).timeout(const Duration(seconds: 10));
         contract = await supabase
             .from('daily_contracts')
             .select()
             .eq('member_id', _memberId!)
             .eq('contract_date', today)
-            .single();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
       }
 
       var streak = await supabase
           .from('streaks')
           .select()
           .eq('member_id', _memberId!)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (streak == null) {
-        await supabase.from('streaks').insert({'member_id': _memberId});
+        await supabase.from('streaks').insert({'member_id': _memberId}).timeout(
+            const Duration(seconds: 10));
         streak = await supabase
             .from('streaks')
             .select()
             .eq('member_id', _memberId!)
-            .single();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
       }
 
       if (mounted) {
@@ -358,8 +363,11 @@ class _CosmosScreenState extends State<CosmosScreen> {
         final newAmount = waterMl + 300;
 
         try {
-          await supabase.from('daily_contracts').update(
-              {'water_intake_ml': newAmount}).eq('id', _todayContract!['id']);
+          await supabase
+              .from('daily_contracts')
+              .update({'water_intake_ml': newAmount})
+              .eq('id', _todayContract!['id'])
+              .timeout(const Duration(seconds: 10));
 
           await _loadData();
         } catch (e) {

@@ -157,16 +157,20 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
       print('🔵 Member ID: $memberId');
 
       // Save to database
-      await supabase.from('members').update({
-        'gender': _userData['gender'],
-        'age': _userData['age'],
-        'height': _userData['height'],
-        'weight': _userData['weight'],
-        'workout_preference': _userData['workout_preference'],
-        'activity_level': _userData['activity_level'],
-        'training_frequency': _userData['training_frequency'],
-        'fitness_goal': _userData['fitness_goal'],
-      }).eq('id', memberId);
+      await supabase
+          .from('members')
+          .update({
+            'gender': _userData['gender'],
+            'age': _userData['age'],
+            'height': _userData['height'],
+            'weight': _userData['weight'],
+            'workout_preference': _userData['workout_preference'],
+            'activity_level': _userData['activity_level'],
+            'training_frequency': _userData['training_frequency'],
+            'fitness_goal': _userData['fitness_goal'],
+          })
+          .eq('id', memberId)
+          .timeout(const Duration(seconds: 10));
 
       print('✅ Data saved to database!');
 

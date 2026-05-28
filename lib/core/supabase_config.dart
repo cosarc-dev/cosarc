@@ -1,16 +1,31 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseConfig {
-  static const String supabaseUrl = 'https://fqtwwcvwewwvqbvxetww.supabase.co';
+  static const String supabaseUrl = 'https://ndwwizuoqlwkpkilcybe.supabase.co';
   static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxdHd3Y3Z3ZXd3dnFidnhldHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMjg1NjQsImV4cCI6MjA4NjcwNDU2NH0.QAqFJWrNvQEIOu5fiLRSVR45idQWjKwSOP2KnyGPIGI';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kd3dpenVvcWx3a3BraWxjeWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTQ3MjQsImV4cCI6MjA5NDU3MDcyNH0.tvjbmhABbQnD799Eh1r9eXpVwgJRG5yIJM5AWvlSg6M';
+
+  static bool _isInitialized = false;
+  static Object? _lastError;
+
+  static bool get isInitialized => _isInitialized;
+  static Object? get lastError => _lastError;
 
   static Future<void> initialize() async {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-    );
+    if (_isInitialized) return;
+
+    try {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+      ).timeout(const Duration(seconds: 12));
+      _isInitialized = true;
+      _lastError = null;
+    } catch (error) {
+      _lastError = error;
+      rethrow;
+    }
   }
 }
 
-final supabase = Supabase.instance.client;
+SupabaseClient get supabase => Supabase.instance.client;

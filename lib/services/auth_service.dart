@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -18,10 +17,12 @@ class AuthService {
     try {
       print('🔵 Starting signup for: $email');
 
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
+      final response = await supabase.auth
+          .signUp(
+            email: email,
+            password: password,
+          )
+          .timeout(const Duration(seconds: 20));
 
       if (response.user == null) {
         throw Exception('Failed to create user account');
@@ -33,17 +34,22 @@ class AuthService {
         'auth_user_id': response.user!.id,
         'email': email,
         'name': name,
-      });
+      }).timeout(const Duration(seconds: 10));
 
       final member = await supabase
           .from('members')
           .select('id')
           .eq('auth_user_id', response.user!.id)
-          .single();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
+
+      if (member == null) {
+        throw Exception('Member record was not created');
+      }
 
       await supabase.from('streaks').insert({
         'member_id': member['id'],
-      });
+      }).timeout(const Duration(seconds: 10));
 
       print('✅ Signup complete!');
       return response;
@@ -69,14 +75,16 @@ class AuthService {
       print('🔵 Current URL: $currentUrl');
 
       // Start OAuth flow
-      await supabase.auth.signInWithOAuth(
-        Provider.google,
-        redirectTo: currentUrl,
-        authScreenLaunchMode: LaunchMode.platformDefault,
-      );
+      await supabase.auth
+          .signInWithOAuth(
+            Provider.google,
+            redirectTo: currentUrl,
+            authScreenLaunchMode: LaunchMode.platformDefault,
+          )
+          .timeout(const Duration(seconds: 20));
 
       // Wait a moment for redirect to complete
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
 
       // Check if user is now logged in
       final session = supabase.auth.currentSession;
@@ -119,11 +127,13 @@ class AuthService {
         throw Exception('Missing tokens');
       }
 
-      final response = await supabase.auth.signInWithIdToken(
-        provider: Provider.google,
-        idToken: idToken,
-        accessToken: accessToken,
-      );
+      final response = await supabase.auth
+          .signInWithIdToken(
+            provider: Provider.google,
+            idToken: idToken,
+            accessToken: accessToken,
+          )
+          .timeout(const Duration(seconds: 20));
 
       if (response.user != null) {
         await _ensureMemberExists();
@@ -150,7 +160,8 @@ class AuthService {
           .from('members')
           .select('id')
           .eq('auth_user_id', user.id)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (existingMember == null) {
         print('🔵 Creating member for OAuth user');
@@ -161,17 +172,22 @@ class AuthService {
           'name': user.userMetadata?['full_name'] ??
               user.email?.split('@')[0] ??
               'User',
-        });
+        }).timeout(const Duration(seconds: 10));
 
         final member = await supabase
             .from('members')
             .select('id')
             .eq('auth_user_id', user.id)
-            .single();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
+
+        if (member == null) {
+          throw Exception('Member record was not created');
+        }
 
         await supabase.from('streaks').insert({
           'member_id': member['id'],
-        });
+        }).timeout(const Duration(seconds: 10));
 
         print('✅ Member created');
       }
@@ -188,7 +204,10 @@ class AuthService {
           .from('members')
           .select('age')
           .eq('auth_user_id', currentUser!.id)
-          .single();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
+
+      if (member == null) return true;
 
       final age = member['age'];
       return age == null || age == 0;
@@ -202,10 +221,12 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final response = await supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+      final response = await supabase.auth
+          .signInWithPassword(
+            email: email,
+            password: password,
+          )
+          .timeout(const Duration(seconds: 20));
       return response;
     } catch (e) {
       rethrow;
@@ -214,7 +235,7 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut().timeout(const Duration(seconds: 10));
       if (!kIsWeb) await _googleSignIn.signOut();
     } catch (e) {
       print('Signout error: $e');
@@ -232,7 +253,9 @@ class AuthService {
           .from('members')
           .select('id')
           .eq('auth_user_id', currentUser!.id)
-          .single();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
+      if (data == null) return null;
       return data['id'];
     } catch (e) {
       print('❌ Error getting member ID: $e');

@@ -32,14 +32,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return;
       }
 
-      final member =
-          await supabase.from('members').select().eq('id', memberId).single();
+      final member = await supabase
+          .from('members')
+          .select()
+          .eq('id', memberId)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       final streak = await supabase
           .from('streaks')
           .select()
           .eq('member_id', memberId)
-          .single();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (mounted) {
         setState(() {

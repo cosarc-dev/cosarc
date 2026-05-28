@@ -428,24 +428,29 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
                     'exercises': _notesController.text,
                     'duration_minutes': _duration.toInt(),
                     'intensity': _intensity.toInt(),
-                  });
+                  }).timeout(const Duration(seconds: 10));
 
                   final today = DateTime.now().toIso8601String().split('T')[0];
                   await supabase
                       .from('daily_contracts')
                       .update({'workout_completed': true})
                       .eq('member_id', _memberId!)
-                      .eq('contract_date', today);
+                      .eq('contract_date', today)
+                      .timeout(const Duration(seconds: 10));
 
                   await supabase.rpc('calculate_streak',
-                      params: {'p_member_id': _memberId});
+                      params: {'p_member_id': _memberId}).timeout(
+                    const Duration(seconds: 10),
+                  );
 
                   if (mounted) Navigator.pop(context, true);
                 } catch (e) {
                   print('Error logging workout: $e');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
                 }
               }
             : null,

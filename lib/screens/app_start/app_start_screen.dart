@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../../core/supabase_config.dart';
+import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import '../dashboard/dashboard_root.dart';
+import '../onboarding/onboarding_wrapper.dart';
 
 class AppStartScreen extends StatefulWidget {
   const AppStartScreen({super.key});
@@ -11,6 +15,7 @@ class AppStartScreen extends StatefulWidget {
 
 class _AppStartScreenState extends State<AppStartScreen> {
   VideoPlayerController? _controller;
+  final AuthService _authService = AuthService();
   bool _navigated = false;
 
   @override
@@ -25,30 +30,51 @@ class _AppStartScreenState extends State<AppStartScreen> {
         'assets/backgrounds/app_intro.mp4',
       );
 
-      await controller.initialize();
+      await controller.initialize().timeout(const Duration(seconds: 6));
 
       controller
         ..setVolume(0)
         ..play();
 
       _controller = controller;
-      setState(() {});
+      if (mounted) setState(() {});
 
-      // Navigate after video
-      Future.delayed(controller.value.duration, _goNext);
+      final duration = controller.value.duration;
+      final wait =
+          duration > Duration.zero && duration < const Duration(seconds: 8)
+              ? duration
+              : const Duration(seconds: 3);
+      Future.delayed(wait, _goNext);
     } catch (e) {
-      // VIDEO FAILED → still move forward
+      _controller?.dispose();
+      _controller = null;
       Future.delayed(const Duration(seconds: 2), _goNext);
     }
   }
 
-  void _goNext() {
+  Future<void> _goNext() async {
     if (!mounted || _navigated) return;
     _navigated = true;
 
+    Widget nextScreen = const LoginScreen();
+
+    if (SupabaseConfig.isInitialized && _authService.isLoggedIn) {
+      try {
+        final needsOnboarding = await _authService
+            .needsOnboarding()
+            .timeout(const Duration(seconds: 12));
+        nextScreen =
+            needsOnboarding ? const OnboardingWrapper() : const DashboardRoot();
+      } catch (e) {
+        debugPrint('Startup routing failed: $e');
+      }
+    }
+
+    if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => nextScreen),
     );
   }
 

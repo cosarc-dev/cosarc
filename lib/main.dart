@@ -13,17 +13,26 @@ import 'services/auth_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Hive.initFlutter();
+  try {
+    await Hive.initFlutter().timeout(const Duration(seconds: 8));
 
-  if (!Hive.isAdapterRegistered(0)) {
-    Hive.registerAdapter(FoodLogAdapter());
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(FoodLogAdapter());
+    }
+
+    if (!Hive.isBoxOpen('daily_logs')) {
+      await Hive.openBox<FoodLog>('daily_logs')
+          .timeout(const Duration(seconds: 8));
+    }
+  } catch (e) {
+    debugPrint('Hive startup failed: $e');
   }
 
-  if (!Hive.isBoxOpen('daily_logs')) {
-    await Hive.openBox<FoodLog>('daily_logs');
+  try {
+    await SupabaseConfig.initialize();
+  } catch (e) {
+    debugPrint('Supabase startup failed: $e');
   }
-
-  await SupabaseConfig.initialize();
 
   runApp(const CosarcApp());
 }
@@ -47,6 +56,8 @@ class _CosarcAppState extends State<CosarcApp> {
   }
 
   void _setupAuthListener() {
+    if (!SupabaseConfig.isInitialized) return;
+
     supabase.auth.onAuthStateChange.listen((data) async {
       if (_isHandlingAuth) return;
 
@@ -57,24 +68,25 @@ class _CosarcAppState extends State<CosarcApp> {
 
         print('🔵 Auth state changed - user logged in: ${session.user.email}');
 
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
 
         try {
           await _ensureMemberExists(session.user);
 
           final needsOnboarding = await _authService.needsOnboarding();
 
-          final context = navigatorKey.currentContext;
-          if (context != null && mounted) {
+          if (!mounted) return;
+          final navigator = navigatorKey.currentState;
+          if (navigator != null) {
             if (needsOnboarding) {
               print('🔵 Navigating to onboarding');
-              Navigator.of(context).pushAndRemoveUntil(
+              navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const OnboardingWrapper()),
                 (route) => false,
               );
             } else {
               print('🔵 Navigating to dashboard');
-              Navigator.of(context).pushAndRemoveUntil(
+              navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const DashboardRoot()),
                 (route) => false,
               );
@@ -95,7 +107,8 @@ class _CosarcAppState extends State<CosarcApp> {
           .from('members')
           .select('id')
           .eq('auth_user_id', user.id)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (existingMember == null) {
         print('🔵 Creating member record for OAuth user');
@@ -106,17 +119,22 @@ class _CosarcAppState extends State<CosarcApp> {
           'name': user.userMetadata?['full_name'] ??
               user.email?.split('@')[0] ??
               'User',
-        });
+        }).timeout(const Duration(seconds: 10));
 
         final member = await supabase
             .from('members')
             .select('id')
             .eq('auth_user_id', user.id)
-            .single();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
+
+        if (member == null) {
+          throw Exception('Member record was not created');
+        }
 
         await supabase.from('streaks').insert({
           'member_id': member['id'],
-        });
+        }).timeout(const Duration(seconds: 10));
 
         print('✅ Member record created');
       } else {
