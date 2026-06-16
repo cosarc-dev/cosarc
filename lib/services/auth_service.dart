@@ -1,9 +1,15 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/supabase_config.dart';
 import '../domain/onboarding/onboarding_profile.dart';
+import 'session_preferences.dart';
+
+enum TwoFactorMethod { totp, email, sms }
 
 class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -32,7 +38,6 @@ class AuthService {
       }
 
       await ensureMemberExists(user, fallbackName: name.trim());
-      debugPrint('Signup complete for $cleanEmail');
       return response;
     } catch (e) {
       debugPrint('Signup error: $e');
@@ -107,6 +112,98 @@ class AuthService {
       } catch (_) {}
       rethrow;
     }
+  }
+
+  bool get isAppleSignInAvailable {
+    if (kIsWeb) return false;
+    return Platform.isIOS || Platform.isMacOS;
+  }
+
+  Future<bool> signInWithApple() async {
+    if (!isAppleSignInAvailable) {
+      throw Exception('Apple Sign-In is only available on Apple devices.');
+    }
+
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        throw Exception('Apple Sign-In did not return an identity token.');
+      }
+
+      final response = await supabase.auth
+          .signInWithIdToken(
+            provider: Provider.apple,
+            idToken: idToken,
+          )
+          .timeout(const Duration(seconds: 20));
+
+      final user = response.user;
+      if (user == null) return false;
+
+      final fullName = [
+        credential.givenName,
+        credential.familyName,
+      ].where((part) => part != null && part.isNotEmpty).join(' ');
+
+      await ensureMemberExists(
+        user,
+        fallbackName: fullName.isNotEmpty ? fullName : null,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Apple sign-in error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> sendEmailOtp(String email, {bool shouldCreateUser = true}) async {
+    await supabase.auth.signInWithOtp(
+      email: email.trim(),
+      shouldCreateUser: shouldCreateUser,
+    ).timeout(const Duration(seconds: 20));
+  }
+
+  Future<void> sendPhoneOtp(String phone) async {
+    await supabase.auth.signInWithOtp(
+      phone: phone.trim(),
+      channel: OtpChannel.sms,
+    ).timeout(const Duration(seconds: 20));
+  }
+
+  Future<AuthResponse> verifyOtp({
+    String? email,
+    String? phone,
+    required String token,
+  }) async {
+    final response = await supabase.auth.verifyOTP(
+      type: email != null ? OtpType.email : OtpType.sms,
+      email: email?.trim(),
+      phone: phone?.trim(),
+      token: token.trim(),
+    ).timeout(const Duration(seconds: 20));
+
+    await ensureMemberExists(response.user);
+    return response;
+  }
+
+  Future<void> resetPassword(String email) async {
+    await supabase.auth.resetPasswordForEmail(
+      email.trim(),
+      redirectTo: kIsWeb ? Uri.base.toString() : null,
+    ).timeout(const Duration(seconds: 20));
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    await supabase.auth.updateUser(
+      UserAttributes(password: newPassword),
+    ).timeout(const Duration(seconds: 20));
   }
 
   Future<Map<String, dynamic>?> ensureMemberExists(
@@ -221,12 +318,84 @@ class AuthService {
         .timeout(const Duration(seconds: 20));
 
     await ensureMemberExists(response.user);
+
+    if (await SessionPreferences.instance.rememberMe) {
+      await SessionPreferences.instance.setRememberMe(
+        enabled: true,
+        email: email.trim(),
+      );
+    }
+
     return response;
   }
 
-  Future<void> signOut() async {
+  Future<bool> requiresMfaChallenge() async {
     try {
-      await supabase.auth.signOut().timeout(const Duration(seconds: 10));
+      final aal = supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      return aal.currentLevel == AuthenticatorAssuranceLevels.aal1 &&
+          aal.nextLevel == AuthenticatorAssuranceLevels.aal2;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<AuthMFAVerifyResponse> verifyMfaChallenge({
+    required String factorId,
+    required String code,
+  }) async {
+    final challenge = await supabase.auth.mfa.challenge(factorId: factorId);
+    return supabase.auth.mfa.verify(
+      factorId: factorId,
+      challengeId: challenge.id,
+      code: code.trim(),
+    );
+  }
+
+  Future<AuthMFAEnrollResponse> enrollTotp() async {
+    return supabase.auth.mfa.enroll(factorType: FactorType.totp);
+  }
+
+  Future<AuthMFAVerifyResponse> verifyTotpEnrollment({
+    required String factorId,
+    required String code,
+  }) async {
+    final challenge = await supabase.auth.mfa.challenge(factorId: factorId);
+    return supabase.auth.mfa.verify(
+      factorId: factorId,
+      challengeId: challenge.id,
+      code: code.trim(),
+    );
+  }
+
+  Future<void> unenrollFactor(String factorId) async {
+    await supabase.auth.mfa.unenroll(factorId);
+  }
+
+  Future<AuthMFAListFactorsResponse> listMfaFactors() async {
+    return supabase.auth.mfa.listFactors();
+  }
+
+  Future<TwoFactorMethod> getPreferredTwoFactorMethod() async {
+    final method = currentUser?.userMetadata?['preferred_2fa_method'] as String?;
+    return TwoFactorMethod.values.firstWhere(
+      (value) => value.name == method,
+      orElse: () => TwoFactorMethod.totp,
+    );
+  }
+
+  Future<void> setPreferredTwoFactorMethod(TwoFactorMethod method) async {
+    await supabase.auth.updateUser(
+      UserAttributes(
+        data: {'preferred_2fa_method': method.name},
+      ),
+    );
+  }
+
+  Future<void> signOut({bool everywhere = false}) async {
+    try {
+      await supabase.auth.signOut(
+        scope: everywhere ? SignOutScope.global : SignOutScope.local,
+      ).timeout(const Duration(seconds: 10));
       if (!kIsWeb) await _googleSignIn.signOut();
     } catch (e) {
       debugPrint('Signout error: $e');
@@ -235,6 +404,7 @@ class AuthService {
 
   User? get currentUser => supabase.auth.currentUser;
   bool get isLoggedIn => currentUser != null;
+  Session? get currentSession => supabase.auth.currentSession;
 
   Future<String?> getMemberId() async {
     if (!isLoggedIn) return null;
@@ -246,5 +416,25 @@ class AuthService {
       debugPrint('Error getting member ID: $e');
       return null;
     }
+  }
+
+  String friendlyAuthError(Object error) {
+    final message = error.toString().toLowerCase();
+    if (message.contains('invalid login credentials')) {
+      return 'Invalid email or password.';
+    }
+    if (message.contains('email not confirmed')) {
+      return 'Please confirm your email before signing in.';
+    }
+    if (message.contains('user already registered')) {
+      return 'An account with this email already exists.';
+    }
+    if (message.contains('network') || message.contains('socket')) {
+      return 'Network error. Check your connection and try again.';
+    }
+    if (message.contains('otp') || message.contains('token')) {
+      return 'Invalid or expired code. Request a new one.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 }
