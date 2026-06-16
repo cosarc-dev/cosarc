@@ -6,7 +6,9 @@ import '../../widgets/cosarc/cosarc_section.dart';
 import '../../services/auth_service.dart';
 import '../../core/supabase_config.dart';
 import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_motion.dart';
 import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_transitions.dart';
 import '../../core/theme/cosarc_typography.dart';
 import 'workout_log_screen.dart';
 import 'enhanced_nutrition_screen.dart';
@@ -121,6 +123,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
   int get waterMl => _todayContract?['water_intake_ml'] ?? 0;
   int get steps => _todayContract?['steps_count'] ?? 0;
   int get currentStreak => _streakData?['current_streak'] ?? 0;
+  int get longestStreak => _streakData?['longest_streak'] ?? 0;
 
   String get _greeting {
     final hour = DateTime.now().hour;
@@ -136,6 +139,91 @@ class _CosmosScreenState extends State<CosmosScreen> {
     if (waterMl >= waterTarget) count++;
     if (steps >= stepTarget) count++;
     return count;
+  }
+
+  Future<void> _addWater(int ml) async {
+    if (_isLoading || _todayContract == null) return;
+    try {
+      await supabase
+          .from('daily_contracts')
+          .update({'water_intake_ml': waterMl + ml})
+          .eq('id', _todayContract!['id'])
+          .timeout(const Duration(seconds: 10));
+      await _loadData();
+    } catch (e) {
+      debugPrint('Error updating water: $e');
+    }
+  }
+
+  Future<void> _logSteps(int count) async {
+    if (_isLoading || _todayContract == null) return;
+    try {
+      await supabase
+          .from('daily_contracts')
+          .update({'steps_count': count})
+          .eq('id', _todayContract!['id'])
+          .timeout(const Duration(seconds: 10));
+      await _loadData();
+    } catch (e) {
+      debugPrint('Error updating steps: $e');
+    }
+  }
+
+  void _showStepsSheet() {
+    final controller = TextEditingController(text: steps > 0 ? '$steps' : '');
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: CosarcGlass(
+          expand: true,
+          radius: CosarcSpacing.radiusXl,
+          margin: const EdgeInsets.all(CosarcSpacing.md),
+          padding: const EdgeInsets.all(CosarcSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Log steps', style: CosarcTypography.title(context)),
+              const SizedBox(height: CosarcSpacing.sm),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: CosarcTypography.metric(''),
+                decoration: InputDecoration(
+                  hintText: '10000',
+                  suffixText: 'steps',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(CosarcSpacing.radiusMd),
+                  ),
+                ),
+              ),
+              const SizedBox(height: CosarcSpacing.md),
+              Wrap(
+                spacing: CosarcSpacing.sm,
+                children: [
+                  _QuickStepChip(label: '+1k', onTap: () => controller.text = '${(int.tryParse(controller.text) ?? steps) + 1000}'),
+                  _QuickStepChip(label: '+2.5k', onTap: () => controller.text = '${(int.tryParse(controller.text) ?? steps) + 2500}'),
+                  _QuickStepChip(label: 'Goal', onTap: () => controller.text = '$stepTarget'),
+                ],
+              ),
+              const SizedBox(height: CosarcSpacing.lg),
+              FilledButton(
+                onPressed: () async {
+                  final value = int.tryParse(controller.text.trim()) ?? 0;
+                  Navigator.pop(ctx);
+                  await _logSteps(value);
+                },
+                child: const Text('Save steps'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -160,7 +248,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
                         CosarcSpacing.screenHorizontal,
-                        topInset + 56,
+                        topInset + 64,
                         CosarcSpacing.screenHorizontal,
                         0,
                       ),
@@ -168,113 +256,99 @@ class _CosmosScreenState extends State<CosmosScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_greeting, style: CosarcTypography.caption(context)),
-                                    const SizedBox(height: 4),
+                                    Text(_greeting, style: CosarcTypography.overline('')),
                                     Text(
-                                      'Command\nCenter',
-                                      style: CosarcTypography.display(context).copyWith(fontSize: 36),
+                                      'Your\nContract',
+                                      style: CosarcTypography.display(context),
                                     ),
                                   ],
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                              CosarcGlass(
+                                onTap: () => Navigator.of(context).pushFadeThrough(
+                                  const ProfileScreen(),
                                 ),
-                                child: CosarcGlass(
-                                  radius: CosarcSpacing.radiusPill,
-                                  blur: 12,
-                                  padding: const EdgeInsets.all(12),
-                                  child: const Icon(Icons.person_outline_rounded, size: 22),
-                                ),
+                                radius: CosarcSpacing.radiusPill,
+                                blur: 12,
+                                padding: const EdgeInsets.all(12),
+                                child: const Icon(Icons.person_outline_rounded, size: 22),
                               ),
                             ],
                           ),
                           const SizedBox(height: CosarcSpacing.xxl),
-                          _HeroProgressRing(
+                          _SignatureHeroRing(
                             progress: progress,
                             completed: completed,
-                            total: 4,
                             isComplete: _contractComplete,
                           ),
                         ],
                       ),
                     ),
                   ),
-                  SliverToBoxAdapter(child: CosarcSectionHeader(
-                    overline: 'Daily Contract',
-                    title: "Today's commitments",
-                    subtitle: '$completed of 4 complete',
-                  )),
+                  SliverToBoxAdapter(
+                    child: CosarcSectionHeader(
+                      overline: 'Today',
+                      title: 'Four pillars',
+                      subtitle: '$completed of 4 complete',
+                    ),
+                  ),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: CosarcSpacing.sm,
-                        crossAxisSpacing: CosarcSpacing.sm,
-                        childAspectRatio: 0.92,
-                      ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: CosarcSpacing.screenHorizontal,
+                    ),
+                    sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        _ContractTile(
+                        _PillarRow(
+                          index: 1,
                           title: 'Workout',
-                          subtitle: workoutDone ? 'Logged' : 'Tap to log',
+                          subtitle: workoutDone ? 'Session logged' : 'Log your training',
                           icon: Icons.fitness_center_rounded,
                           completed: workoutDone,
+                          progress: workoutDone ? 1.0 : 0.0,
                           onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const WorkoutLogScreen()),
+                            final result = await Navigator.of(context).pushFadeThrough(
+                              const WorkoutLogScreen(),
                             );
                             if (result == true) await _loadData();
                           },
                         ),
-                        _ContractTile(
+                        _PillarRow(
+                          index: 2,
                           title: 'Fuel',
-                          subtitle: eatCleanDone ? 'Logged' : 'Log nutrition',
+                          subtitle: eatCleanDone ? 'Nutrition logged' : 'Track your meals',
                           icon: Icons.restaurant_rounded,
                           completed: eatCleanDone,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const EnhancedNutritionScreen()),
+                          progress: eatCleanDone ? 1.0 : 0.0,
+                          onTap: () => Navigator.of(context).pushFadeThrough(
+                            const EnhancedNutritionScreen(),
                           ),
                         ),
-                        _ProgressTile(
-                          title: 'Water',
-                          value: '$waterMl ml',
-                          target: '3L goal',
-                          progress: (waterMl / waterTarget).clamp(0.0, 1.0),
+                        _PillarRow(
+                          index: 3,
+                          title: 'Hydrate',
+                          subtitle: '$waterMl ml · ${waterTarget ~/ 1000}L goal',
                           icon: Icons.water_drop_outlined,
-                          actionLabel: '+300ml',
-                          onAction: waterMl >= waterTarget
-                              ? null
-                              : () async {
-                                  if (_isLoading || _todayContract == null) return;
-                                  try {
-                                    await supabase
-                                        .from('daily_contracts')
-                                        .update({'water_intake_ml': waterMl + 300})
-                                        .eq('id', _todayContract!['id'])
-                                        .timeout(const Duration(seconds: 10));
-                                    await _loadData();
-                                  } catch (e) {
-                                    debugPrint('Error updating water: $e');
-                                  }
-                                },
+                          completed: waterMl >= waterTarget,
+                          progress: (waterMl / waterTarget).clamp(0.0, 1.0),
+                          actionLabel: waterMl >= waterTarget ? null : '+300ml',
+                          onAction: waterMl >= waterTarget ? null : () => _addWater(300),
+                          onTap: waterMl >= waterTarget ? null : () => _addWater(300),
                         ),
-                        _ProgressTile(
-                          title: 'Steps',
-                          value: '$steps',
-                          target: '$stepTarget goal',
-                          progress: (steps / stepTarget).clamp(0.0, 1.0),
+                        _PillarRow(
+                          index: 4,
+                          title: 'Move',
+                          subtitle: '$steps · $stepTarget goal',
                           icon: Icons.directions_walk_rounded,
+                          completed: steps >= stepTarget,
+                          progress: (steps / stepTarget).clamp(0.0, 1.0),
+                          actionLabel: 'Log',
+                          onAction: _showStepsSheet,
+                          onTap: _showStepsSheet,
                         ),
                       ]),
                     ),
@@ -324,7 +398,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
                 top: topInset + 8,
                 left: 0,
                 right: 0,
-                child: Center(child: DynamicIslandStreak(streak: currentStreak)),
+                child: Center(
+                  child: DynamicIslandStreak(
+                    streak: currentStreak,
+                    longestStreak: longestStreak,
+                  ),
+                ),
               ),
             ],
           ),
@@ -334,49 +413,56 @@ class _CosmosScreenState extends State<CosmosScreen> {
   }
 }
 
-class _HeroProgressRing extends StatelessWidget {
-  const _HeroProgressRing({
+class _SignatureHeroRing extends StatelessWidget {
+  const _SignatureHeroRing({
     required this.progress,
     required this.completed,
-    required this.total,
     required this.isComplete,
   });
 
   final double progress;
   final int completed;
-  final int total;
   final bool isComplete;
 
   @override
   Widget build(BuildContext context) {
     return CosarcGlass(
       expand: true,
-      padding: const EdgeInsets.all(CosarcSpacing.xxl),
       highlight: isComplete,
+      padding: const EdgeInsets.all(CosarcSpacing.xxl),
       child: Row(
         children: [
           SizedBox(
-            width: 88,
-            height: 88,
+            width: 100,
+            height: 100,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 88,
-                  height: 88,
+                  width: 100,
+                  height: 100,
                   child: CircularProgressIndicator(
                     value: progress,
-                    strokeWidth: 6,
-                    backgroundColor: CosarcColors.glassFill(0.12),
+                    strokeWidth: 5,
+                    backgroundColor: CosarcColors.glassFill(0.1),
                     valueColor: AlwaysStoppedAnimation(
                       isComplete ? CosarcColors.accent : CosarcColors.primary,
                     ),
                     strokeCap: StrokeCap.round,
                   ),
                 ),
-                Text(
-                  '${(progress * 100).toInt()}%',
-                  style: CosarcTypography.metric('').copyWith(fontSize: 22),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${(progress * 100).toInt()}%',
+                      style: CosarcTypography.metric('').copyWith(fontSize: 24),
+                    ),
+                    Text(
+                      '$completed/4',
+                      style: CosarcTypography.caption(context).copyWith(fontSize: 11),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -386,16 +472,14 @@ class _HeroProgressRing extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('DAILY CONTRACT', style: CosarcTypography.overline('')),
-                const SizedBox(height: CosarcSpacing.xs),
                 Text(
                   isComplete ? 'Contract fulfilled' : 'In progress',
-                  style: CosarcTypography.title(context),
+                  style: CosarcTypography.headline(context).copyWith(fontSize: 24),
                 ),
-                const SizedBox(height: CosarcSpacing.xxs),
+                const SizedBox(height: CosarcSpacing.xs),
                 Text(
-                  '$completed of $total pillars complete today',
-                  style: CosarcTypography.caption(context),
+                  'Complete every pillar before midnight to extend your streak.',
+                  style: CosarcTypography.body(context),
                 ),
               ],
             ),
@@ -406,134 +490,137 @@ class _HeroProgressRing extends StatelessWidget {
   }
 }
 
-class _ContractTile extends StatelessWidget {
-  const _ContractTile({
+class _PillarRow extends StatelessWidget {
+  const _PillarRow({
+    required this.index,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.completed,
-    required this.onTap,
+    required this.progress,
+    this.onTap,
+    this.onAction,
+    this.actionLabel,
   });
 
+  final int index;
   final String title;
   final String subtitle;
   final IconData icon;
   final bool completed;
-  final VoidCallback onTap;
+  final double progress;
+  final VoidCallback? onTap;
+  final VoidCallback? onAction;
+  final String? actionLabel;
 
   @override
   Widget build(BuildContext context) {
-    return CosarcGlass(
-      onTap: onTap,
-      highlight: completed,
-      padding: const EdgeInsets.all(CosarcSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: completed ? CosarcColors.primary : CosarcColors.textSecondary, size: 24),
-              Icon(
-                completed ? Icons.check_circle_rounded : Icons.arrow_outward_rounded,
-                size: 18,
-                color: completed ? CosarcColors.primary : CosarcColors.textTertiary,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: CosarcSpacing.sm),
+      child: CosarcGlass(
+        onTap: onTap,
+        highlight: completed,
+        padding: const EdgeInsets.all(CosarcSpacing.lg),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: completed
+                    ? CosarcColors.primaryMuted
+                    : CosarcColors.glassFill(0.06),
+                borderRadius: BorderRadius.circular(CosarcSpacing.radiusSm),
+                border: Border.all(
+                  color: completed
+                      ? CosarcColors.primary.withOpacity(0.4)
+                      : CosarcColors.border,
+                ),
               ),
+              child: Center(
+                child: completed
+                    ? const Icon(Icons.check_rounded, color: CosarcColors.primary, size: 20)
+                    : Text(
+                        '$index',
+                        style: CosarcTypography.caption(context).copyWith(
+                          color: CosarcColors.textSecondary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: CosarcSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icon, size: 16, color: CosarcColors.textTertiary),
+                      const SizedBox(width: CosarcSpacing.xxs),
+                      Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 16)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: CosarcTypography.caption(context)),
+                  const SizedBox(height: CosarcSpacing.sm),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 3,
+                      backgroundColor: CosarcColors.glassFill(0.1),
+                      valueColor: AlwaysStoppedAnimation(
+                        completed ? CosarcColors.accent : CosarcColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (actionLabel != null && onAction != null && !completed) ...[
+              const SizedBox(width: CosarcSpacing.sm),
+              GestureDetector(
+                onTap: onAction,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: CosarcColors.brandSweep,
+                    borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                  ),
+                  child: Text(
+                    actionLabel!,
+                    style: CosarcTypography.caption(context).copyWith(
+                      color: CosarcColors.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ] else if (onTap != null && !completed) ...[
+              const SizedBox(width: CosarcSpacing.sm),
+              Icon(Icons.arrow_outward_rounded, color: CosarcColors.textTertiary, size: 18),
             ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 17)),
-              const SizedBox(height: 2),
-              Text(subtitle, style: CosarcTypography.caption(context)),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ProgressTile extends StatelessWidget {
-  const _ProgressTile({
-    required this.title,
-    required this.value,
-    required this.target,
-    required this.progress,
-    required this.icon,
-    this.actionLabel,
-    this.onAction,
-  });
+class _QuickStepChip extends StatelessWidget {
+  const _QuickStepChip({required this.label, required this.onTap});
 
-  final String title;
-  final String value;
-  final String target;
-  final double progress;
-  final IconData icon;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final done = progress >= 1.0;
-    return CosarcGlass(
-      highlight: done,
-      padding: const EdgeInsets.all(CosarcSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 22, color: done ? CosarcColors.primary : CosarcColors.textSecondary),
-              const Spacer(),
-              if (actionLabel != null && onAction != null && !done)
-                GestureDetector(
-                  onTap: onAction,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: CosarcColors.primaryMuted,
-                      borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
-                      border: Border.all(color: CosarcColors.primary.withOpacity(0.3)),
-                    ),
-                    child: Text(
-                      actionLabel!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: CosarcColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 17)),
-              Text(value, style: CosarcTypography.caption(context)),
-              const SizedBox(height: CosarcSpacing.sm),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  backgroundColor: CosarcColors.glassFill(0.12),
-                  valueColor: AlwaysStoppedAnimation(
-                    done ? CosarcColors.accent : CosarcColors.primary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(target, style: CosarcTypography.caption(context).copyWith(fontSize: 11)),
-            ],
-          ),
-        ],
-      ),
+    return ActionChip(
+      label: Text(label),
+      onPressed: onTap,
+      backgroundColor: CosarcColors.surfaceHighlight,
+      side: BorderSide(color: CosarcColors.border),
     );
   }
 }

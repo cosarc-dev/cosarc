@@ -38,6 +38,9 @@ class CosarcScaffold extends StatelessWidget {
         children: [
           if (showAmbientGlow) ...[
             const DecoratedBox(
+              decoration: BoxDecoration(gradient: CosarcColors.meshGradient),
+            ),
+            const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: CosarcColors.appBackgroundGradient,
               ),

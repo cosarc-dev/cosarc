@@ -34,6 +34,16 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
   final List<Widget> screens = [];
   final Map<String, dynamic> _userData = {};
 
+  static const _stepStories = [
+    ('Who you are', 'Your identity shapes your training plan.'),
+    ('Your age', 'Recovery and intensity adapt to your life stage.'),
+    ('Your metrics', 'Height and weight calibrate your nutrition targets.'),
+    ('Training style', 'We match workouts to how you like to move.'),
+    ('Activity level', 'Daily movement outside the gym matters.'),
+    ('Frequency', 'Consistency beats intensity — pick what you can sustain.'),
+    ('Your goal', 'Every rep serves a purpose. What is yours?'),
+  ];
+
   static const _stepLabels = [
     'Identity',
     'Age',
@@ -215,14 +225,22 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('SETUP', style: CosarcTypography.overline('SETUP')),
-                  const SizedBox(height: CosarcSpacing.xxs),
+                  Text(
+                    _stepStories[step].$1.toUpperCase(),
+                    style: CosarcTypography.overline(''),
+                  ),
+                  const SizedBox(height: CosarcSpacing.xs),
+                  Text(
+                    _stepStories[step].$2,
+                    style: CosarcTypography.body(context),
+                  ),
+                  const SizedBox(height: CosarcSpacing.lg),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           _stepLabels[step],
-                          style: CosarcTypography.title(context),
+                          style: CosarcTypography.headline(context).copyWith(fontSize: 24),
                         ),
                       ),
                       Text(

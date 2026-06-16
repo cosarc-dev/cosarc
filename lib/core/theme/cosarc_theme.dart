@@ -31,49 +31,52 @@ abstract final class CosarcTheme {
       ),
     );
 
-    final inter = GoogleFonts.interTextTheme(base.textTheme).apply(
+    final sans = GoogleFonts.plusJakartaSansTextTheme(base.textTheme).apply(
       bodyColor: CosarcColors.textPrimary,
       displayColor: CosarcColors.textPrimary,
     );
 
+    final serifDisplay = GoogleFonts.instrumentSerif(
+      fontSize: 44,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -0.8,
+      color: CosarcColors.textPrimary,
+    );
+
     return base.copyWith(
-      textTheme: inter.copyWith(
-        displayLarge: inter.displayLarge?.copyWith(
-          fontWeight: FontWeight.w700,
-          letterSpacing: -1.2,
-        ),
-        displayMedium: inter.displayMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.8,
-        ),
-        headlineLarge: inter.headlineLarge?.copyWith(
-          fontWeight: FontWeight.w700,
+      textTheme: sans.copyWith(
+        displayLarge: serifDisplay,
+        displayMedium: serifDisplay.copyWith(fontSize: 36),
+        headlineLarge: GoogleFonts.instrumentSerif(
+          fontSize: 30,
+          fontWeight: FontWeight.w400,
           letterSpacing: -0.5,
+          color: CosarcColors.textPrimary,
         ),
-        headlineMedium: inter.headlineMedium?.copyWith(
+        headlineMedium: sans.headlineMedium?.copyWith(
           fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
         ),
-        titleLarge: inter.titleLarge?.copyWith(
+        titleLarge: sans.titleLarge?.copyWith(
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
         ),
-        titleMedium: inter.titleMedium?.copyWith(
+        titleMedium: sans.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: inter.bodyLarge?.copyWith(
+        bodyLarge: sans.bodyLarge?.copyWith(
           fontWeight: FontWeight.w400,
           height: 1.4,
         ),
-        bodyMedium: inter.bodyMedium?.copyWith(
+        bodyMedium: sans.bodyMedium?.copyWith(
           fontWeight: FontWeight.w400,
           height: 1.45,
           color: CosarcColors.textSecondary,
         ),
-        bodySmall: inter.bodySmall?.copyWith(
+        bodySmall: sans.bodySmall?.copyWith(
           color: CosarcColors.textTertiary,
         ),
-        labelLarge: inter.labelLarge?.copyWith(
+        labelLarge: sans.labelLarge?.copyWith(
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
         ),
@@ -84,7 +87,7 @@ abstract final class CosarcTheme {
         centerTitle: true,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 17,
           fontWeight: FontWeight.w600,
           color: CosarcColors.textPrimary,
@@ -112,7 +115,7 @@ abstract final class CosarcTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: CosarcColors.surfaceElevated,
-        contentTextStyle: GoogleFonts.inter(
+        contentTextStyle: GoogleFonts.plusJakartaSans(
           color: CosarcColors.textPrimary,
           fontWeight: FontWeight.w500,
         ),
@@ -127,7 +130,7 @@ abstract final class CosarcTheme {
           borderRadius: BorderRadius.circular(CosarcSpacing.radiusXl),
           side: BorderSide(color: CosarcColors.glassBorder(0.15)),
         ),
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: CosarcColors.textPrimary,
@@ -161,11 +164,11 @@ abstract final class CosarcTheme {
           horizontal: CosarcSpacing.lg,
           vertical: CosarcSpacing.md,
         ),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: GoogleFonts.plusJakartaSans(
           color: CosarcColors.textTertiary,
           fontWeight: FontWeight.w400,
         ),
-        labelStyle: GoogleFonts.inter(
+        labelStyle: GoogleFonts.plusJakartaSans(
           color: CosarcColors.textSecondary,
           fontWeight: FontWeight.w500,
         ),
@@ -196,7 +199,7 @@ abstract final class CosarcTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.1,
@@ -206,7 +209,7 @@ abstract final class CosarcTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: CosarcColors.primary,
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.w600,
           ),
         ),

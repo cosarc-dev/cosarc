@@ -7,8 +7,13 @@ import '../../core/theme/cosarc_typography.dart';
 import '../../widgets/cosarc/cosarc_button.dart';
 import '../../widgets/cosarc/cosarc_glass.dart';
 import '../../widgets/cosarc/cosarc_loader.dart';
+import '../../core/theme/cosarc_transitions.dart';
 import '../../widgets/cosarc/cosarc_section.dart';
 import '../auth/login_screen.dart';
+import '../settings/edit_profile_screen.dart';
+import '../settings/help_support_screen.dart';
+import '../settings/notifications_settings_screen.dart';
+import '../settings/security_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -432,34 +437,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _SettingsRow(
                       icon: Icons.edit_rounded,
                       label: 'Edit Profile',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Edit profile feature coming soon!',
-                            ),
-                            backgroundColor: CosarcColors.primary,
-                          ),
+                      onTap: () async {
+                        final updated = await Navigator.of(context).pushFadeThrough(
+                          const EditProfileScreen(),
                         );
+                        if (updated == true) _loadProfileData();
                       },
                     ),
                     const _SectionDivider(),
                     _SettingsRow(
                       icon: Icons.notifications_rounded,
                       label: 'Notifications',
-                      onTap: () {},
+                      onTap: () => Navigator.of(context).pushFadeThrough(
+                        const NotificationsSettingsScreen(),
+                      ),
                     ),
                     const _SectionDivider(),
                     _SettingsRow(
                       icon: Icons.lock_rounded,
                       label: 'Privacy & Security',
-                      onTap: () {},
+                      onTap: () => Navigator.of(context).pushFadeThrough(
+                        const SecuritySettingsScreen(),
+                      ),
                     ),
                     const _SectionDivider(),
                     _SettingsRow(
                       icon: Icons.help_rounded,
                       label: 'Help & Support',
-                      onTap: () {},
+                      onTap: () => Navigator.of(context).pushFadeThrough(
+                        const HelpSupportScreen(),
+                      ),
                     ),
                   ],
                 ),

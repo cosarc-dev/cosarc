@@ -15,6 +15,7 @@ class NutriwaveScreen extends StatefulWidget {
 
 class _NutriwaveScreenState extends State<NutriwaveScreen> {
   int _selectedCategory = 0;
+  final Map<String, _CartEntry> _cart = {};
 
   final List<String> _categories = [
     'All',
@@ -26,6 +27,160 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
 
   static const double _floatingNavClearance = 100;
   static const double _cartBarHeight = 64;
+
+  static const _menuItems = [
+    _MenuItem(
+      id: 'chicken_bowl',
+      name: 'Grilled Chicken Power Bowl',
+      description: 'Grilled chicken, quinoa, roasted veggies, tahini',
+      priceInPaise: 34900,
+      calories: '520 kcal',
+      protein: '45g protein',
+      emoji: '🍗',
+      rating: 4.8,
+      isVeg: false,
+    ),
+    _MenuItem(
+      id: 'quinoa_salad',
+      name: 'Mediterranean Quinoa Salad',
+      description: 'Quinoa, cucumber, tomato, feta, olives, lemon dressing',
+      priceInPaise: 28900,
+      calories: '380 kcal',
+      protein: '12g protein',
+      emoji: '🥗',
+      rating: 4.9,
+      isVeg: true,
+    ),
+    _MenuItem(
+      id: 'pb_smoothie',
+      name: 'Peanut Butter Protein Smoothie',
+      description: 'Banana, peanut butter, protein powder, almond milk',
+      priceInPaise: 19900,
+      calories: '350 kcal',
+      protein: '25g protein',
+      emoji: '🥤',
+      rating: 4.7,
+      isVeg: true,
+    ),
+    _MenuItem(
+      id: 'paneer_wrap',
+      name: 'Paneer Tikka Wrap',
+      description: 'Tandoori paneer, whole wheat wrap, mint chutney',
+      priceInPaise: 24900,
+      calories: '420 kcal',
+      protein: '22g protein',
+      emoji: '🌯',
+      rating: 4.6,
+      isVeg: true,
+    ),
+    _MenuItem(
+      id: 'muscle_pack',
+      name: 'Weekly Muscle Gain Pack',
+      description: '7 high-protein meals delivered daily',
+      priceInPaise: 249900,
+      calories: '2800 kcal/day',
+      protein: '180g/day',
+      emoji: '📦',
+      rating: 5.0,
+      isVeg: false,
+      isCombo: true,
+    ),
+  ];
+
+  int get _cartCount => _cart.values.fold(0, (sum, e) => sum + e.quantity);
+
+  int get _cartTotal => _cart.values.fold(0, (sum, e) => sum + e.priceInPaise * e.quantity);
+
+  void _addToCart(_MenuItem item) {
+    setState(() {
+      final existing = _cart[item.id];
+      if (existing != null) {
+        _cart[item.id] = existing.copyWith(quantity: existing.quantity + 1);
+      } else {
+        _cart[item.id] = _CartEntry(item: item, quantity: 1);
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Added ${item.name}'),
+        backgroundColor: CosarcColors.success,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void _showCartSheet() {
+    if (_cart.isEmpty) return;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CosarcGlass(
+        expand: true,
+        radius: CosarcSpacing.radiusXl,
+        margin: const EdgeInsets.all(CosarcSpacing.md),
+        padding: const EdgeInsets.all(CosarcSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Your cart', style: CosarcTypography.title(context)),
+            const SizedBox(height: CosarcSpacing.lg),
+            ..._cart.values.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: CosarcSpacing.sm),
+                child: Row(
+                  children: [
+                    Text(entry.item.emoji, style: const TextStyle(fontSize: 24)),
+                    const SizedBox(width: CosarcSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        '${entry.item.name} × ${entry.quantity}',
+                        style: CosarcTypography.body(context).copyWith(
+                          color: CosarcColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '₹${(entry.item.priceInPaise * entry.quantity / 100).round()}',
+                      style: CosarcTypography.caption(context).copyWith(
+                        color: CosarcColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(color: CosarcColors.divider),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total', style: CosarcTypography.title(context)),
+                Text(
+                  '₹${(_cartTotal / 100).round()}',
+                  style: CosarcTypography.metric('').copyWith(fontSize: 22),
+                ),
+              ],
+            ),
+            const SizedBox(height: CosarcSpacing.lg),
+            CosarcButton(
+              label: 'Place order',
+              onPressed: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Order placed — delivery ETA 35 min'),
+                    backgroundColor: CosarcColors.success,
+                  ),
+                );
+                setState(() => _cart.clear());
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -248,65 +403,10 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
                 ),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    _buildMenuItem(
-                      name: 'Grilled Chicken Power Bowl',
-                      description:
-                          'Grilled chicken, quinoa, roasted veggies, tahini',
-                      price: '₹349',
-                      calories: '520 kcal',
-                      protein: '45g protein',
-                      image: '🍗',
-                      rating: 4.8,
-                      isVeg: false,
-                    ),
-                    const SizedBox(height: CosarcSpacing.md),
-                    _buildMenuItem(
-                      name: 'Mediterranean Quinoa Salad',
-                      description:
-                          'Quinoa, cucumber, tomato, feta, olives, lemon dressing',
-                      price: '₹289',
-                      calories: '380 kcal',
-                      protein: '12g protein',
-                      image: '🥗',
-                      rating: 4.9,
-                      isVeg: true,
-                    ),
-                    const SizedBox(height: CosarcSpacing.md),
-                    _buildMenuItem(
-                      name: 'Peanut Butter Protein Smoothie',
-                      description:
-                          'Banana, peanut butter, protein powder, almond milk',
-                      price: '₹199',
-                      calories: '350 kcal',
-                      protein: '25g protein',
-                      image: '🥤',
-                      rating: 4.7,
-                      isVeg: true,
-                    ),
-                    const SizedBox(height: CosarcSpacing.md),
-                    _buildMenuItem(
-                      name: 'Paneer Tikka Wrap',
-                      description:
-                          'Tandoori paneer, whole wheat wrap, mint chutney',
-                      price: '₹249',
-                      calories: '420 kcal',
-                      protein: '22g protein',
-                      image: '🌯',
-                      rating: 4.6,
-                      isVeg: true,
-                    ),
-                    const SizedBox(height: CosarcSpacing.md),
-                    _buildMenuItem(
-                      name: 'Weekly Muscle Gain Pack',
-                      description: '7 high-protein meals delivered daily',
-                      price: '₹2,499',
-                      calories: '2800 kcal/day',
-                      protein: '180g/day',
-                      image: '📦',
-                      rating: 5.0,
-                      isVeg: false,
-                      isCombo: true,
-                    ),
+                    for (var i = 0; i < _menuItems.length; i++) ...[
+                      if (i > 0) const SizedBox(height: CosarcSpacing.md),
+                      _buildMenuItemFromData(_menuItems[i]),
+                    ],
                     SizedBox(
                       height: _floatingNavClearance +
                           _cartBarHeight +
@@ -332,12 +432,14 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
   }
 
   Widget _buildCartBar() {
+    if (_cartCount == 0) return const SizedBox.shrink();
+
     return CosarcGlass(
       expand: true,
       radius: CosarcSpacing.radiusPill,
       blur: 28,
       opacity: 0.1,
-      onTap: () {},
+      onTap: _showCartSheet,
       child: Row(
         children: [
           Container(
@@ -350,7 +452,7 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
             ),
             alignment: Alignment.center,
             child: Text(
-              '3',
+              '$_cartCount',
               style: CosarcTypography.caption(context).copyWith(
                 color: CosarcColors.ink,
                 fontWeight: FontWeight.w800,
@@ -365,7 +467,7 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
             ),
           ),
           Text(
-            '₹837',
+            '₹${(_cartTotal / 100).round()}',
             style: CosarcTypography.title(context).copyWith(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -382,7 +484,32 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
     );
   }
 
+  Widget _buildMenuItemFromData(_MenuItem item) {
+    return _buildMenuItem(
+      item: item,
+      onAdd: () => _addToCart(item),
+    );
+  }
+
   Widget _buildMenuItem({
+    required _MenuItem item,
+    required VoidCallback onAdd,
+  }) {
+    return _buildMenuItemLegacy(
+      name: item.name,
+      description: item.description,
+      price: '₹${(item.priceInPaise / 100).round()}',
+      calories: item.calories,
+      protein: item.protein,
+      image: item.emoji,
+      rating: item.rating,
+      isVeg: item.isVeg,
+      isCombo: item.isCombo,
+      onAdd: onAdd,
+    );
+  }
+
+  Widget _buildMenuItemLegacy({
     required String name,
     required String description,
     required String price,
@@ -392,6 +519,7 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
     required double rating,
     required bool isVeg,
     bool isCombo = false,
+    VoidCallback? onAdd,
   }) {
     return CosarcGlass(
       expand: true,
@@ -507,7 +635,7 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
               CosarcButton(
                 label: 'ADD',
                 expand: false,
-                onPressed: () {},
+                onPressed: onAdd,
               ),
             ],
           ),
@@ -702,4 +830,42 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
       ),
     );
   }
+}
+
+class _MenuItem {
+  const _MenuItem({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.priceInPaise,
+    required this.calories,
+    required this.protein,
+    required this.emoji,
+    required this.rating,
+    required this.isVeg,
+    this.isCombo = false,
+  });
+
+  final String id;
+  final String name;
+  final String description;
+  final int priceInPaise;
+  final String calories;
+  final String protein;
+  final String emoji;
+  final double rating;
+  final bool isVeg;
+  final bool isCombo;
+}
+
+class _CartEntry {
+  const _CartEntry({required this.item, required this.quantity});
+
+  final _MenuItem item;
+  final int quantity;
+
+  int get priceInPaise => item.priceInPaise;
+
+  _CartEntry copyWith({int? quantity}) =>
+      _CartEntry(item: item, quantity: quantity ?? this.quantity);
 }

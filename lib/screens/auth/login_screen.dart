@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../services/session_preferences.dart';
 import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_motion.dart';
 import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_transitions.dart';
 import '../../core/theme/cosarc_typography.dart';
 import '../../widgets/cosarc/cosarc_button.dart';
 import '../../widgets/cosarc/cosarc_glass.dart';
@@ -10,7 +12,6 @@ import '../../widgets/cosarc/cosarc_input.dart';
 import '../../widgets/cosarc/cosarc_scaffold.dart';
 import '../dashboard/dashboard_root.dart';
 import '../onboarding/onboarding_wrapper.dart';
-import 'auth_carousel.dart';
 import 'forgot_password_screen.dart';
 import 'mfa_challenge_screen.dart';
 import 'otp_verification_screen.dart';
@@ -25,7 +26,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _authService = AuthService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -33,37 +34,51 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isLoading = false;
   bool _rememberMe = false;
   bool _useEmailOtp = false;
-  late AnimationController _fadeCtrl;
-  late Animation<double> _fade;
 
-  static const _carouselSlides = [
-    AuthCarouselSlide(
-      title: 'Daily discipline',
-      subtitle: 'Complete your contract. Build your streak.',
-      icon: Icons.local_fire_department_rounded,
-    ),
-    AuthCarouselSlide(
-      title: 'Train with intention',
-      subtitle: 'Log workouts. Track nutrition. Show up.',
-      icon: Icons.fitness_center_rounded,
-    ),
-    AuthCarouselSlide(
-      title: 'Premium fitness',
-      subtitle: 'Designed for focus, calm, and progress.',
-      icon: Icons.auto_awesome_rounded,
-    ),
+  late AnimationController _heroCtrl;
+  late AnimationController _panelCtrl;
+  late Animation<double> _heroFade;
+  late Animation<Offset> _panelSlide;
+
+  static const _taglines = [
+    'Discipline, distilled.',
+    'Your daily contract awaits.',
+    'Train with intention.',
   ];
+
+  int _taglineIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _fadeCtrl = AnimationController(
+    _heroCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: CosarcMotion.hero,
     );
-    _fade = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic);
-    _fadeCtrl.forward();
+    _panelCtrl = AnimationController(
+      vsync: this,
+      duration: CosarcMotion.slow,
+    );
+    _heroFade = CurvedAnimation(parent: _heroCtrl, curve: CosarcMotion.easeOut);
+    _panelSlide = Tween<Offset>(
+      begin: const Offset(0, 0.12),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _panelCtrl, curve: CosarcMotion.easeOut));
+
+    _heroCtrl.forward();
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) _panelCtrl.forward();
+    });
     _restoreSessionPrefs();
+    _cycleTaglines();
+  }
+
+  void _cycleTaglines() {
+    Future.delayed(const Duration(seconds: 4), () {
+      if (!mounted) return;
+      setState(() => _taglineIndex = (_taglineIndex + 1) % _taglines.length);
+      _cycleTaglines();
+    });
   }
 
   Future<void> _restoreSessionPrefs() async {
@@ -79,7 +94,8 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
-    _fadeCtrl.dispose();
+    _heroCtrl.dispose();
+    _panelCtrl.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -97,14 +113,8 @@ class _LoginScreenState extends State<LoginScreen>
       if (_useEmailOtp) {
         await _authService.sendEmailOtp(email, shouldCreateUser: false);
         if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => OtpVerificationScreen(
-              email: email,
-              onVerified: _routeAfterAuth,
-            ),
-          ),
+        Navigator.of(context).pushSharedAxis(
+          OtpVerificationScreen(email: email, onVerified: _routeAfterAuth),
         );
         return;
       }
@@ -128,12 +138,11 @@ class _LoginScreenState extends State<LoginScreen>
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const MfaChallengeScreen()),
+          CosarcSharedAxisRoute(builder: (_) => const MfaChallengeScreen()),
         );
         return;
       }
 
-      _showSuccess('Welcome back');
       await _routeAfterAuth();
     } catch (e) {
       _showError(_authService.friendlyAuthError(e));
@@ -150,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen>
         _showError('Sign-in was cancelled');
         return;
       }
-      _showSuccess('Signed in with Google');
       await _routeAfterAuth();
     } catch (e) {
       _showError(_authService.friendlyAuthError(e));
@@ -167,7 +175,6 @@ class _LoginScreenState extends State<LoginScreen>
         _showError('Sign-in was cancelled');
         return;
       }
-      _showSuccess('Signed in with Apple');
       await _routeAfterAuth();
     } catch (e) {
       _showError(_authService.friendlyAuthError(e));
@@ -181,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
+      CosarcFadeThroughRoute(
         builder: (_) =>
             needsOnboarding ? const OnboardingWrapper() : const DashboardRoot(),
       ),
@@ -197,262 +204,268 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: CosarcColors.success),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+
     return CosarcScaffold(
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fade,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: CosarcSpacing.screenHorizontal,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: CosarcSpacing.lg),
-                    Text(
-                      'cosarc',
-                      textAlign: TextAlign.center,
-                      style: CosarcTypography.brandMark(size: 32),
-                    ),
-                    const SizedBox(height: CosarcSpacing.xl),
-                    const AuthCarousel(slides: _carouselSlides),
-                    const SizedBox(height: CosarcSpacing.xxl),
-                    Text(
-                      'Welcome back',
-                      style: CosarcTypography.headline(context).copyWith(
-                        fontSize: 28,
-                      ),
-                    ),
-                    const SizedBox(height: CosarcSpacing.xs),
-                    Text(
-                      'Sign in to continue your journey',
-                      style: CosarcTypography.body(context),
-                    ),
-                    const SizedBox(height: CosarcSpacing.xl),
-                    CosarcInput(
-                      controller: _emailController,
-                      label: 'Email',
-                      hint: 'you@example.com',
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email],
-                    ),
-                    if (!_useEmailOtp) ...[
-                      const SizedBox(height: CosarcSpacing.lg),
-                      CosarcInput(
-                        controller: _passwordController,
-                        label: 'Password',
-                        hint: '••••••••',
-                        obscureText: _obscurePassword,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.password],
-                        onSubmitted: (_) => _login(),
-                        suffix: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: CosarcColors.textTertiary,
-                            size: 20,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              flex: 38,
+              child: FadeTransition(
+                opacity: _heroFade,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: CosarcSpacing.screenHorizontal,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: CosarcSpacing.xxl),
+                      Text('cosarc', style: CosarcTypography.brandMark(size: 42)),
+                      const Spacer(),
+                      AnimatedSwitcher(
+                        duration: CosarcMotion.medium,
+                        child: Text(
+                          _taglines[_taglineIndex],
+                          key: ValueKey(_taglineIndex),
+                          style: CosarcTypography.display(context).copyWith(
+                            fontSize: height < 700 ? 32 : 38,
                           ),
-                          onPressed: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
                         ),
                       ),
+                      const SizedBox(height: CosarcSpacing.sm),
+                      Text(
+                        'Premium fitness intelligence for people who show up.',
+                        style: CosarcTypography.body(context),
+                      ),
+                      const SizedBox(height: CosarcSpacing.xxl),
                     ],
-                    const SizedBox(height: CosarcSpacing.md),
-                    Row(
-                      children: [
-                        SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: Checkbox(
-                            value: _rememberMe,
-                            activeColor: CosarcColors.primary,
-                            onChanged: (value) =>
-                                setState(() => _rememberMe = value ?? false),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 62,
+              child: SlideTransition(
+                position: _panelSlide,
+                child: FadeTransition(
+                  opacity: _panelCtrl,
+                  child: CosarcGlass(
+                    expand: true,
+                    radius: CosarcSpacing.radiusXl,
+                    blur: 32,
+                    opacity: 0.08,
+                    padding: EdgeInsets.zero,
+                    margin: const EdgeInsets.fromLTRB(
+                      CosarcSpacing.md,
+                      0,
+                      CosarcSpacing.md,
+                      CosarcSpacing.lg,
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(CosarcSpacing.xl),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('Sign in', style: CosarcTypography.title(context)),
+                          const SizedBox(height: CosarcSpacing.xxs),
+                          Text(
+                            'Continue where you left off',
+                            style: CosarcTypography.caption(context),
                           ),
-                        ),
-                        const SizedBox(width: CosarcSpacing.xs),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _rememberMe = !_rememberMe),
-                            child: Text(
-                              'Remember me',
-                              style: CosarcTypography.caption(context),
-                            ),
+                          const SizedBox(height: CosarcSpacing.xl),
+                          CosarcInput(
+                            controller: _emailController,
+                            label: 'Email',
+                            hint: 'you@example.com',
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.email],
                           ),
-                        ),
-                        if (!_useEmailOtp)
-                          TextButton(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ForgotPasswordScreen(
-                                  initialEmail: _emailController.text.trim(),
+                          if (!_useEmailOtp) ...[
+                            const SizedBox(height: CosarcSpacing.lg),
+                            CosarcInput(
+                              controller: _passwordController,
+                              label: 'Password',
+                              hint: '••••••••',
+                              obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              autofillHints: const [AutofillHints.password],
+                              onSubmitted: (_) => _login(),
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: CosarcColors.textTertiary,
+                                  size: 20,
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
                                 ),
                               ),
                             ),
-                            child: const Text('Forgot password?'),
+                          ],
+                          const SizedBox(height: CosarcSpacing.md),
+                          Row(
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Checkbox(
+                                  value: _rememberMe,
+                                  activeColor: CosarcColors.primary,
+                                  onChanged: (v) =>
+                                      setState(() => _rememberMe = v ?? false),
+                                ),
+                              ),
+                              const SizedBox(width: CosarcSpacing.xs),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      setState(() => _rememberMe = !_rememberMe),
+                                  child: Text(
+                                    'Remember me',
+                                    style: CosarcTypography.caption(context),
+                                  ),
+                                ),
+                              ),
+                              if (!_useEmailOtp)
+                                TextButton(
+                                  onPressed: () => Navigator.of(context)
+                                      .pushSharedAxis(
+                                    ForgotPasswordScreen(
+                                      initialEmail: _emailController.text.trim(),
+                                    ),
+                                  ),
+                                  child: const Text('Forgot?'),
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: CosarcSpacing.lg),
-                    CosarcGlass(
-                      expand: true,
-                      onTap: () => setState(() => _useEmailOtp = !_useEmailOtp),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: CosarcSpacing.md,
-                        vertical: CosarcSpacing.sm,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _useEmailOtp
-                                ? Icons.mark_email_read_outlined
-                                : Icons.password_outlined,
-                            color: CosarcColors.primary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: CosarcSpacing.sm),
-                          Expanded(
+                          const SizedBox(height: CosarcSpacing.sm),
+                          GestureDetector(
+                            onTap: () => setState(() => _useEmailOtp = !_useEmailOtp),
                             child: Text(
                               _useEmailOtp
-                                  ? 'Using email code · tap for password'
-                                  : 'Use email code instead',
-                              style: CosarcTypography.caption(context),
+                                  ? 'Use password instead'
+                                  : 'Sign in with email code',
+                              style: CosarcTypography.caption(context).copyWith(
+                                color: CosarcColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            color: CosarcColors.textTertiary,
-                            size: 18,
+                          const SizedBox(height: CosarcSpacing.xl),
+                          CosarcButton(
+                            label: _useEmailOtp ? 'Send code' : 'Sign in',
+                            isLoading: _isLoading,
+                            onPressed: _isLoading ? null : _login,
+                          ),
+                          const SizedBox(height: CosarcSpacing.xl),
+                          Row(
+                            children: [
+                              Expanded(child: Divider(color: CosarcColors.divider)),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: CosarcSpacing.md,
+                                ),
+                                child: Text(
+                                  'or',
+                                  style: CosarcTypography.caption(context),
+                                ),
+                              ),
+                              Expanded(child: Divider(color: CosarcColors.divider)),
+                            ],
+                          ),
+                          const SizedBox(height: CosarcSpacing.lg),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _SocialOrb(
+                                icon: Icons.g_mobiledata_rounded,
+                                label: 'Google',
+                                onTap: _isLoading ? null : _loginWithGoogle,
+                              ),
+                              if (_authService.isAppleSignInAvailable) ...[
+                                const SizedBox(width: CosarcSpacing.md),
+                                _SocialOrb(
+                                  icon: Icons.apple,
+                                  label: 'Apple',
+                                  onTap: _isLoading ? null : _loginWithApple,
+                                ),
+                              ],
+                              const SizedBox(width: CosarcSpacing.md),
+                              _SocialOrb(
+                                icon: Icons.phone_iphone_rounded,
+                                label: 'Phone',
+                                onTap: _isLoading
+                                    ? null
+                                    : () => Navigator.of(context).pushSharedAxis(
+                                          const PhoneAuthScreen(),
+                                        ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: CosarcSpacing.xl),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pushSharedAxis(
+                              const SignupScreen(),
+                            ),
+                            child: Text(
+                              'Create an account',
+                              style: CosarcTypography.body(context).copyWith(
+                                color: CosarcColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: CosarcSpacing.xl),
-                    CosarcButton(
-                      label: _useEmailOtp ? 'Send sign-in code' : 'Sign in',
-                      isLoading: _isLoading,
-                      onPressed: _isLoading ? null : _login,
-                    ),
-                    const SizedBox(height: CosarcSpacing.md),
-                    _SocialButton(
-                      label: 'Continue with Google',
-                      icon: Icons.g_mobiledata_rounded,
-                      assetIcon: 'assets/icons/google.png',
-                      isLoading: _isLoading,
-                      onPressed: _isLoading ? null : _loginWithGoogle,
-                    ),
-                    if (_authService.isAppleSignInAvailable) ...[
-                      const SizedBox(height: CosarcSpacing.sm),
-                      _SocialButton(
-                        label: 'Continue with Apple',
-                        icon: Icons.apple,
-                        isLoading: _isLoading,
-                        onPressed: _isLoading ? null : _loginWithApple,
-                      ),
-                    ],
-                    const SizedBox(height: CosarcSpacing.sm),
-                    _SocialButton(
-                      label: 'Continue with phone',
-                      icon: Icons.phone_iphone_rounded,
-                      isLoading: _isLoading,
-                      onPressed: _isLoading
-                          ? null
-                          : () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const PhoneAuthScreen(),
-                                ),
-                              ),
-                    ),
-                    const SizedBox(height: CosarcSpacing.xl),
-                    TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SignupScreen()),
-                      ),
-                      child: Text(
-                        'Create an account',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: CosarcColors.textSecondary,
-                            ),
-                      ),
-                    ),
-                    const SizedBox(height: CosarcSpacing.xxl),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({
-    required this.label,
+class _SocialOrb extends StatelessWidget {
+  const _SocialOrb({
     required this.icon,
-    required this.isLoading,
-    required this.onPressed,
-    this.assetIcon,
+    required this.label,
+    required this.onTap,
   });
 
-  final String label;
   final IconData icon;
-  final String? assetIcon;
-  final bool isLoading;
-  final VoidCallback? onPressed;
+  final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: isLoading ? 0.65 : 1,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
-          child: Ink(
-            height: CosarcSpacing.buttonHeight,
-            decoration: BoxDecoration(
-              color: CosarcColors.glassFill(0.055),
-              borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
-              border: Border.all(color: CosarcColors.glassBorder()),
+      opacity: onTap == null ? 0.5 : 1,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            CosarcGlass(
+              radius: CosarcSpacing.radiusPill,
+              blur: 16,
+              padding: const EdgeInsets.all(CosarcSpacing.md),
+              child: Icon(icon, size: 24),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (assetIcon != null)
-                  Image.asset(
-                    assetIcon!,
-                    height: 20,
-                    width: 20,
-                    errorBuilder: (_, __, ___) => Icon(icon, size: 20),
-                  )
-                else
-                  Icon(icon, size: 20),
-                const SizedBox(width: CosarcSpacing.sm),
-                Text(label, style: Theme.of(context).textTheme.labelLarge),
-              ],
-            ),
-          ),
+            const SizedBox(height: CosarcSpacing.xxs),
+            Text(label, style: CosarcTypography.caption(context).copyWith(fontSize: 11)),
+          ],
         ),
       ),
     );

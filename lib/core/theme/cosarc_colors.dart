@@ -9,13 +9,13 @@ abstract final class CosarcColors {
   static const Color rose = Color(0xFFDD3D71);
   static const Color accent = Color(0xFF42D888);
 
-  // Surfaces
-  static const Color background = Color(0xFF060607);
-  static const Color backgroundElevated = Color(0xFF09090A);
-  static const Color surface = Color(0xD10F0F10);
-  static const Color surfaceElevated = Color(0xFF121214);
-  static const Color surfaceHighlight = Color(0xFF19191B);
-  static const Color ink = Color(0xFF101010);
+  // Surfaces — deep charcoal with warm undertone
+  static const Color background = Color(0xFF040405);
+  static const Color backgroundElevated = Color(0xFF080809);
+  static const Color surface = Color(0xCC0C0C0E);
+  static const Color surfaceElevated = Color(0xFF101012);
+  static const Color surfaceHighlight = Color(0xFF161618);
+  static const Color ink = Color(0xFF0A0A0B);
 
   // Text
   static const Color textPrimary = Color(0xFFF8F5EC);
@@ -38,12 +38,23 @@ abstract final class CosarcColors {
   static const Color fat = Color(0xFFB58CFF);
 
   static const Gradient appBackgroundGradient = RadialGradient(
-    center: Alignment(-0.85, -1.05),
-    radius: 1.4,
+    center: Alignment(-0.75, -1.1),
+    radius: 1.5,
     colors: [
-      Color(0x29D8B35A),
-      Color(0x00060607),
+      Color(0x1AD7BB73),
+      Color(0x00040405),
     ],
+  );
+
+  static const Gradient meshGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF0A0A0C),
+      Color(0xFF040405),
+      Color(0xFF0D0B08),
+    ],
+    stops: [0.0, 0.55, 1.0],
   );
 
   static const Gradient brandSweep = LinearGradient(

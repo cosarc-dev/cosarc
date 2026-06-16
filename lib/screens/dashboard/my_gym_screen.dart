@@ -211,14 +211,30 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     gradient: const LinearGradient(
                       colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
                     ),
-                    onTap: () {},
+                    onTap: () => _showFeatureSheet(
+                      title: 'Class Schedule',
+                      icon: Icons.schedule_rounded,
+                      items: const [
+                        ('Yoga Flow', 'Mon/Wed/Fri · 7:00 AM'),
+                        ('HIIT Burn', 'Tue/Thu · 6:30 PM'),
+                        ('Strength 101', 'Sat · 9:00 AM'),
+                      ],
+                    ),
                   ),
                   _buildFeatureCard(
                     icon: Icons.person_add_rounded,
                     title: 'Personal Trainer',
                     subtitle: 'Book sessions with certified trainers',
                     gradient: CosarcColors.brandSweep,
-                    onTap: () {},
+                    onTap: () => _showFeatureSheet(
+                      title: 'Personal Trainers',
+                      icon: Icons.person_add_rounded,
+                      items: const [
+                        ('Arjun Mehta', 'Strength · ₹800/session'),
+                        ('Priya Shah', 'Mobility · ₹750/session'),
+                        ('Rahul Desai', 'Hypertrophy · ₹900/session'),
+                      ],
+                    ),
                   ),
                   _buildFeatureCard(
                     icon: Icons.leaderboard_rounded,
@@ -227,7 +243,15 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     gradient: const LinearGradient(
                       colors: [Color(0xFFFF5722), Color(0xFFE64A19)],
                     ),
-                    onTap: () {},
+                    onTap: () => _showFeatureSheet(
+                      title: 'Leaderboard',
+                      icon: Icons.leaderboard_rounded,
+                      items: const [
+                        ('1. Vikram S.', '42 sessions this month'),
+                        ('2. You', '18 sessions this month'),
+                        ('3. Ananya K.', '16 sessions this month'),
+                      ],
+                    ),
                   ),
                 ]),
               ),
@@ -612,6 +636,63 @@ class _MyGymScreenState extends State<MyGymScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFeatureSheet({
+    required String title,
+    required IconData icon,
+    required List<(String, String)> items,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CosarcGlass(
+        expand: true,
+        radius: CosarcSpacing.radiusXl,
+        margin: const EdgeInsets.all(CosarcSpacing.md),
+        padding: const EdgeInsets.all(CosarcSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: CosarcColors.primary),
+                const SizedBox(width: CosarcSpacing.sm),
+                Text(title, style: CosarcTypography.title(context)),
+              ],
+            ),
+            const SizedBox(height: CosarcSpacing.lg),
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: CosarcSpacing.sm),
+                child: CosarcGlass(
+                  expand: true,
+                  padding: const EdgeInsets.all(CosarcSpacing.md),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.$1,
+                              style: CosarcTypography.title(context).copyWith(fontSize: 15),
+                            ),
+                            Text(item.$2, style: CosarcTypography.caption(context)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: CosarcColors.textTertiary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

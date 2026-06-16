@@ -3,7 +3,9 @@ import 'package:video_player/video_player.dart';
 import '../../core/config/app_config.dart';
 import '../../core/supabase_config.dart';
 import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_motion.dart';
 import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_transitions.dart';
 import '../../core/theme/cosarc_typography.dart';
 import '../../widgets/cosarc/cosarc_button.dart';
 import '../../services/auth_service.dart';
@@ -18,43 +20,55 @@ class AppStartScreen extends StatefulWidget {
   State<AppStartScreen> createState() => _AppStartScreenState();
 }
 
-class _AppStartScreenState extends State<AppStartScreen> {
+class _AppStartScreenState extends State<AppStartScreen>
+    with SingleTickerProviderStateMixin {
   VideoPlayerController? _controller;
   final AuthService _authService = AuthService();
   bool _navigated = false;
 
+  late AnimationController _logoCtrl;
+  late Animation<double> _logoScale;
+  late Animation<double> _logoOpacity;
+
+  static const _videoPaths = [
+    'assets/backgrounds/cosarc_intro.mp4',
+    'assets/backgrounds/app_intro.mp4',
+  ];
+
   @override
   void initState() {
     super.initState();
+    _logoCtrl = AnimationController(vsync: this, duration: CosarcMotion.hero);
+    _logoScale = Tween<double>(begin: 0.88, end: 1.0).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: CosarcMotion.easeOut),
+    );
+    _logoOpacity = CurvedAnimation(parent: _logoCtrl, curve: CosarcMotion.easeOut);
+    _logoCtrl.forward();
     _initVideo();
   }
 
   Future<void> _initVideo() async {
-    try {
-      final controller = VideoPlayerController.asset(
-        'assets/backgrounds/app_intro.mp4',
-      );
-
-      await controller.initialize().timeout(const Duration(seconds: 6));
-
-      controller
-        ..setVolume(0)
-        ..play();
-
-      _controller = controller;
-      if (mounted) setState(() {});
-
-      final duration = controller.value.duration;
-      final wait =
-          duration > Duration.zero && duration < const Duration(seconds: 8)
-              ? duration
-              : const Duration(seconds: 3);
-      Future.delayed(wait, _goNext);
-    } catch (e) {
-      _controller?.dispose();
-      _controller = null;
-      Future.delayed(const Duration(seconds: 2), _goNext);
+    for (final path in _videoPaths) {
+      try {
+        final controller = VideoPlayerController.asset(path);
+        await controller.initialize().timeout(const Duration(seconds: 6));
+        controller
+          ..setVolume(0)
+          ..setLooping(true)
+          ..play();
+        _controller = controller;
+        if (mounted) setState(() {});
+        break;
+      } catch (_) {
+        continue;
+      }
     }
+
+    final wait = _controller?.value.duration ?? const Duration(seconds: 3);
+    final delay = wait > Duration.zero && wait < const Duration(seconds: 8)
+        ? wait
+        : const Duration(milliseconds: 2800);
+    Future.delayed(delay, _goNext);
   }
 
   Future<void> _goNext() async {
@@ -66,7 +80,7 @@ class _AppStartScreenState extends State<AppStartScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
+        CosarcFadeThroughRoute(
           builder: (_) => _ConfigurationErrorScreen(message: configError),
         ),
       );
@@ -91,12 +105,13 @@ class _AppStartScreenState extends State<AppStartScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => nextScreen),
+      CosarcFadeThroughRoute(builder: (_) => nextScreen),
     );
   }
 
   @override
   void dispose() {
+    _logoCtrl.dispose();
     _controller?.dispose();
     super.dispose();
   }
@@ -118,16 +133,37 @@ class _AppStartScreenState extends State<AppStartScreen> {
               ),
             )
           else
-            const ColoredBox(color: CosarcColors.background),
+            const DecoratedBox(
+              decoration: BoxDecoration(gradient: CosarcColors.meshGradient),
+            ),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.2),
-                  CosarcColors.background.withOpacity(0.85),
+                  Colors.black.withOpacity(0.15),
+                  CosarcColors.background.withOpacity(0.92),
                 ],
+              ),
+            ),
+          ),
+          Center(
+            child: FadeTransition(
+              opacity: _logoOpacity,
+              child: ScaleTransition(
+                scale: _logoScale,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('cosarc', style: CosarcTypography.brandMark(size: 48)),
+                    const SizedBox(height: CosarcSpacing.sm),
+                    Text(
+                      'DISCIPLINE · DESIGN · DELIVERY',
+                      style: CosarcTypography.overline(''),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -136,20 +172,13 @@ class _AppStartScreenState extends State<AppStartScreen> {
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: CosarcSpacing.huge),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('cosarc', style: CosarcTypography.brandMark(size: 36)),
-                    const SizedBox(height: CosarcSpacing.sm),
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: CosarcColors.primary.withOpacity(0.8),
-                      ),
-                    ),
-                  ],
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: CosarcColors.primary.withOpacity(0.7),
+                  ),
                 ),
               ),
             ),
@@ -184,21 +213,21 @@ class _ConfigurationErrorScreen extends StatelessWidget {
               const SizedBox(height: CosarcSpacing.lg),
               Text(
                 'Configuration required',
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: CosarcTypography.headline(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: CosarcSpacing.sm),
               Text(
                 message,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: CosarcTypography.body(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: CosarcSpacing.md),
               Text(
                 'Run with:\nflutter run \\\n  --dart-define=SUPABASE_ANON_KEY=your_key',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                    ),
+                style: CosarcTypography.caption(context).copyWith(
+                  fontFamily: 'monospace',
+                ),
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
@@ -208,7 +237,7 @@ class _ConfigurationErrorScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    CosarcFadeThroughRoute(builder: (_) => const LoginScreen()),
                   );
                 },
               ),
