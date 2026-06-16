@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+const Color cosarcPink = Color(0xFFD7BB73);
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});

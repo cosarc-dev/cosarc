@@ -21,19 +21,19 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
 
   Future<void> _testConnection() async {
     try {
-      print('🔵 Testing Supabase connection...');
+      debugPrint('Testing Supabase connection');
 
-      final response = await supabase.from('members').select().limit(1);
+      await supabase.from('members').select().limit(1);
 
       setState(() {
         _status = '✅ BACKEND CONNECTED!\n\nDatabase is ready!';
         _loading = false;
       });
 
-      print('✅ Connection successful');
+      debugPrint('Supabase connection successful');
 
       // Auto-navigate after 2 seconds
-      Future.delayed(Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -46,7 +46,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
         _status = '❌ CONNECTION FAILED\n\n$e';
         _loading = false;
       });
-      print('❌ Connection failed: $e');
+      debugPrint('Supabase connection failed: $e');
     }
   }
 
@@ -61,7 +61,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (_loading)
-                CircularProgressIndicator(color: Color(0xFFE91E63))
+                const CircularProgressIndicator(color: Color(0xFFD7BB73))
               else
                 Icon(
                   _status.contains('✅') ? Icons.check_circle : Icons.error,
@@ -72,7 +72,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
               Text(
                 _status,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   height: 1.5,
@@ -88,7 +88,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: Text('Continue Anyway'),
+                    child: const Text('Continue Anyway'),
                   ),
                 ),
             ],

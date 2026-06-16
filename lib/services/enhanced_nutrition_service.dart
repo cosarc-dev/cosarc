@@ -1,6 +1,7 @@
-import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../core/config/app_config.dart';
 
 /// ═══════════════════════════════════════════════════════════════════
 /// ULTIMATE NUTRITION API SERVICE - MULTI-SOURCE AGGREGATOR
@@ -16,26 +17,19 @@ class NutritionServiceV2 {
   
   // USDA FoodData Central - 400k+ foods (FREE)
   // Get key: https://fdc.nal.usda.gov/api-key-signup.html
-  final String _usdaKey = 'DEMO_KEY'; 
-  
-  // Nutritionix - 800k+ foods, restaurants (FREE tier: 200 calls/day)
-  // Get key: https://developer.nutritionix.com/
-  final String _nutritionixAppId = 'YOUR_APP_ID';
-  final String _nutritionixAppKey = 'YOUR_APP_KEY';
+  final String _usdaKey = AppConfig.usdaApiKey;
+
+  final String _nutritionixAppId = AppConfig.nutritionixAppId;
+  final String _nutritionixAppKey = AppConfig.nutritionixAppKey;
   
   // Edamam - 900k+ foods (FREE tier: 10k calls/month)
   // Get key: https://developer.edamam.com/
-  final String _edamamAppId = 'YOUR_APP_ID';
-  final String _edamamAppKey = 'YOUR_APP_KEY';
-  
-  // FatSecret - 500k+ foods (FREE)
-  // Get key: https://platform.fatsecret.com/api/
-  final String _fatSecretKey = 'YOUR_KEY';
-  final String _fatSecretSecret = 'YOUR_SECRET';
+  final String _edamamAppId = AppConfig.edamamAppId;
+  final String _edamamAppKey = AppConfig.edamamAppKey;
   
   // Spoonacular - 350k+ recipes and foods (FREE tier: 150 calls/day)
   // Get key: https://spoonacular.com/food-api
-  final String _spoonacularKey = 'YOUR_KEY';
+  final String _spoonacularKey = AppConfig.spoonacularApiKey;
 
   /// ═══════════════════════════════════════════════════════════════════
   /// MAIN SEARCH FUNCTION - Aggregates from all sources
@@ -44,7 +38,7 @@ class NutritionServiceV2 {
     final q = query.trim().toLowerCase();
     if (q.length < 2) return [];
 
-    print('🔍 Searching for: $q');
+    debugPrint('Searching nutrition databases for: $q');
 
     try {
       // PHASE 1: Indian Database (Instant, prioritized)
@@ -66,15 +60,15 @@ class NutritionServiceV2 {
       // Combine all results
       List<Map<String, dynamic>> combined = [
         ...indianResults,
-        ...apiResults.expand((results) => results ?? []),
+        ...apiResults.expand((results) => results),
       ];
 
-      print('📊 Total results before deduplication: ${combined.length}');
+      debugPrint('Nutrition results before dedupe: ${combined.length}');
 
       // Remove duplicates
       combined = _deduplicateResults(combined);
 
-      print('📊 Total results after deduplication: ${combined.length}');
+      debugPrint('Nutrition results after dedupe: ${combined.length}');
 
       // Apply intelligent ranking (Indian brands first)
       combined = _applySmartRanking(combined, q);
@@ -82,7 +76,7 @@ class NutritionServiceV2 {
       // Return top 80 results
       return combined.take(80).toList();
     } catch (e) {
-      print('❌ Error in searchFood: $e');
+      debugPrint('Nutrition search fallback: $e');
       return _searchIndianDatabase(q); // Fallback to offline database
     }
   }
@@ -256,7 +250,7 @@ class NutritionServiceV2 {
         };
       }).where((item) => item != null && item['calories'] > 0).cast<Map<String, dynamic>>().toList();
     } catch (e) {
-      print('OpenFoodFacts error: $e');
+      debugPrint('OpenFoodFacts error: $e');
       return [];
     }
   }
@@ -265,6 +259,8 @@ class NutritionServiceV2 {
   /// API 2: USDA FoodData Central - 400k+ scientific data
   /// ═══════════════════════════════════════════════════════════════════
   Future<List<Map<String, dynamic>>> _fetchUSDA(String query) async {
+    if (_usdaKey.isEmpty) return [];
+
     try {
       final url = Uri.parse(
         'https://api.nal.usda.gov/fdc/v1/foods/search?'
@@ -293,7 +289,7 @@ class NutritionServiceV2 {
         };
       }).where((item) => item['calories'] > 0).toList();
     } catch (e) {
-      print('USDA error: $e');
+      debugPrint('USDA error: $e');
       return [];
     }
   }
@@ -302,7 +298,7 @@ class NutritionServiceV2 {
   /// API 3: Nutritionix - 800k+ foods, restaurants
   /// ═══════════════════════════════════════════════════════════════════
   Future<List<Map<String, dynamic>>> _fetchNutritionix(String query) async {
-    if (_nutritionixAppId == 'YOUR_APP_ID') return [];
+    if (_nutritionixAppId.isEmpty || _nutritionixAppKey.isEmpty) return [];
     
     try {
       final url = Uri.parse(
@@ -321,8 +317,6 @@ class NutritionServiceV2 {
       
       final data = json.decode(res.body);
       final branded = (data['branded'] as List?) ?? [];
-      final common = (data['common'] as List?) ?? [];
-      
       List<Map<String, dynamic>> results = [];
       
       // Branded foods
@@ -345,7 +339,7 @@ class NutritionServiceV2 {
       
       return results.cast<Map<String, dynamic>>();
     } catch (e) {
-      print('Nutritionix error: $e');
+      debugPrint('Nutritionix error: $e');
       return [];
     }
   }
@@ -354,7 +348,7 @@ class NutritionServiceV2 {
   /// API 4: Edamam - 900k+ foods
   /// ═══════════════════════════════════════════════════════════════════
   Future<List<Map<String, dynamic>>> _fetchEdamam(String query) async {
-    if (_edamamAppId == 'YOUR_APP_ID') return [];
+    if (_edamamAppId.isEmpty || _edamamAppKey.isEmpty) return [];
     
     try {
       final url = Uri.parse(
@@ -386,7 +380,7 @@ class NutritionServiceV2 {
         };
       }).where((item) => item['calories'] > 0).cast<Map<String, dynamic>>().toList();
     } catch (e) {
-      print('Edamam error: $e');
+      debugPrint('Edamam error: $e');
       return [];
     }
   }
@@ -404,7 +398,7 @@ class NutritionServiceV2 {
   /// API 6: Spoonacular - 350k+ foods
   /// ═══════════════════════════════════════════════════════════════════
   Future<List<Map<String, dynamic>>> _fetchSpoonacular(String query) async {
-    if (_spoonacularKey == 'YOUR_KEY') return [];
+    if (_spoonacularKey.isEmpty) return [];
     
     try {
       final url = Uri.parse(
@@ -414,15 +408,11 @@ class NutritionServiceV2 {
       
       final res = await http.get(url).timeout(const Duration(seconds: 5));
       if (res.statusCode != 200) return [];
-      
-      final data = json.decode(res.body);
-      final results = (data['results'] as List?) ?? [];
-      
-      // Note: Spoonacular requires additional call for nutrition data
-      // This is simplified - full implementation would need ingredient ID lookup
+
+      // Spoonacular ingredient search does not include macro data in this endpoint.
       return [];
     } catch (e) {
-      print('Spoonacular error: $e');
+      debugPrint('Spoonacular error: $e');
       return [];
     }
   }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../core/theme/cosarc_colors.dart';
+import '../../widgets/cosarc/cosarc_loader.dart';
+import '../../widgets/cosarc/cosarc_scaffold.dart';
 
 class OAuthWebViewScreen extends StatefulWidget {
   final String url;
@@ -29,16 +32,16 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            print('🔵 Page started: $url');
+            debugPrint('OAuth page started');
             _checkForCallback(url);
           },
           onPageFinished: (String url) {
-            print('🔵 Page finished: $url');
+            debugPrint('OAuth page finished');
             setState(() => _isLoading = false);
             _checkForCallback(url);
           },
           onNavigationRequest: (NavigationRequest request) {
-            print('🔵 Navigation request: ${request.url}');
+            debugPrint('OAuth navigation requested');
             _checkForCallback(request.url);
             return NavigationDecision.navigate;
           },
@@ -50,10 +53,10 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
   void _checkForCallback(String url) {
     // Check if URL contains access_token
     if (url.contains('access_token=') || url.contains('#access_token=')) {
-      print('✅ OAuth callback detected!');
+      debugPrint('OAuth callback detected');
 
       // Close the WebView and return the URL
-      Future.delayed(Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           Navigator.pop(context, url);
         }
@@ -62,49 +65,29 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
 
     // Also check for error
     if (url.contains('error=')) {
-      print('❌ OAuth error detected');
+      debugPrint('OAuth error detected');
       Navigator.pop(context, null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
+    return CosarcScaffold(
+      showAmbientGlow: false,
       appBar: AppBar(
-        backgroundColor: Color(0xFF1A1A1A),
-        elevation: 0,
-        title: Text(
-          'Sign in with Google',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
+        title: const Text('Sign in with Google'),
         leading: IconButton(
-          icon: Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading)
-            Container(
-              color: Colors.black,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      color: Color(0xFFE91E63),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Loading Google Sign-In...',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          if (_isLoading) const ColoredBox(
+            color: CosarcColors.background,
+            child: CosarcLoader(message: 'Loading Google Sign-In...'),
+          ),
         ],
       ),
     );

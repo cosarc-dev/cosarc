@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:cosarc/models/food_log.dart';
+import 'package:cosarc/core/config/app_config.dart';
 
 // Cinematic Professional Palette
-const Color cosarcPink = Color(0xFFE91E63);
+const Color cosarcPink = Color(0xFFD7BB73);
 const Color cosarcDark = Color(0xFF080808);
 const Color cosarcSurface = Color(0xFF141414);
 const Color cosarcAccent = Color(0xFF00E676);
@@ -17,7 +17,7 @@ const Color cosarcAccent = Color(0xFF00E676);
 /// 1. APEX NUTRITION SERVICE (OFF + USDA + Indian Dataset)
 /// ======================================================
 class NutritionService {
-  final String _usdaKey = 'DEMO_KEY'; // Replace with a free key for higher limits
+  final String _usdaKey = AppConfig.usdaApiKey;
 
   Future<List<Map<String, dynamic>>> searchFood(String query) async {
     final q = query.trim().toLowerCase();
@@ -296,10 +296,15 @@ class _FoodSearchComponentState extends State<FoodSearchComponent> {
             double base = item['servingWeight'];
             double factor = 1.0;
 
-            if (selectedUnit == 'servings') factor = (qty * base) / 100;
-            else if (selectedUnit == 'grams' || selectedUnit == 'ml') factor = qty / 100;
-            else if (selectedUnit == 'tsp') factor = (qty * 5) / 100;
-            else if (selectedUnit == 'tbsp') factor = (qty * 15) / 100;
+            if (selectedUnit == 'servings') {
+              factor = (qty * base) / 100;
+            } else if (selectedUnit == 'grams' || selectedUnit == 'ml') {
+              factor = qty / 100;
+            } else if (selectedUnit == 'tsp') {
+              factor = (qty * 5) / 100;
+            } else if (selectedUnit == 'tbsp') {
+              factor = (qty * 15) / 100;
+            }
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),

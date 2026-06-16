@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../widgets/doodle_background.dart';
+import '../../widgets/cosarc/cosarc_button.dart';
+import '../../widgets/cosarc/cosarc_loader.dart';
+import '../../widgets/cosarc/cosarc_scaffold.dart';
 import '../../services/auth_service.dart';
 import '../../core/supabase_config.dart';
-
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_motion.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
+import '../../domain/onboarding/onboarding_profile.dart';
 import 'gender_screen.dart';
 import 'age_screen.dart';
 import 'height_weight_screen.dart';
@@ -11,8 +17,6 @@ import 'activity_level_screen.dart';
 import 'training_frequency_screen.dart';
 import 'goal_screen.dart';
 import 'setup_animation_screen.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
 
 class OnboardingWrapper extends StatefulWidget {
   const OnboardingWrapper({super.key});
@@ -27,11 +31,18 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
   bool _isSaving = false;
 
   final List<GlobalKey> _screenKeys = List.generate(7, (_) => GlobalKey());
-
   final List<Widget> screens = [];
-
-  // Store user data
   final Map<String, dynamic> _userData = {};
+
+  static const _stepLabels = [
+    'Identity',
+    'Age',
+    'Metrics',
+    'Training',
+    'Activity',
+    'Frequency',
+    'Goal',
+  ];
 
   @override
   void initState() {
@@ -48,13 +59,12 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
   }
 
   Future<void> next() async {
-    // Get data from current screen
     final currentKey = _screenKeys[step];
     final currentState = currentKey.currentState;
 
     if (currentState != null) {
       switch (step) {
-        case 0: // Gender
+        case 0:
           final genderState = currentState as GenderScreenState;
           if (genderState.selected.isEmpty) {
             _showError('Please select a gender');
@@ -62,23 +72,18 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
           }
           _userData['gender'] = genderState.selected;
           break;
-
-        case 1: // Age
+        case 1:
           final ageState = currentState as AgeScreenState;
           _userData['age'] = ageState.age.toInt();
           break;
-
-        case 2: // Height/Weight
+        case 2:
           final hwState = currentState as HeightWeightScreenState;
           final height = double.tryParse(hwState.heightController.text) ?? 0;
           final weight = double.tryParse(hwState.weightController.text) ?? 0;
-
           if (height == 0 || weight == 0) {
             _showError('Please enter valid height and weight');
             return;
           }
-
-          // Convert to cm and kg if needed
           if (hwState.isFtKg) {
             _userData['height'] = (height * 30.48).round().toDouble();
             _userData['weight'] = weight;
@@ -87,8 +92,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
             _userData['weight'] = (weight / 2.20462).round().toDouble();
           }
           break;
-
-        case 3: // Workout Preference
+        case 3:
           final prefState = currentState as WorkoutPreferenceScreenState;
           if (prefState.selected.isEmpty) {
             _showError('Please select a workout preference');
@@ -96,8 +100,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
           }
           _userData['workout_preference'] = prefState.selected;
           break;
-
-        case 4: // Activity Level
+        case 4:
           final activityState = currentState as ActivityLevelScreenState;
           if (activityState.selected.isEmpty) {
             _showError('Please select an activity level');
@@ -105,13 +108,11 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
           }
           _userData['activity_level'] = activityState.selected;
           break;
-
-        case 5: // Training Frequency
+        case 5:
           final freqState = currentState as TrainingFrequencyScreenState;
           _userData['training_frequency'] = freqState.days.toInt();
           break;
-
-        case 6: // Goal
+        case 6:
           final goalState = currentState as GoalScreenState;
           if (goalState.selected.isEmpty) {
             _showError('Please select a goal');
@@ -122,7 +123,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
       }
     }
 
-    print('🔵 Collected data: $_userData');
+    debugPrint('Collected onboarding data: $_userData');
 
     if (step < screens.length - 1) {
       setState(() => step++);
@@ -135,7 +136,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: CosarcColors.error,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -145,34 +146,21 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
     setState(() => _isSaving = true);
 
     try {
-      print('🔵 Saving onboarding data...');
-      print('Final data: $_userData');
-
       final memberId = await _authService.getMemberId();
+      if (memberId == null) throw Exception('No member ID found');
 
-      if (memberId == null) {
-        throw Exception('No member ID found');
+      final payload = OnboardingProfile.sanitize(_userData);
+      if (!OnboardingProfile.isComplete(payload)) {
+        throw Exception('Please complete every onboarding step.');
       }
 
-      print('🔵 Member ID: $memberId');
-
-      // Save to database
       await supabase
           .from('members')
-          .update({
-            'gender': _userData['gender'],
-            'age': _userData['age'],
-            'height': _userData['height'],
-            'weight': _userData['weight'],
-            'workout_preference': _userData['workout_preference'],
-            'activity_level': _userData['activity_level'],
-            'training_frequency': _userData['training_frequency'],
-            'fitness_goal': _userData['fitness_goal'],
-          })
+          .update(payload)
           .eq('id', memberId)
           .timeout(const Duration(seconds: 10));
 
-      print('✅ Data saved to database!');
+      debugPrint('Onboarding profile saved for member $memberId');
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -181,15 +169,13 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
         );
       }
     } catch (e) {
-      print('❌ Error: $e');
-
+      debugPrint('Onboarding save error: $e');
       setState(() => _isSaving = false);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
+            content: Text(_friendlyOnboardingError(e)),
+            backgroundColor: CosarcColors.error,
             duration: const Duration(seconds: 5),
           ),
         );
@@ -197,73 +183,105 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
     }
   }
 
+  String _friendlyOnboardingError(Object error) {
+    final message = error.toString();
+    if (message.contains('Could not find') ||
+        message.contains('schema cache') ||
+        message.contains('column')) {
+      return 'Profile setup needs the latest database migration. Please deploy the bundled Supabase migrations and try again.';
+    }
+    if (message.contains('timeout')) {
+      return 'Saving took too long. Check your connection and try again.';
+    }
+    return 'Could not save your profile. Please review your entries and try again.';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DoodleBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: LinearProgressIndicator(
-                  value: (step + 1) / screens.length,
-                  backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation<Color>(cosarcPink),
-                ),
+    final progress = (step + 1) / screens.length;
+
+    return CosarcScaffold(
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                CosarcSpacing.screenHorizontal,
+                CosarcSpacing.md,
+                CosarcSpacing.screenHorizontal,
+                CosarcSpacing.sm,
               ),
-              Expanded(
-                child: _isSaving
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CircularProgressIndicator(color: cosarcPink),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Saving your profile...',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('SETUP', style: CosarcTypography.overline('SETUP')),
+                  const SizedBox(height: CosarcSpacing.xxs),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _stepLabels[step],
+                          style: CosarcTypography.title(context),
                         ),
-                      )
-                    : screens[step],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : next,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: cosarcPink,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                      ),
+                      Text(
+                        '${step + 1}/${screens.length}',
+                        style: CosarcTypography.caption(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: CosarcSpacing.md),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: progress),
+                      duration: CosarcMotion.medium,
+                      curve: CosarcMotion.easeOut,
+                      builder: (_, value, __) => LinearProgressIndicator(
+                        value: value,
+                        minHeight: 3,
+                        backgroundColor: CosarcColors.glassFill(0.08),
+                        valueColor: const AlwaysStoppedAnimation(CosarcColors.primary),
+                      ),
                     ),
                   ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          step == screens.length - 1
-                              ? "Complete Setup"
-                              : "Continue",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: _isSaving
+                  ? const CosarcLoader(message: 'Crafting your profile...')
+                  : AnimatedSwitcher(
+                      duration: CosarcMotion.medium,
+                      switchInCurve: CosarcMotion.easeOut,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.04, 0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: KeyedSubtree(
+                        key: ValueKey(step),
+                        child: screens[step],
+                      ),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(CosarcSpacing.screenHorizontal),
+              child: CosarcButton(
+                label: step == screens.length - 1 ? 'Complete Setup' : 'Continue',
+                isLoading: _isSaving,
+                onPressed: _isSaving ? null : next,
+              ),
+            ),
+            const SizedBox(height: CosarcSpacing.sm),
+          ],
         ),
       ),
     );

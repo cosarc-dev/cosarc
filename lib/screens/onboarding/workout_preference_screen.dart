@@ -1,55 +1,57 @@
 import 'package:flutter/material.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../widgets/cosarc/onboarding_step.dart';
 
 class WorkoutPreferenceScreen extends StatefulWidget {
   const WorkoutPreferenceScreen({super.key});
 
   @override
-  State<WorkoutPreferenceScreen> createState() =>
-      WorkoutPreferenceScreenState();
+  State<WorkoutPreferenceScreen> createState() => WorkoutPreferenceScreenState();
 }
 
 class WorkoutPreferenceScreenState extends State<WorkoutPreferenceScreen> {
   String selected = '';
 
-  Widget option(String text, IconData icon) {
-    final isSelected = selected == text;
-    return GestureDetector(
-      onTap: () => setState(() => selected = text),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white12,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 16),
-            Text(text, style: const TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          "Workout preference",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 24),
-        option("Gym", Icons.fitness_center),
-        option("Outdoor Exercises", Icons.nature),
-        option("Home Workout", Icons.home),
-        option("Sports", Icons.sports),
-      ],
+    return OnboardingStep(
+      stepNumber: 4,
+      totalSteps: 7,
+      overline: 'Training',
+      icon: Icons.fitness_center_outlined,
+      title: 'Where do\nyou train?',
+      subtitle: 'We will tailor your workout experience to your environment.',
+      body: Column(
+        children: [
+          OnboardingOption(
+            label: 'Gym',
+            description: 'Full equipment access',
+            icon: Icons.fitness_center_rounded,
+            selected: selected == 'Gym',
+            onTap: () => setState(() => selected = 'Gym'),
+          ),
+          OnboardingOption(
+            label: 'Outdoor Exercises',
+            description: 'Fresh air and movement',
+            icon: Icons.park_outlined,
+            selected: selected == 'Outdoor Exercises',
+            onTap: () => setState(() => selected = 'Outdoor Exercises'),
+          ),
+          OnboardingOption(
+            label: 'Home Workout',
+            description: 'Train from anywhere',
+            icon: Icons.home_outlined,
+            selected: selected == 'Home Workout',
+            onTap: () => setState(() => selected = 'Home Workout'),
+          ),
+          OnboardingOption(
+            label: 'Sports',
+            description: 'Competitive and team-based',
+            icon: Icons.sports_rounded,
+            selected: selected == 'Sports',
+            onTap: () => setState(() => selected = 'Sports'),
+          ),
+        ],
+      ),
     );
   }
 }

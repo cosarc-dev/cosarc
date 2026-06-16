@@ -1,41 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../dashboard/dashboard_root.dart';
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
 
-class SuccessScreen extends StatelessWidget {
+class SuccessScreen extends StatefulWidget {
   const SuccessScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    });
+  State<SuccessScreen> createState() => _SuccessScreenState();
+}
 
+class _SuccessScreenState extends State<SuccessScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardRoot()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0C0C),
+      backgroundColor: CosarcColors.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.check_circle,
-              size: 96,
-              color: Colors.pinkAccent,
+            Container(
+              padding: const EdgeInsets.all(CosarcSpacing.lg),
+              decoration: BoxDecoration(
+                color: CosarcColors.primaryMuted,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                size: 64,
+                color: CosarcColors.primary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: CosarcSpacing.lg),
             Text(
               "You're all set!",
-              style: GoogleFonts.montserrat(
-                fontSize: 26,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: CosarcSpacing.xs),
             Text(
-              "3 months > 1 perfect week",
-              style: GoogleFonts.montserrat(
-                color: Colors.white70,
-              ),
+              '3 months > 1 perfect week',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),

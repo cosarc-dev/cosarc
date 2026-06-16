@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../core/theme/cosarc_colors.dart';
 const Color _fireOrange = Color(0xFFFF6B35);
 const Color _fireOrangeLight = Color(0xFFFF8C42);
 
@@ -151,7 +150,7 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
                           ),
                           if (t > 0.3)
                             BoxShadow(
-                              color: cosarcPink.withOpacity(0.05 * t),
+                              color: CosarcColors.primary.withOpacity(0.05 * t),
                               blurRadius: 20,
                               spreadRadius: -2,
                             ),
@@ -353,7 +352,7 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
               Text(
                 '${(progress * 100).toInt()}%',
                 style: const TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w700, color: cosarcPink),
+                    fontSize: 10, fontWeight: FontWeight.w700, color: CosarcColors.primary),
               ),
             ],
           ),
@@ -369,10 +368,10 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
                     height: 3,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                          colors: [cosarcPink, _fireOrange]),
+                          colors: [CosarcColors.primary, _fireOrange]),
                       boxShadow: [
                         BoxShadow(
-                            color: cosarcPink.withOpacity(0.35), blurRadius: 4),
+                            color: CosarcColors.primary.withOpacity(0.35), blurRadius: 4),
                       ],
                     ),
                   ),
@@ -389,7 +388,7 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: cosarcPink.withOpacity(0.75)),
+            Icon(icon, size: 12, color: CosarcColors.primary.withOpacity(0.75)),
             const SizedBox(height: 3),
             Text(value,
                 style: const TextStyle(

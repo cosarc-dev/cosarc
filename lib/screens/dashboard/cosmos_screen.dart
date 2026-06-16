@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/dynamic_island_streak.dart';
+import '../../widgets/cosarc/cosarc_glass.dart';
+import '../../widgets/cosarc/cosarc_section.dart';
 import '../../services/auth_service.dart';
 import '../../core/supabase_config.dart';
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
 import 'workout_log_screen.dart';
 import 'enhanced_nutrition_screen.dart';
 import 'profile_screen.dart';
 import '../../models/food_log.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
 
 class CosmosScreen extends StatefulWidget {
   const CosmosScreen({super.key});
@@ -20,8 +21,6 @@ class CosmosScreen extends StatefulWidget {
 }
 
 class _CosmosScreenState extends State<CosmosScreen> {
-  late VideoPlayerController _controller;
-
   final _authService = AuthService();
   String? _memberId;
   Map<String, dynamic>? _todayContract;
@@ -34,23 +33,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
   @override
   void initState() {
     super.initState();
-    _initVideo();
     _loadData();
-  }
-
-  void _initVideo() {
-    _controller =
-        VideoPlayerController.asset('assets/backgrounds/cosarc_intro.mp4')
-          ..setLooping(true)
-          ..setVolume(0)
-          ..initialize().timeout(const Duration(seconds: 6)).then((_) {
-            if (mounted) {
-              _controller.play();
-              setState(() {});
-            }
-          }).catchError((error) {
-            debugPrint("Video Error: $error");
-          });
   }
 
   Future<void> _loadData() async {
@@ -110,24 +93,26 @@ class _CosmosScreenState extends State<CosmosScreen> {
         });
       }
     } catch (e) {
-      print('Error loading data: $e');
+      debugPrint('Error loading dashboard data: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  bool _isFoodLoggedToday() {
-    return _todayContract?['nutrition_logged'] ?? false;
+  bool _isFoodLoggedToday(Box<FoodLog> box) {
+    if (_todayContract?['nutrition_logged'] == true) return true;
+    final today = DateTime.now();
+    return box.values.any(
+      (log) =>
+          log.dateTime.year == today.year &&
+          log.dateTime.month == today.month &&
+          log.dateTime.day == today.day,
+    );
   }
 
   bool get _contractComplete {
+    final box = Hive.box<FoodLog>('daily_logs');
     return (_todayContract?['workout_completed'] ?? false) &&
-        (_todayContract?['nutrition_logged'] ?? false) &&
+        _isFoodLoggedToday(box) &&
         ((_todayContract?['water_intake_ml'] ?? 0) >= waterTarget) &&
         ((_todayContract?['steps_count'] ?? 0) >= stepTarget);
   }
@@ -137,157 +122,209 @@ class _CosmosScreenState extends State<CosmosScreen> {
   int get steps => _todayContract?['steps_count'] ?? 0;
   int get currentStreak => _streakData?['current_streak'] ?? 0;
 
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  int _completedCount(bool eatCleanDone) {
+    var count = 0;
+    if (workoutDone) count++;
+    if (eatCleanDone) count++;
+    if (waterMl >= waterTarget) count++;
+    if (steps >= stepTarget) count++;
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
-    final height = MediaQuery.of(context).size.height;
 
     return ValueListenableBuilder(
       valueListenable: Hive.box<FoodLog>('daily_logs').listenable(),
       builder: (context, Box<FoodLog> box, _) {
-        bool eatCleanDone = _isFoodLoggedToday();
+        final eatCleanDone = _isFoodLoggedToday(box);
+        final completed = _completedCount(eatCleanDone);
+        final progress = completed / 4;
 
         return Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.transparent,
           body: Stack(
             children: [
-              Positioned.fill(
-                child: Image.asset(
-                  'assets/backgrounds/galaxy_bg.jpg',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: Colors.black),
-                ),
-              ),
               CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // Hero video section - NO DUPLICATE QUOTE
                   SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: height * 0.70,
-                      child: Stack(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        CosarcSpacing.screenHorizontal,
+                        topInset + 56,
+                        CosarcSpacing.screenHorizontal,
+                        0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (_controller.value.isInitialized)
-                            Positioned.fill(
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(40),
-                                  bottomRight: Radius.circular(40),
-                                ),
-                                child: FittedBox(
-                                  fit: BoxFit.cover,
-                                  child: SizedBox(
-                                    width: _controller.value.size.width,
-                                    height: _controller.value.size.height,
-                                    child: VideoPlayer(_controller),
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(40),
-                                  bottomRight: Radius.circular(40),
-                                ),
-                              ),
-                            ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.black54,
-                                    Colors.transparent,
-                                    Colors.black87,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(_greeting, style: CosarcTypography.caption(context)),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Command\nCenter',
+                                      style: CosarcTypography.display(context).copyWith(fontSize: 36),
+                                    ),
                                   ],
-                                  stops: [0.0, 0.4, 1.0],
-                                ),
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(40),
-                                  bottomRight: Radius.circular(40),
                                 ),
                               ),
-                            ),
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                                ),
+                                child: CosarcGlass(
+                                  radius: CosarcSpacing.radiusPill,
+                                  blur: 12,
+                                  padding: const EdgeInsets.all(12),
+                                  child: const Icon(Icons.person_outline_rounded, size: 22),
+                                ),
+                              ),
+                            ],
                           ),
-
-                          // Top bar - using cosarc font style
-                          SafeArea(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "cosarc",
-                                    style: GoogleFonts.inter(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w300,
-                                      color: Colors.white,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const ProfileScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.15),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.white.withOpacity(0.2),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.person_outline_rounded,
-                                        color: Colors.white,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          const SizedBox(height: CosarcSpacing.xxl),
+                          _HeroProgressRing(
+                            progress: progress,
+                            completed: completed,
+                            total: 4,
+                            isComplete: _contractComplete,
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  _buildSectionHeader("Today's Contract"),
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                  _buildWorkoutCard(),
-                  _buildFuelCard(eatCleanDone),
-                  _buildWaterCard(),
-                  _buildStepsCard(),
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  _buildSectionHeader("Reflection"),
-                  _buildReflectionCard(),
+                  SliverToBoxAdapter(child: CosarcSectionHeader(
+                    overline: 'Daily Contract',
+                    title: "Today's commitments",
+                    subtitle: '$completed of 4 complete',
+                  )),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: CosarcSpacing.sm,
+                        crossAxisSpacing: CosarcSpacing.sm,
+                        childAspectRatio: 0.92,
+                      ),
+                      delegate: SliverChildListDelegate([
+                        _ContractTile(
+                          title: 'Workout',
+                          subtitle: workoutDone ? 'Logged' : 'Tap to log',
+                          icon: Icons.fitness_center_rounded,
+                          completed: workoutDone,
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const WorkoutLogScreen()),
+                            );
+                            if (result == true) await _loadData();
+                          },
+                        ),
+                        _ContractTile(
+                          title: 'Fuel',
+                          subtitle: eatCleanDone ? 'Logged' : 'Log nutrition',
+                          icon: Icons.restaurant_rounded,
+                          completed: eatCleanDone,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const EnhancedNutritionScreen()),
+                          ),
+                        ),
+                        _ProgressTile(
+                          title: 'Water',
+                          value: '$waterMl ml',
+                          target: '3L goal',
+                          progress: (waterMl / waterTarget).clamp(0.0, 1.0),
+                          icon: Icons.water_drop_outlined,
+                          actionLabel: '+300ml',
+                          onAction: waterMl >= waterTarget
+                              ? null
+                              : () async {
+                                  if (_isLoading || _todayContract == null) return;
+                                  try {
+                                    await supabase
+                                        .from('daily_contracts')
+                                        .update({'water_intake_ml': waterMl + 300})
+                                        .eq('id', _todayContract!['id'])
+                                        .timeout(const Duration(seconds: 10));
+                                    await _loadData();
+                                  } catch (e) {
+                                    debugPrint('Error updating water: $e');
+                                  }
+                                },
+                        ),
+                        _ProgressTile(
+                          title: 'Steps',
+                          value: '$steps',
+                          target: '$stepTarget goal',
+                          progress: (steps / stepTarget).clamp(0.0, 1.0),
+                          icon: Icons.directions_walk_rounded,
+                        ),
+                      ]),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(CosarcSpacing.screenHorizontal),
+                      child: CosarcGlass(
+                        highlight: _contractComplete,
+                        expand: true,
+                        child: Column(
+                          children: [
+                            Icon(
+                              _contractComplete
+                                  ? Icons.auto_awesome_rounded
+                                  : Icons.lock_outline_rounded,
+                              color: _contractComplete
+                                  ? CosarcColors.primary
+                                  : CosarcColors.textTertiary,
+                              size: 28,
+                            ),
+                            const SizedBox(height: CosarcSpacing.md),
+                            Text(
+                              _contractComplete
+                                  ? 'Reflection unlocked'
+                                  : 'Complete all four to unlock reflection',
+                              textAlign: TextAlign.center,
+                              style: CosarcTypography.title(context).copyWith(fontSize: 16),
+                            ),
+                            const SizedBox(height: CosarcSpacing.xxs),
+                            Text(
+                              _contractComplete
+                                  ? 'You showed up today. That is the work.'
+                                  : '${4 - completed} remaining',
+                              textAlign: TextAlign.center,
+                              style: CosarcTypography.caption(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
-
-              // Dynamic Island - properly positioned
               Positioned(
-                top: topInset + 12,
+                top: topInset + 8,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: DynamicIslandStreak(streak: currentStreak),
-                ),
+                child: Center(child: DynamicIslandStreak(streak: currentStreak)),
               ),
             ],
           ),
@@ -295,374 +332,207 @@ class _CosmosScreenState extends State<CosmosScreen> {
       },
     );
   }
+}
 
-  Widget _buildSectionHeader(String title) {
-    return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-      sliver: SliverToBoxAdapter(
-        child: Text(
-          title,
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ),
-    );
-  }
+class _HeroProgressRing extends StatelessWidget {
+  const _HeroProgressRing({
+    required this.progress,
+    required this.completed,
+    required this.total,
+    required this.isComplete,
+  });
 
-  Widget _buildWorkoutCard() {
-    return _buildContractCard(
-      title: "Workout Log",
-      subtitle:
-          workoutDone ? "Logged. Signal accepted." : "Tap to log workout.",
-      completed: workoutDone,
-      icon: Icons.fitness_center_rounded,
-      onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const WorkoutLogScreen()),
-        );
-        if (result == true) {
-          await _loadData();
-        }
-      },
-    );
-  }
+  final double progress;
+  final int completed;
+  final int total;
+  final bool isComplete;
 
-  Widget _buildFuelCard(bool completed) {
-    return _buildContractCard(
-      title: "Fuel Log",
-      subtitle: completed
-          ? "Fuel logged. Trajectory locked."
-          : "Awaiting fuel input.",
-      completed: completed,
-      icon: Icons.restaurant_rounded,
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const EnhancedNutritionScreen()),
-        );
-      },
-    );
-  }
-
-  Widget _buildWaterCard() {
-    final progress = (waterMl / waterTarget).clamp(0.0, 1.0);
-    return _buildProgressCard(
-      title: "Water Intake Log • 3L",
-      subtitle: "$waterMl ml logged",
-      progress: progress,
-      icon: Icons.water_drop_outlined,
-      onAddPressed: () async {
-        if (_isLoading || _todayContract == null) return;
-        if (waterMl >= waterTarget) return;
-
-        final newAmount = waterMl + 300;
-
-        try {
-          await supabase
-              .from('daily_contracts')
-              .update({'water_intake_ml': newAmount})
-              .eq('id', _todayContract!['id'])
-              .timeout(const Duration(seconds: 10));
-
-          await _loadData();
-        } catch (e) {
-          print('Error updating water: $e');
-        }
-      },
-    );
-  }
-
-  Widget _buildStepsCard() {
-    final progress = (steps / stepTarget).clamp(0.0, 1.0);
-    return _buildProgressCard(
-      title: "Steps • 10,000",
-      subtitle: "$steps / $stepTarget steps",
-      progress: progress,
-      icon: Icons.directions_walk_rounded,
-      showButton: false,
-    );
-  }
-
-  Widget _buildContractCard({
-    required String title,
-    required String subtitle,
-    required bool completed,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                // IMPROVED: Grey frosted glass effect for better readability
-                color: completed
-                    ? Color(0xFF2A2A2A)
-                        .withOpacity(0.85) // Darker grey when completed
-                    : Color(0xFF1A1A1A)
-                        .withOpacity(0.75), // Medium grey when not completed
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: completed
-                      ? cosarcPink.withOpacity(0.6)
-                      : Colors.white.withOpacity(0.08),
-                  width: completed ? 2 : 1,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: (completed ? cosarcPink : Colors.white)
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: completed
-                            ? cosarcPink
-                            : Colors.white.withOpacity(0.6),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: GoogleFonts.inter(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            subtitle,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      completed
-                          ? Icons.check_circle_rounded
-                          : Icons.arrow_forward_ios_rounded,
-                      color: completed
-                          ? cosarcPink
-                          : Colors.white.withOpacity(0.3),
-                      size: completed ? 28 : 18,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressCard({
-    required String title,
-    required String subtitle,
-    required double progress,
-    required IconData icon,
-    VoidCallback? onAddPressed,
-    bool showButton = true,
-  }) {
-    final completed = progress >= 1.0;
-
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          // IMPROVED: Grey frosted glass effect
-          color: completed
-              ? Color(0xFF2A2A2A).withOpacity(0.85)
-              : Color(0xFF1A1A1A).withOpacity(0.75),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: completed
-                ? cosarcPink.withOpacity(0.6)
-                : Colors.white.withOpacity(0.08),
-            width: completed ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  @override
+  Widget build(BuildContext context) {
+    return CosarcGlass(
+      expand: true,
+      padding: const EdgeInsets.all(CosarcSpacing.xxl),
+      highlight: isComplete,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 88,
+            height: 88,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: (completed ? cosarcPink : Colors.white)
-                        .withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    icon,
-                    color:
-                        completed ? cosarcPink : Colors.white.withOpacity(0.6),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.inter(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (showButton && onAddPressed != null)
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: progress < 1.0 ? onAddPressed : null,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: progress < 1.0
-                              ? cosarcPink.withOpacity(0.15)
-                              : Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: progress < 1.0
-                                ? cosarcPink.withOpacity(0.3)
-                                : Colors.white.withOpacity(0.1),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          "+300ml",
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: progress < 1.0
-                                ? cosarcPink
-                                : Colors.white.withOpacity(0.3),
-                          ),
-                        ),
-                      ),
+                SizedBox(
+                  width: 88,
+                  height: 88,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 6,
+                    backgroundColor: CosarcColors.glassFill(0.12),
+                    valueColor: AlwaysStoppedAnimation(
+                      isComplete ? CosarcColors.accent : CosarcColors.primary,
                     ),
+                    strokeCap: StrokeCap.round,
                   ),
+                ),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: CosarcTypography.metric('').copyWith(fontSize: 22),
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 8,
-                backgroundColor:
-                    Colors.white.withOpacity(0.15), // Brighter background
-                valueColor: AlwaysStoppedAnimation<Color>(cosarcPink),
-              ),
+          ),
+          const SizedBox(width: CosarcSpacing.xl),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('DAILY CONTRACT', style: CosarcTypography.overline('')),
+                const SizedBox(height: CosarcSpacing.xs),
+                Text(
+                  isComplete ? 'Contract fulfilled' : 'In progress',
+                  style: CosarcTypography.title(context),
+                ),
+                const SizedBox(height: CosarcSpacing.xxs),
+                Text(
+                  '$completed of $total pillars complete today',
+                  style: CosarcTypography.caption(context),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildReflectionCard() {
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: _contractComplete
-              ? cosarcPink.withOpacity(0.1)
-              : Colors.white.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: _contractComplete
-                ? cosarcPink.withOpacity(0.3)
-                : Colors.white.withOpacity(0.08),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(
-              _contractComplete
-                  ? Icons.auto_awesome_rounded
-                  : Icons.lock_outline_rounded,
-              color: _contractComplete
-                  ? cosarcPink
-                  : Colors.white.withOpacity(0.3),
-              size: 32,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _contractComplete
-                  ? "Reflection unlocked"
-                  : "Complete today's contract to unlock",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                color: _contractComplete
-                    ? Colors.white
-                    : Colors.white.withOpacity(0.5),
-                fontWeight: FontWeight.w500,
+class _ContractTile extends StatelessWidget {
+  const _ContractTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.completed,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool completed;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return CosarcGlass(
+      onTap: onTap,
+      highlight: completed,
+      padding: const EdgeInsets.all(CosarcSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: completed ? CosarcColors.primary : CosarcColors.textSecondary, size: 24),
+              Icon(
+                completed ? Icons.check_circle_rounded : Icons.arrow_outward_rounded,
+                size: 18,
+                color: completed ? CosarcColors.primary : CosarcColors.textTertiary,
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 17)),
+              const SizedBox(height: 2),
+              Text(subtitle, style: CosarcTypography.caption(context)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressTile extends StatelessWidget {
+  const _ProgressTile({
+    required this.title,
+    required this.value,
+    required this.target,
+    required this.progress,
+    required this.icon,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String value;
+  final String target;
+  final double progress;
+  final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final done = progress >= 1.0;
+    return CosarcGlass(
+      highlight: done,
+      padding: const EdgeInsets.all(CosarcSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 22, color: done ? CosarcColors.primary : CosarcColors.textSecondary),
+              const Spacer(),
+              if (actionLabel != null && onAction != null && !done)
+                GestureDetector(
+                  onTap: onAction,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: CosarcColors.primaryMuted,
+                      borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                      border: Border.all(color: CosarcColors.primary.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      actionLabel!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: CosarcColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 17)),
+              Text(value, style: CosarcTypography.caption(context)),
+              const SizedBox(height: CosarcSpacing.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 4,
+                  backgroundColor: CosarcColors.glassFill(0.12),
+                  valueColor: AlwaysStoppedAnimation(
+                    done ? CosarcColors.accent : CosarcColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(target, style: CosarcTypography.caption(context).copyWith(fontSize: 11)),
+            ],
+          ),
+        ],
       ),
     );
   }

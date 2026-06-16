@@ -4,13 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:cosarc/models/food_log.dart';
 import 'package:cosarc/services/enhanced_nutrition_service.dart';
-
-// COSARC Colors
-const Color cosarcPink = Color(0xFFE91E63);
-const Color cosarcDark = Color(0xFF080808);
-const Color cosarcSurface = Color(0xFF121212);
-const Color cosarcCard = Color(0xFF1A1A1A);
-const Color cosarcAccent = Color(0xFF00E676);
+import 'package:cosarc/services/daily_contract_service.dart';
+import 'package:cosarc/core/theme/cosarc_colors.dart';
 
 /// ======================================================
 /// ENHANCED FOOD SEARCH UI
@@ -31,6 +26,7 @@ class EnhancedFoodSearchSheet extends StatefulWidget {
 class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet> 
     with SingleTickerProviderStateMixin {
   final NutritionServiceV2 _service = NutritionServiceV2();
+  final DailyContractService _contractService = DailyContractService();
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _qtyCtrl = TextEditingController(text: "1");
   
@@ -41,7 +37,6 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   final List<String> _units = ['grams', 'ml', 'servings', 'tsp', 'tbsp'];
   
   late AnimationController _animController;
-  Map<String, dynamic>? _selectedFood;
 
   @override
   void initState() {
@@ -197,14 +192,14 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: _searchCtrl.text.isNotEmpty 
-              ? cosarcPink.withOpacity(0.3)
+              ? CosarcColors.primary.withOpacity(0.3)
               : Colors.white.withOpacity(0.05),
           width: 2,
         ),
         boxShadow: _searchCtrl.text.isNotEmpty
             ? [
                 BoxShadow(
-                  color: cosarcPink.withOpacity(0.1),
+                  color: CosarcColors.primary.withOpacity(0.1),
                   blurRadius: 15,
                 ),
               ]
@@ -214,7 +209,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
         children: [
           Icon(
             Icons.search_rounded,
-            color: cosarcPink,
+            color: CosarcColors.primary,
             size: 24,
           ),
           SizedBox(width: 12),
@@ -344,7 +339,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                     color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: cosarcPink.withOpacity(0.2),
+                      color: CosarcColors.primary.withOpacity(0.2),
                     ),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -354,7 +349,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                       dropdownColor: cosarcCard,
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: cosarcPink,
+                        color: CosarcColors.primary,
                       ),
                       style: TextStyle(
                         color: Colors.white,
@@ -394,7 +389,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                color: cosarcPink,
+                color: CosarcColors.primary,
                 strokeWidth: 3,
               ),
               SizedBox(height: 16),
@@ -612,12 +607,12 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                           padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [cosarcPink, cosarcPink.withOpacity(0.7)],
+                              colors: [CosarcColors.primary, CosarcColors.primary.withOpacity(0.7)],
                             ),
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                color: cosarcPink.withOpacity(0.3),
+                                color: CosarcColors.primary.withOpacity(0.3),
                                 blurRadius: 10,
                               ),
                             ],
@@ -761,12 +756,12 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                 food['brand'],
                 style: TextStyle(
                   fontSize: 13,
-                  color: cosarcPink,
+                  color: CosarcColors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 30),
-              _buildDetailMacro("Energy", "${(food['calories'] * factor).toInt()} kcal", cosarcPink),
+              _buildDetailMacro("Energy", "${(food['calories'] * factor).toInt()} kcal", CosarcColors.primary),
               _buildDetailMacro("Protein", "${(food['protein'] * factor).toInt()} g", Color(0xFF2196F3)),
               _buildDetailMacro("Carbs", "${(food['carbs'] * factor).toInt()} g", Color(0xFFFF9800)),
               _buildDetailMacro("Fat", "${(food['fat'] * factor).toInt()} g", Color(0xFF9C27B0)),
@@ -790,7 +785,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                       _addFood(food, factor);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: cosarcPink,
+                      backgroundColor: CosarcColors.primary,
                       padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
@@ -858,6 +853,8 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
     );
 
     Hive.box<FoodLog>('daily_logs').add(log);
+
+    _contractService.markNutritionLogged();
     
     Navigator.pop(context);
     

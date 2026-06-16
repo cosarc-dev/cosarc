@@ -1,9 +1,11 @@
 buildscript {
     ext.kotlin_version = '1.8.22'
+
     repositories {
         google()
         mavenCentral()
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:8.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -15,7 +17,7 @@ allprojects {
         google()
         mavenCentral()
         maven { url "https://storage.googleapis.com/download.flutter.io" }
-        
+
         // Allow finding the Unity jar file
         flatDir {
             dirs "${rootDir}/unityLibrary/libs"
@@ -24,46 +26,40 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
 // --- MASTER FIX ---
-// This forces ALL plugins (including the hidden Apple one inside Supabase) 
-// to use the correct Android SDK version so they don't crash.
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
+
             project.android {
-<<<<<<< HEAD
-                // 1. Force SDK 34 (Fixes 'Java 9+' errors in old plugins)
+
                 compileSdkVersion 34
+
                 defaultConfig {
                     minSdkVersion 24
                     targetSdkVersion 34
                 }
 
-                // 2. Fix Namespace for Unity Widget
-=======
-                compileSdkVersion 34
-
-                // 1. Fix Namespace Error: Match the package name from the error log
->>>>>>> 070691c (latest changes)
                 if (namespace == null) {
                     if (project.name == "flutter_unity_widget") {
                         namespace "com.xraph.plugin.flutter_unity_widget"
                     }
                 }
 
-                // 3. Force Java 17
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17
                 }
             }
-            
-            // 4. Force Kotlin 17
-            project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+
+            project.tasks.withType(
+                org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+            ).configureEach {
                 kotlinOptions {
                     jvmTarget = "17"
                 }

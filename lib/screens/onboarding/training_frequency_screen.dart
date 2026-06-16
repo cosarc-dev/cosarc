@@ -1,64 +1,61 @@
 import 'package:flutter/material.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
+import '../../widgets/cosarc/cosarc_glass.dart';
+import '../../widgets/cosarc/onboarding_step.dart';
 
 class TrainingFrequencyScreen extends StatefulWidget {
   const TrainingFrequencyScreen({super.key});
 
   @override
-  State<TrainingFrequencyScreen> createState() =>
-      TrainingFrequencyScreenState();
+  State<TrainingFrequencyScreen> createState() => TrainingFrequencyScreenState();
 }
 
 class TrainingFrequencyScreenState extends State<TrainingFrequencyScreen> {
   double days = 3;
 
   String getEmoji() {
-    if (days == 0) return "😞";
-    if (days <= 2) return "😐";
-    if (days <= 4) return "🙂";
-    if (days <= 6) return "😄";
-    return "🔥";
+    if (days <= 2) return '😐';
+    if (days <= 4) return '🙂';
+    if (days <= 6) return '😄';
+    return '🔥';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            "How often will you train?",
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            getEmoji(),
-            style: const TextStyle(fontSize: 48),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "${days.toInt()} days",
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+    return OnboardingStep(
+      stepNumber: 6,
+      totalSteps: 7,
+      overline: 'Frequency',
+      icon: Icons.calendar_month_outlined,
+      title: 'Training\ndays per week',
+      subtitle: 'This helps us plan your weekly streak and recovery.',
+      body: CosarcGlass(
+        expand: true,
+        padding: const EdgeInsets.all(CosarcSpacing.xxl),
+        child: Column(
+          children: [
+            Text(getEmoji(), style: const TextStyle(fontSize: 56)),
+            const SizedBox(height: CosarcSpacing.md),
+            Text(
+              '${days.toInt()}',
+              style: CosarcTypography.metric(
+                '${days.toInt()}',
+                color: CosarcColors.primary,
+              ).copyWith(fontSize: 56),
             ),
-          ),
-          Slider(
-            value: days,
-            min: 0,
-            max: 7,
-            divisions: 7,
-            activeColor: cosarcPink,
-            onChanged: (v) => setState(() => days = v),
-          ),
-          const Text(
-            "This helps us plan your weekly streak",
-            style: TextStyle(color: Colors.white70),
-          ),
-        ],
+            Text('days per week', style: CosarcTypography.caption(context)),
+            const SizedBox(height: CosarcSpacing.xxl),
+            Slider(
+              value: days,
+              min: 1,
+              max: 7,
+              divisions: 6,
+              onChanged: (v) => setState(() => days = v),
+            ),
+          ],
+        ),
       ),
     );
   }

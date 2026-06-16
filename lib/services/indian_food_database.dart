@@ -1,13 +1,15 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../core/config/app_config.dart';
 
 class IndianFoodDatabase {
   // Multiple API endpoints for comprehensive coverage
-  static const String usdaApiKey = 'o2JadykDwsxZMRTeoGz06rjtKha3YbdcJiZPRzzV'; // User should replace with their key
+  static const String usdaApiKey = AppConfig.usdaApiKey;
   static const String usdaBaseUrl = 'https://api.nal.usda.gov/fdc/v1';
   static const String openFoodFactsUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
-  static const String nutritionixAppId = ''; // User needs to get this
-  static const String nutritionixAppKey = ''; // User needs to get this
+  static const String nutritionixAppId = AppConfig.nutritionixAppId;
+  static const String nutritionixAppKey = AppConfig.nutritionixAppKey;
   
   // Extensive local Indian food database
   static final Map<String, Map<String, dynamic>> localIndianFoods = {
@@ -122,7 +124,7 @@ class IndianFoodDatabase {
           results.addAll(usdaResults);
         }
       } catch (e) {
-        print('API Search Error: $e');
+        debugPrint('Nutrition API search failed: $e');
       }
     }
     
@@ -141,7 +143,7 @@ class IndianFoodDatabase {
   static Future<List<Map<String, dynamic>>> _searchOpenFoodFacts(String query) async {
     try {
       final url = Uri.parse('$openFoodFactsUrl?search_terms=$query&search_simple=1&json=1&page_size=10');
-      final response = await http.get(url).timeout(Duration(seconds: 5));
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -162,7 +164,7 @@ class IndianFoodDatabase {
         }).toList();
       }
     } catch (e) {
-      print('OpenFoodFacts Error: $e');
+      debugPrint('OpenFoodFacts search failed: $e');
     }
     return [];
   }
@@ -170,7 +172,7 @@ class IndianFoodDatabase {
   static Future<List<Map<String, dynamic>>> _searchUSDA(String query) async {
     try {
       final url = Uri.parse('$usdaBaseUrl/foods/search?api_key=$usdaApiKey&query=$query&pageSize=10');
-      final response = await http.get(url).timeout(Duration(seconds: 5));
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -203,7 +205,7 @@ class IndianFoodDatabase {
         }).toList();
       }
     } catch (e) {
-      print('USDA Error: $e');
+      debugPrint('USDA search failed: $e');
     }
     return [];
   }

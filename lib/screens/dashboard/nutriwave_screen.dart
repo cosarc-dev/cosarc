@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
+import '../../widgets/cosarc/cosarc_button.dart';
+import '../../widgets/cosarc/cosarc_glass.dart';
+import '../../widgets/cosarc/cosarc_section.dart';
 
 class NutriwaveScreen extends StatefulWidget {
   const NutriwaveScreen({super.key});
@@ -21,354 +24,360 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
     'Meal Prep',
   ];
 
+  static const double _floatingNavClearance = 100;
+  static const double _cartBarHeight = 64;
+
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF4CAF50).withOpacity(0.15),
-                      Colors.black,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Editorial header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    CosarcSpacing.screenHorizontal,
+                    topInset + CosarcSpacing.lg,
+                    CosarcSpacing.screenHorizontal,
+                    0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'NUTRIWAVE',
+                        style: CosarcTypography.overline('NUTRIWAVE'),
+                      ),
+                      const SizedBox(height: CosarcSpacing.xs),
+                      Text(
+                        'Fresh\nFuel',
+                        style: CosarcTypography.display(context).copyWith(
+                          fontSize: 40,
+                          height: 1.05,
+                        ),
+                      ),
+                      const SizedBox(height: CosarcSpacing.xs),
+                      Text(
+                        'Healthy meals, delivered fresh',
+                        style: CosarcTypography.body(context),
+                      ),
+                      const SizedBox(height: CosarcSpacing.xl),
+                      // Glass search bar
+                      CosarcGlass(
+                        expand: true,
+                        radius: CosarcSpacing.radiusPill,
+                        blur: 20,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: CosarcSpacing.lg,
+                          vertical: CosarcSpacing.md,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              color: CosarcColors.textTertiary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: CosarcSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                'Search healthy meals...',
+                                style: CosarcTypography.caption(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'NUTRIWAVE',
-                      style: GoogleFonts.inter(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Healthy meals, delivered fresh',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Search bar
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.15),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search_rounded,
-                            color: Colors.white.withOpacity(0.5),
-                            size: 22,
+              ),
+
+              // Location & delivery
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    CosarcSpacing.screenHorizontal,
+                    CosarcSpacing.xl,
+                    CosarcSpacing.screenHorizontal,
+                    0,
+                  ),
+                  child: CosarcGlass(
+                    expand: true,
+                    radius: CosarcSpacing.radiusLg,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(CosarcSpacing.xs),
+                          decoration: BoxDecoration(
+                            color: CosarcColors.primaryMuted,
+                            borderRadius:
+                                BorderRadius.circular(CosarcSpacing.radiusSm),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
+                          child: const Icon(
+                            Icons.location_on_rounded,
+                            color: CosarcColors.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: CosarcSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Delivering to',
+                                style: CosarcTypography.caption(context),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Home - Pune, Maharashtra',
+                                style: CosarcTypography.title(context).copyWith(
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: CosarcSpacing.sm,
+                            vertical: CosarcSpacing.xxs + 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: CosarcColors.success.withOpacity(0.12),
+                            borderRadius:
+                                BorderRadius.circular(CosarcSpacing.radiusSm),
+                            border: Border.all(
+                              color: CosarcColors.success.withOpacity(0.25),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.schedule_rounded,
+                                size: 14,
+                                color: CosarcColors.success,
+                              ),
+                              const SizedBox(width: CosarcSpacing.xxs),
+                              Text(
+                                '30 min',
+                                style: CosarcTypography.caption(context).copyWith(
+                                  color: CosarcColors.success,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Horizontal category pills
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 44,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(
+                      CosarcSpacing.screenHorizontal,
+                      CosarcSpacing.lg,
+                      CosarcSpacing.screenHorizontal,
+                      0,
+                    ),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _categories.length,
+                    itemBuilder: (context, index) {
+                      final isSelected = _selectedCategory == index;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          right: index < _categories.length - 1
+                              ? CosarcSpacing.xs
+                              : 0,
+                        ),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedCategory = index),
+                          child: CosarcGlass(
+                            highlight: isSelected,
+                            radius: CosarcSpacing.radiusPill,
+                            blur: isSelected ? 16 : 12,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: CosarcSpacing.lg,
+                              vertical: CosarcSpacing.sm,
+                            ),
                             child: Text(
-                              'Search healthy meals...',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: Colors.white.withOpacity(0.4),
+                              _categories[index],
+                              style: CosarcTypography.caption(context).copyWith(
+                                fontWeight:
+                                    isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected
+                                    ? CosarcColors.primary
+                                    : CosarcColors.textSecondary,
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Location & Delivery info
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.08),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      color: cosarcPink,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Delivering to',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.6),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Home - Pune, Maharashtra',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF4CAF50).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.schedule_rounded,
-                            size: 14,
-                            color: Color(0xFF4CAF50),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '30 min',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF4CAF50),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Category Tabs
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 50,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _categories.length,
-                  itemBuilder: (context, index) {
-                    final isSelected = _selectedCategory == index;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedCategory = index),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: isSelected 
-                              ? cosarcPink.withOpacity(0.2)
-                              : Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected 
-                                ? cosarcPink 
-                                : Colors.white.withOpacity(0.1),
-                            width: isSelected ? 2 : 1,
-                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          _categories[index],
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? cosarcPink : Colors.white.withOpacity(0.7),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-            
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            
-            // Menu Items
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildMenuItem(
-                    name: 'Grilled Chicken Power Bowl',
-                    description: 'Grilled chicken, quinoa, roasted veggies, tahini',
-                    price: '₹349',
-                    calories: '520 kcal',
-                    protein: '45g protein',
-                    image: '🍗',
-                    rating: 4.8,
-                    isVeg: false,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    name: 'Mediterranean Quinoa Salad',
-                    description: 'Quinoa, cucumber, tomato, feta, olives, lemon dressing',
-                    price: '₹289',
-                    calories: '380 kcal',
-                    protein: '12g protein',
-                    image: '🥗',
-                    rating: 4.9,
-                    isVeg: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    name: 'Peanut Butter Protein Smoothie',
-                    description: 'Banana, peanut butter, protein powder, almond milk',
-                    price: '₹199',
-                    calories: '350 kcal',
-                    protein: '25g protein',
-                    image: '🥤',
-                    rating: 4.7,
-                    isVeg: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    name: 'Paneer Tikka Wrap',
-                    description: 'Tandoori paneer, whole wheat wrap, mint chutney',
-                    price: '₹249',
-                    calories: '420 kcal',
-                    protein: '22g protein',
-                    image: '🌯',
-                    rating: 4.6,
-                    isVeg: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    name: 'Weekly Muscle Gain Pack',
-                    description: '7 high-protein meals delivered daily',
-                    price: '₹2,499',
-                    calories: '2800 kcal/day',
-                    protein: '180g/day',
-                    image: '📦',
-                    rating: 5.0,
-                    isVeg: false,
-                    isCombo: true,
-                  ),
-                  const SizedBox(height: 100),
-                ]),
+
+              const SliverToBoxAdapter(
+                child: CosarcSectionHeader(
+                  overline: 'Menu',
+                  title: 'Chef picks',
+                  subtitle: 'Macro-balanced, gym-ready meals',
+                ),
               ),
-            ),
-          ],
-        ),
+
+              // Premium meal cards
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: CosarcSpacing.screenHorizontal,
+                ),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildMenuItem(
+                      name: 'Grilled Chicken Power Bowl',
+                      description:
+                          'Grilled chicken, quinoa, roasted veggies, tahini',
+                      price: '₹349',
+                      calories: '520 kcal',
+                      protein: '45g protein',
+                      image: '🍗',
+                      rating: 4.8,
+                      isVeg: false,
+                    ),
+                    const SizedBox(height: CosarcSpacing.md),
+                    _buildMenuItem(
+                      name: 'Mediterranean Quinoa Salad',
+                      description:
+                          'Quinoa, cucumber, tomato, feta, olives, lemon dressing',
+                      price: '₹289',
+                      calories: '380 kcal',
+                      protein: '12g protein',
+                      image: '🥗',
+                      rating: 4.9,
+                      isVeg: true,
+                    ),
+                    const SizedBox(height: CosarcSpacing.md),
+                    _buildMenuItem(
+                      name: 'Peanut Butter Protein Smoothie',
+                      description:
+                          'Banana, peanut butter, protein powder, almond milk',
+                      price: '₹199',
+                      calories: '350 kcal',
+                      protein: '25g protein',
+                      image: '🥤',
+                      rating: 4.7,
+                      isVeg: true,
+                    ),
+                    const SizedBox(height: CosarcSpacing.md),
+                    _buildMenuItem(
+                      name: 'Paneer Tikka Wrap',
+                      description:
+                          'Tandoori paneer, whole wheat wrap, mint chutney',
+                      price: '₹249',
+                      calories: '420 kcal',
+                      protein: '22g protein',
+                      image: '🌯',
+                      rating: 4.6,
+                      isVeg: true,
+                    ),
+                    const SizedBox(height: CosarcSpacing.md),
+                    _buildMenuItem(
+                      name: 'Weekly Muscle Gain Pack',
+                      description: '7 high-protein meals delivered daily',
+                      price: '₹2,499',
+                      calories: '2800 kcal/day',
+                      protein: '180g/day',
+                      image: '📦',
+                      rating: 5.0,
+                      isVeg: false,
+                      isCombo: true,
+                    ),
+                    SizedBox(
+                      height: _floatingNavClearance +
+                          _cartBarHeight +
+                          bottomInset +
+                          CosarcSpacing.xl,
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+
+          // Floating cart bar above nav
+          Positioned(
+            left: CosarcSpacing.screenHorizontal,
+            right: CosarcSpacing.screenHorizontal,
+            bottom: _floatingNavClearance + bottomInset,
+            child: _buildCartBar(),
+          ),
+        ],
       ),
-      
-      // Cart Button
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          border: Border(
-            top: BorderSide(
-              color: Colors.white.withOpacity(0.1),
-              width: 1,
+    );
+  }
+
+  Widget _buildCartBar() {
+    return CosarcGlass(
+      expand: true,
+      radius: CosarcSpacing.radiusPill,
+      blur: 28,
+      opacity: 0.1,
+      onTap: () {},
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: CosarcColors.brandSweep,
+              borderRadius: BorderRadius.circular(CosarcSpacing.radiusSm),
+              boxShadow: CosarcColors.glow(CosarcColors.primary, 0.2),
             ),
-          ),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {},
-            borderRadius: BorderRadius.circular(16),
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF4CAF50), Color(0xFF4CAF50).withOpacity(0.8)],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF4CAF50).withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '3',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'View Cart',
-                      style: GoogleFonts.inter(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '₹837',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ],
-                ),
+            alignment: Alignment.center,
+            child: Text(
+              '3',
+              style: CosarcTypography.caption(context).copyWith(
+                color: CosarcColors.ink,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-        ),
+          const SizedBox(width: CosarcSpacing.sm),
+          Expanded(
+            child: Text(
+              'View Cart',
+              style: CosarcTypography.title(context).copyWith(fontSize: 16),
+            ),
+          ),
+          Text(
+            '₹837',
+            style: CosarcTypography.title(context).copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(width: CosarcSpacing.xs),
+          const Icon(
+            Icons.arrow_forward_rounded,
+            color: CosarcColors.primary,
+            size: 20,
+          ),
+        ],
       ),
     );
   }
@@ -384,212 +393,207 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
     required bool isVeg,
     bool isCombo = false,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 1,
-        ),
+    return CosarcGlass(
+      expand: true,
+      radius: CosarcSpacing.radiusXl,
+      onTap: () => _showFoodDetail(
+        name,
+        description,
+        price,
+        calories,
+        protein,
+        image,
+        isVeg,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showFoodDetail(name, description, price, calories, protein, image, isVeg),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Food Image/Emoji
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 1,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    image,
-                    style: TextStyle(fontSize: 50),
-                  ),
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isVeg ? Colors.green : Colors.red,
-                                width: 2,
-                              ),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: isVeg ? Colors.green : Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (isCombo)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: cosarcPink.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: cosarcPink.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                'COMBO',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1,
-                                  color: cosarcPink,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.white.withOpacity(0.6),
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Color(0xFF4CAF50).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.star_rounded, size: 12, color: Color(0xFF4CAF50)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  rating.toString(),
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF4CAF50),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            calories,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-                          Text(
-                            ' • ',
-                            style: GoogleFonts.inter(
-                              color: Colors.white.withOpacity(0.3),
-                            ),
-                          ),
-                          Text(
-                            protein,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: Color(0xFF2196F3).withOpacity(0.8),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            price,
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [cosarcPink, cosarcPink.withOpacity(0.8)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'ADD',
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      CosarcColors.surfaceHighlight,
+                      CosarcColors.surfaceElevated,
                     ],
                   ),
+                  borderRadius: BorderRadius.circular(CosarcSpacing.radiusLg),
+                  border: Border.all(color: CosarcColors.borderStrong),
                 ),
-              ],
-            ),
+                alignment: Alignment.center,
+                child: Text(image, style: const TextStyle(fontSize: 44)),
+              ),
+              const SizedBox(width: CosarcSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _buildVegIndicator(isVeg, size: 14),
+                        if (isCombo) ...[
+                          const SizedBox(width: CosarcSpacing.xs),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: CosarcSpacing.xs,
+                              vertical: CosarcSpacing.xxs,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CosarcColors.primaryMuted,
+                              borderRadius:
+                                  BorderRadius.circular(CosarcSpacing.radiusSm),
+                              border: Border.all(
+                                color: CosarcColors.primary.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              'COMBO',
+                              style: CosarcTypography.overline('COMBO').copyWith(
+                                color: CosarcColors.primary,
+                                fontSize: 9,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                        _buildRatingChip(rating),
+                      ],
+                    ),
+                    const SizedBox(height: CosarcSpacing.xs),
+                    Text(
+                      name,
+                      style: CosarcTypography.title(context).copyWith(
+                        fontSize: 17,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: CosarcSpacing.xxs),
+                    Text(
+                      description,
+                      style: CosarcTypography.caption(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: CosarcSpacing.md),
+          Row(
+            children: [
+              _buildMacroChip(calories, CosarcColors.textTertiary),
+              const SizedBox(width: CosarcSpacing.xs),
+              _buildMacroChip(protein, CosarcColors.protein),
+            ],
+          ),
+          const SizedBox(height: CosarcSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                price,
+                style: CosarcTypography.metric(price, color: CosarcColors.textPrimary)
+                    .copyWith(fontSize: 22),
+              ),
+              CosarcButton(
+                label: 'ADD',
+                expand: false,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVegIndicator(bool isVeg, {double size = 16}) {
+    final color = isVeg ? CosarcColors.success : CosarcColors.error;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 1.5),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Center(
+        child: Container(
+          width: size * 0.38,
+          height: size * 0.38,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
       ),
     );
   }
 
-  void _showFoodDetail(String name, String description, String price, String calories, String protein, String image, bool isVeg) {
+  Widget _buildRatingChip(double rating) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: CosarcSpacing.xs,
+        vertical: CosarcSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: CosarcColors.success.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(CosarcSpacing.radiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, size: 12, color: CosarcColors.success),
+          const SizedBox(width: 3),
+          Text(
+            rating.toString(),
+            style: CosarcTypography.caption(context).copyWith(
+              color: CosarcColors.success,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: CosarcSpacing.xs,
+        vertical: CosarcSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(CosarcSpacing.radiusSm),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        label,
+        style: CosarcTypography.caption(context).copyWith(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  void _showFoodDetail(
+    String name,
+    String description,
+    String price,
+    String calories,
+    String protein,
+    String image,
+    bool isVeg,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -597,142 +601,72 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
+          color: CosarcColors.backgroundElevated,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(CosarcSpacing.radiusXl + 6),
           ),
+          border: Border.all(color: CosarcColors.borderStrong),
         ),
         child: Column(
           children: [
-            const SizedBox(height: 12),
+            const SizedBox(height: CosarcSpacing.sm),
             Container(
-              width: 50,
-              height: 5,
+              width: 48,
+              height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
+                color: CosarcColors.textTertiary,
+                borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: CosarcSpacing.xl),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(CosarcSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: Text(
-                        image,
-                        style: TextStyle(fontSize: 100),
+                      child: CosarcGlass(
+                        radius: CosarcSpacing.radiusXl,
+                        padding: const EdgeInsets.all(CosarcSpacing.xxxl),
+                        child: Text(image, style: const TextStyle(fontSize: 88)),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: isVeg ? Colors.green : Colors.red,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: isVeg ? Colors.green : Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      name,
-                      style: GoogleFonts.inter(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      description,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.7),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: CosarcSpacing.xl),
+                    _buildVegIndicator(isVeg, size: 20),
+                    const SizedBox(height: CosarcSpacing.sm),
+                    Text(name, style: CosarcTypography.headline(context)),
+                    const SizedBox(height: CosarcSpacing.xs),
+                    Text(description, style: CosarcTypography.body(context)),
+                    const SizedBox(height: CosarcSpacing.xl),
                     Text(
                       'Nutrition Info',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                      style: CosarcTypography.title(context),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: CosarcSpacing.md),
                     Row(
                       children: [
                         Expanded(
-                          child: _buildNutritionCard('Calories', calories, cosarcPink),
+                          child: _buildNutritionCard(
+                            'Calories',
+                            calories,
+                            CosarcColors.primary,
+                          ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: CosarcSpacing.sm),
                         Expanded(
-                          child: _buildNutritionCard('Protein', protein, Color(0xFF2196F3)),
+                          child: _buildNutritionCard(
+                            'Protein',
+                            protein,
+                            CosarcColors.protein,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => Navigator.pop(context),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF4CAF50), Color(0xFF4CAF50).withOpacity(0.8)],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Add to Cart • ',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  price,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: CosarcSpacing.xxl),
+                    CosarcButton(
+                      label: 'Add to Cart • $price',
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
@@ -745,32 +679,23 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
   }
 
   Widget _buildNutritionCard(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
+    return CosarcGlass(
+      expand: true,
+      radius: CosarcSpacing.radiusLg,
+      highlight: true,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: Colors.white.withOpacity(0.7),
-            ),
+            label.toUpperCase(),
+            style: CosarcTypography.overline(label),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: CosarcSpacing.xxs),
           Text(
             value,
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
+            style: CosarcTypography.title(context).copyWith(
               color: color,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

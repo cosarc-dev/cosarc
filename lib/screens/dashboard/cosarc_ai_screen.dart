@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
+import '../../widgets/cosarc/cosarc_glass.dart';
+import '../../widgets/cosarc/cosarc_section.dart';
 
 class CosarcAIScreen extends StatefulWidget {
   const CosarcAIScreen({super.key});
@@ -19,6 +22,8 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
     'How much protein should I eat?',
     'Tips for better sleep recovery?',
   ];
+
+  static const double _floatingNavClearance = 88;
 
   @override
   void dispose() {
@@ -44,7 +49,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
     });
 
     _messageController.clear();
-    
+
     // Scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
@@ -57,125 +62,99 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
     });
   }
 
+  double _bottomPadding(BuildContext context) =>
+      MediaQuery.of(context).padding.bottom + _floatingNavClearance;
+
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: _messages.isEmpty ? _buildEmptyState() : _buildMessageList(),
-            ),
-            _buildInputField(),
-          ],
-        ),
+      backgroundColor: Colors.transparent,
+      body: Column(
+        children: [
+          SizedBox(height: topInset),
+          _buildHeader(context),
+          Expanded(
+            child: _messages.isEmpty
+                ? _buildEmptyState(context)
+                : _buildMessageList(context),
+          ),
+          _buildInputField(context),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            cosarcPink.withOpacity(0.15),
-            Colors.black,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.md,
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.sm,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // IMPROVED AI ICON
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  cosarcPink,
-                  cosarcPink.withOpacity(0.6),
-                ],
+          CosarcGlass(
+            radius: CosarcSpacing.radiusMd,
+            blur: 16,
+            padding: const EdgeInsets.all(CosarcSpacing.sm),
+            highlight: true,
+            child: ShaderMask(
+              shaderCallback: (bounds) =>
+                  CosarcColors.brandSweep.createShader(bounds),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 22,
               ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: cosarcPink.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.psychology_rounded, // BETTER AI ICON
-              color: Colors.white,
-              size: 28,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: CosarcSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Cosarc AI',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
+                  'COSARC AI',
+                  style: CosarcTypography.overline('COSARC AI'),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: CosarcSpacing.xxs),
                 Text(
-                  'Your fitness intelligence',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.6),
-                  ),
+                  'Fitness intelligence',
+                  style: CosarcTypography.caption(context),
                 ),
               ],
             ),
           ),
-          // Status indicator
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Color(0xFF4CAF50).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Color(0xFF4CAF50).withOpacity(0.3),
-                width: 1,
-              ),
+          CosarcGlass(
+            radius: CosarcSpacing.radiusPill,
+            blur: 12,
+            opacity: 0.04,
+            padding: const EdgeInsets.symmetric(
+              horizontal: CosarcSpacing.sm,
+              vertical: CosarcSpacing.xs,
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF4CAF50),
+                  decoration: const BoxDecoration(
+                    color: CosarcColors.success,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: CosarcSpacing.xs),
                 Text(
                   'Online',
-                  style: TextStyle(
+                  style: CosarcTypography.caption(context).copyWith(
                     fontSize: 11,
+                    color: CosarcColors.success,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF4CAF50),
                   ),
                 ),
               ],
@@ -186,126 +165,102 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.xxxl,
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.xl,
+      ),
       child: Column(
         children: [
-          const SizedBox(height: 40),
-          
-          // Large AI Icon with animation effect
-          Container(
-            padding: const EdgeInsets.all(36),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  cosarcPink.withOpacity(0.2),
-                  cosarcPink.withOpacity(0.05),
-                  Colors.transparent,
-                ],
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    cosarcPink,
-                    cosarcPink.withOpacity(0.7),
-                  ],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: cosarcPink.withOpacity(0.4),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.psychology_rounded,
-                size: 64,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 32),
-          
+          _buildHeroOrb(),
+          const SizedBox(height: CosarcSpacing.xxl),
           Text(
             'Ask me anything',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -1,
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          Text(
-            'Get personalized fitness advice, workout tips,\nand nutrition guidance powered by AI',
+            style: CosarcTypography.headline(context),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white.withOpacity(0.6),
-              height: 1.5,
-            ),
           ),
-          
-          const SizedBox(height: 40),
-          
-          // Suggested Questions
+          const SizedBox(height: CosarcSpacing.sm),
           Text(
-            'Try asking:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.8),
-            ),
+            'Personalized fitness advice, workout tips,\nand nutrition guidance — powered by AI',
+            textAlign: TextAlign.center,
+            style: CosarcTypography.body(context),
           ),
-          
-          const SizedBox(height: 16),
-          
-          ..._suggestedQuestions.map((question) => _buildSuggestionChip(question)),
-          
-          const SizedBox(height: 24),
-          
-          // Disclaimer
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.08),
-                width: 1,
-              ),
-            ),
+          const SizedBox(height: CosarcSpacing.xxxl),
+          CosarcSectionHeader(
+            overline: 'Suggestions',
+            title: 'Try asking',
+          ),
+          ..._suggestedQuestions.map(_buildSuggestionChip),
+          const SizedBox(height: CosarcSpacing.xl),
+          CosarcGlass(
+            expand: true,
+            radius: CosarcSpacing.radiusMd,
+            blur: 16,
+            opacity: 0.035,
+            padding: const EdgeInsets.all(CosarcSpacing.md),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   Icons.info_outline_rounded,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 20,
+                  color: CosarcColors.textTertiary,
+                  size: 18,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: CosarcSpacing.sm),
                 Expanded(
                   child: Text(
                     'AI provides fitness guidance only. Not medical advice.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.5),
-                      height: 1.4,
+                    style: CosarcTypography.caption(context).copyWith(
+                      height: 1.45,
                     ),
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroOrb() {
+    return SizedBox(
+      width: 120,
+      height: 120,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  CosarcColors.primary.withOpacity(0.18),
+                  CosarcColors.primary.withOpacity(0.04),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+          CosarcGlass(
+            radius: CosarcSpacing.radiusPill,
+            blur: 20,
+            highlight: true,
+            padding: const EdgeInsets.all(CosarcSpacing.xl),
+            child: ShaderMask(
+              shaderCallback: (bounds) =>
+                  CosarcColors.brandSweep.createShader(bounds),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                size: 36,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -314,68 +269,73 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
   }
 
   Widget _buildSuggestionChip(String question) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            _messageController.text = question;
-            _sendMessage();
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.08),
-                width: 1,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        CosarcSpacing.screenHorizontal,
+        0,
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.sm,
+      ),
+      child: CosarcGlass(
+        expand: true,
+        radius: CosarcSpacing.radiusMd,
+        blur: 16,
+        opacity: 0.04,
+        padding: const EdgeInsets.symmetric(
+          horizontal: CosarcSpacing.md,
+          vertical: CosarcSpacing.md,
+        ),
+        onTap: () {
+          _messageController.text = question;
+          _sendMessage();
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: CosarcColors.primaryMuted,
+                borderRadius: BorderRadius.circular(CosarcSpacing.radiusSm),
+              ),
+              child: const Icon(
+                Icons.arrow_outward_rounded,
+                color: CosarcColors.primary,
+                size: 16,
               ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: cosarcPink.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.lightbulb_outline_rounded,
-                    color: cosarcPink,
-                    size: 18,
-                  ),
+            const SizedBox(width: CosarcSpacing.sm),
+            Expanded(
+              child: Text(
+                question,
+                style: CosarcTypography.body(context).copyWith(
+                  color: CosarcColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    question,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Colors.white.withOpacity(0.3),
-                  size: 16,
-                ),
-              ],
+              ),
             ),
-          ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: CosarcColors.textTertiary,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMessageList() {
+  Widget _buildMessageList(BuildContext context) {
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.md,
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.md,
+      ),
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final message = _messages[index];
@@ -389,65 +349,56 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
 
   Widget _buildMessageBubble(String text, bool isUser) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: CosarcSpacing.md),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment:
+            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [cosarcPink, cosarcPink.withOpacity(0.7)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.psychology_rounded,
-                color: Colors.white,
-                size: 20,
+            CosarcGlass(
+              radius: CosarcSpacing.radiusSm,
+              blur: 12,
+              padding: const EdgeInsets.all(CosarcSpacing.xs),
+              highlight: true,
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: CosarcColors.primary,
+                size: 16,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: CosarcSpacing.sm),
           ],
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isUser
-                    ? cosarcPink.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isUser
-                      ? cosarcPink.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.1),
-                  width: 1,
-                ),
+            child: CosarcGlass(
+              radius: CosarcSpacing.radiusLg,
+              blur: isUser ? 12 : 16,
+              opacity: isUser ? 0.06 : 0.04,
+              highlight: isUser,
+              padding: const EdgeInsets.symmetric(
+                horizontal: CosarcSpacing.md,
+                vertical: CosarcSpacing.sm + 2,
               ),
               child: Text(
                 text,
-                style: TextStyle(
+                style: CosarcTypography.body(context).copyWith(
+                  color: CosarcColors.textPrimary,
                   fontSize: 15,
-                  color: Colors.white,
-                  height: 1.5,
                 ),
               ),
             ),
           ),
           if (isUser) ...[
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
+            const SizedBox(width: CosarcSpacing.sm),
+            CosarcGlass(
+              radius: CosarcSpacing.radiusSm,
+              blur: 12,
+              opacity: 0.04,
+              padding: const EdgeInsets.all(CosarcSpacing.xs),
               child: Icon(
-                Icons.person_rounded,
-                color: Colors.white,
-                size: 20,
+                Icons.person_outline_rounded,
+                color: CosarcColors.textSecondary,
+                size: 16,
               ),
             ),
           ],
@@ -456,84 +407,94 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
     );
   }
 
-  Widget _buildInputField() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
+  Widget _buildInputField(BuildContext context) {
+    final hasText = _messageController.text.trim().isNotEmpty;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        CosarcSpacing.screenHorizontal,
+        CosarcSpacing.sm,
+        CosarcSpacing.screenHorizontal,
+        _bottomPadding(context),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 1,
-                ),
-              ),
+      child: CosarcGlass(
+        expand: true,
+        radius: CosarcSpacing.radiusPill,
+        blur: 24,
+        opacity: 0.06,
+        borderOpacity: 0.14,
+        padding: const EdgeInsets.fromLTRB(
+          CosarcSpacing.lg,
+          CosarcSpacing.xxs,
+          CosarcSpacing.xxs,
+          CosarcSpacing.xxs,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
               child: TextField(
                 controller: _messageController,
-                style: TextStyle(
+                onChanged: (_) => setState(() {}),
+                style: CosarcTypography.body(context).copyWith(
+                  color: CosarcColors.textPrimary,
                   fontSize: 15,
-                  color: Colors.white,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Ask Cosarc AI...',
-                  hintStyle: TextStyle(
+                  hintText: 'Ask Cosarc AI…',
+                  hintStyle: CosarcTypography.body(context).copyWith(
+                    color: CosarcColors.textTertiary,
                     fontSize: 15,
-                    color: Colors.white.withOpacity(0.4),
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: CosarcSpacing.sm + 2,
+                  ),
                 ),
-                maxLines: null,
+                maxLines: 4,
+                minLines: 1,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
+            const SizedBox(width: CosarcSpacing.xs),
+            GestureDetector(
               onTap: _sendMessage,
-              borderRadius: BorderRadius.circular(16),
-              child: Ink(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [cosarcPink, cosarcPink.withOpacity(0.8)],
+                  gradient: hasText
+                      ? CosarcColors.brandSweep
+                      : LinearGradient(
+                          colors: [
+                            CosarcColors.glassFill(0.08),
+                            CosarcColors.glassFill(0.08),
+                          ],
+                        ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: hasText
+                        ? CosarcColors.primary.withOpacity(0.4)
+                        : CosarcColors.border,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: cosarcPink.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: hasText
+                      ? CosarcColors.glow(CosarcColors.primary, 0.2)
+                      : null,
                 ),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  child: Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                child: Icon(
+                  Icons.arrow_upward_rounded,
+                  color: hasText
+                      ? CosarcColors.ink
+                      : CosarcColors.textTertiary,
+                  size: 20,
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

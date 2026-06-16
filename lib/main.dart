@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/supabase_config.dart';
+import 'core/theme/cosarc_theme.dart';
 import 'screens/app_start/app_start_screen.dart';
 import 'screens/onboarding/onboarding_wrapper.dart';
 import 'screens/dashboard/dashboard_root.dart';
@@ -66,12 +65,12 @@ class _CosarcAppState extends State<CosarcApp> {
       if (session != null) {
         _isHandlingAuth = true;
 
-        print('🔵 Auth state changed - user logged in: ${session.user.email}');
+        debugPrint('Auth state changed - user logged in: ${session.user.email}');
 
         await Future.delayed(const Duration(milliseconds: 500));
 
         try {
-          await _ensureMemberExists(session.user);
+          await _authService.ensureMemberExists(session.user);
 
           final needsOnboarding = await _authService.needsOnboarding();
 
@@ -79,13 +78,13 @@ class _CosarcAppState extends State<CosarcApp> {
           final navigator = navigatorKey.currentState;
           if (navigator != null) {
             if (needsOnboarding) {
-              print('🔵 Navigating to onboarding');
+              debugPrint('Navigating to onboarding');
               navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const OnboardingWrapper()),
                 (route) => false,
               );
             } else {
-              print('🔵 Navigating to dashboard');
+              debugPrint('Navigating to dashboard');
               navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const DashboardRoot()),
                 (route) => false,
@@ -93,57 +92,12 @@ class _CosarcAppState extends State<CosarcApp> {
             }
           }
         } catch (e) {
-          print('❌ Error handling auth state: $e');
+          debugPrint('Error handling auth state: $e');
         } finally {
           _isHandlingAuth = false;
         }
       }
     });
-  }
-
-  Future<void> _ensureMemberExists(User user) async {
-    try {
-      final existingMember = await supabase
-          .from('members')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 10));
-
-      if (existingMember == null) {
-        print('🔵 Creating member record for OAuth user');
-
-        await supabase.from('members').insert({
-          'auth_user_id': user.id,
-          'email': user.email,
-          'name': user.userMetadata?['full_name'] ??
-              user.email?.split('@')[0] ??
-              'User',
-        }).timeout(const Duration(seconds: 10));
-
-        final member = await supabase
-            .from('members')
-            .select('id')
-            .eq('auth_user_id', user.id)
-            .maybeSingle()
-            .timeout(const Duration(seconds: 10));
-
-        if (member == null) {
-          throw Exception('Member record was not created');
-        }
-
-        await supabase.from('streaks').insert({
-          'member_id': member['id'],
-        }).timeout(const Duration(seconds: 10));
-
-        print('✅ Member record created');
-      } else {
-        print('✅ Member record already exists');
-      }
-    } catch (e) {
-      print('❌ Error ensuring member exists: $e');
-      rethrow;
-    }
   }
 
   @override
@@ -152,30 +106,7 @@ class _CosarcAppState extends State<CosarcApp> {
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Cosarc',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0C0C0C),
-        textTheme: GoogleFonts.montserratTextTheme(
-          Theme.of(context).textTheme.apply(
-                bodyColor: Colors.white,
-                displayColor: Colors.white,
-              ),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF161616),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          hintStyle: const TextStyle(color: Colors.white54),
-        ),
-      ),
+      theme: CosarcTheme.dark(),
       home: const AppStartScreen(),
     );
   }

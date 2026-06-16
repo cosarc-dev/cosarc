@@ -1,18 +1,24 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/app_config.dart';
 
 class SupabaseConfig {
-  static const String supabaseUrl = 'https://ndwwizuoqlwkpkilcybe.supabase.co';
-  static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kd3dpenVvcWx3a3BraWxjeWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTQ3MjQsImV4cCI6MjA5NDU3MDcyNH0.tvjbmhABbQnD799Eh1r9eXpVwgJRG5yIJM5AWvlSg6M';
-
   static bool _isInitialized = false;
   static Object? _lastError;
 
   static bool get isInitialized => _isInitialized;
   static Object? get lastError => _lastError;
 
+  static String get supabaseUrl => AppConfig.supabaseUrl;
+  static String get supabaseAnonKey => AppConfig.supabaseAnonKey;
+
   static Future<void> initialize() async {
     if (_isInitialized) return;
+
+    final configError = AppConfig.configurationError;
+    if (configError != null) {
+      _lastError = StateError(configError);
+      throw _lastError!;
+    }
 
     try {
       await Supabase.initialize(

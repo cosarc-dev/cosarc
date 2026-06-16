@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../core/theme/cosarc_spacing.dart';
+import '../../widgets/cosarc/cosarc_glass.dart';
+import '../../widgets/cosarc/onboarding_step.dart';
 
 class ActivityLevelScreen extends StatefulWidget {
   const ActivityLevelScreen({super.key});
@@ -12,41 +13,32 @@ class ActivityLevelScreen extends StatefulWidget {
 class ActivityLevelScreenState extends State<ActivityLevelScreen> {
   String selected = '';
 
-  Widget block({
+  Widget _levelCard({
     required String title,
     required String description,
+    required IconData icon,
   }) {
     final isSelected = selected == title;
-
     return GestureDetector(
       onTap: () => setState(() => selected = title),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white10,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white24),
-        ),
+      child: CosarcGlass(
+        highlight: isSelected,
+        padding: const EdgeInsets.all(CosarcSpacing.lg),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Icon(icon, color: isSelected ? null : null, size: 22),
+            const SizedBox(height: CosarcSpacing.sm),
             Text(
               title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 12,
-              ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -56,56 +48,43 @@ class ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                const Text(
-                  "How active are you?",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.1,
-                  children: [
-                    block(
-                      title: "Beginner",
-                      description: "Just starting out or getting back",
-                    ),
-                    block(
-                      title: "Lightly Active",
-                      description: "Occasional workouts or walks",
-                    ),
-                    block(
-                      title: "Moderate",
-                      description: "Training 3–4 days a week",
-                    ),
-                    block(
-                      title: "Very Active",
-                      description: "Hard training almost daily",
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
+    return OnboardingStep(
+      stepNumber: 5,
+      totalSteps: 7,
+      overline: 'Activity',
+      icon: Icons.directions_run_outlined,
+      title: 'How active\nare you?',
+      subtitle: 'Your current activity level shapes your daily contract.',
+      body: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: CosarcSpacing.sm,
+        crossAxisSpacing: CosarcSpacing.sm,
+        childAspectRatio: 0.95,
+        children: [
+          _levelCard(
+            title: 'Beginner',
+            description: 'Just starting out',
+            icon: Icons.eco_outlined,
           ),
-        ),
-      ],
+          _levelCard(
+            title: 'Lightly Active',
+            description: 'Occasional workouts',
+            icon: Icons.directions_walk_outlined,
+          ),
+          _levelCard(
+            title: 'Moderate',
+            description: '3–4 days a week',
+            icon: Icons.trending_up_rounded,
+          ),
+          _levelCard(
+            title: 'Very Active',
+            description: 'Hard training daily',
+            icon: Icons.local_fire_department_outlined,
+          ),
+        ],
+      ),
     );
   }
 }

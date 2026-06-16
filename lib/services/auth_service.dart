@@ -1,7 +1,9 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../core/supabase_config.dart';
+import '../domain/onboarding/onboarding_profile.dart';
 
 class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -15,66 +17,39 @@ class AuthService {
     Map<String, dynamic>? onboardingData,
   }) async {
     try {
-      print('🔵 Starting signup for: $email');
-
+      final cleanEmail = email.trim();
       final response = await supabase.auth
           .signUp(
-            email: email,
+            email: cleanEmail,
             password: password,
+            data: {'full_name': name.trim()},
           )
           .timeout(const Duration(seconds: 20));
 
-      if (response.user == null) {
+      final user = response.user;
+      if (user == null) {
         throw Exception('Failed to create user account');
       }
 
-      print('🔵 Creating member record...');
-
-      await supabase.from('members').insert({
-        'auth_user_id': response.user!.id,
-        'email': email,
-        'name': name,
-      }).timeout(const Duration(seconds: 10));
-
-      final member = await supabase
-          .from('members')
-          .select('id')
-          .eq('auth_user_id', response.user!.id)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 10));
-
-      if (member == null) {
-        throw Exception('Member record was not created');
-      }
-
-      await supabase.from('streaks').insert({
-        'member_id': member['id'],
-      }).timeout(const Duration(seconds: 10));
-
-      print('✅ Signup complete!');
+      await ensureMemberExists(user, fallbackName: name.trim());
+      debugPrint('Signup complete for $cleanEmail');
       return response;
     } catch (e) {
-      print('❌ Signup error: $e');
+      debugPrint('Signup error: $e');
       rethrow;
     }
   }
 
   Future<bool> signInWithGoogle() async {
     if (kIsWeb) {
-      return await signInWithGoogleWeb();
+      return signInWithGoogleWeb();
     }
-    return await signInWithGoogleNative();
+    return signInWithGoogleNative();
   }
 
   Future<bool> signInWithGoogleWeb() async {
     try {
-      print('🔵 Starting Google OAuth (Web)...');
-
-      // Get current URL for redirect
       final currentUrl = Uri.base.toString();
-      print('🔵 Current URL: $currentUrl');
-
-      // Start OAuth flow
       await supabase.auth
           .signInWithOAuth(
             Provider.google,
@@ -83,48 +58,33 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 20));
 
-      // Wait a moment for redirect to complete
       await Future.delayed(const Duration(seconds: 1));
 
-      // Check if user is now logged in
       final session = supabase.auth.currentSession;
       if (session != null) {
-        print('✅ Session found after OAuth');
-        await _ensureMemberExists();
-        return true;
+        await ensureMemberExists(session.user);
       }
 
-      print('⚠️ No session yet, user will be redirected');
       return true;
     } catch (e) {
-      print('❌ Google OAuth error: $e');
+      debugPrint('Google OAuth error: $e');
       rethrow;
     }
   }
 
   Future<bool> signInWithGoogleNative() async {
     try {
-      print('🔵 Starting Google Sign-In (Native)...');
-
       await _googleSignIn.signOut();
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return false;
 
-      if (googleUser == null) {
-        print('⚠️ User cancelled');
-        return false;
-      }
-
-      print('✅ Google user: ${googleUser.email}');
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
+      final googleAuth = await googleUser.authentication;
       final accessToken = googleAuth.accessToken;
       final idToken = googleAuth.idToken;
 
       if (accessToken == null || idToken == null) {
-        throw Exception('Missing tokens');
+        throw Exception('Google sign-in did not return the required tokens.');
       }
 
       final response = await supabase.auth
@@ -135,14 +95,13 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 20));
 
-      if (response.user != null) {
-        await _ensureMemberExists();
-        return true;
-      }
+      final user = response.user;
+      if (user == null) return false;
 
-      return false;
+      await ensureMemberExists(user);
+      return true;
     } catch (e) {
-      print('❌ Native Google error: $e');
+      debugPrint('Native Google error: $e');
       try {
         await _googleSignIn.signOut();
       } catch (_) {}
@@ -150,49 +109,72 @@ class AuthService {
     }
   }
 
-  Future<void> _ensureMemberExists() async {
-    if (!isLoggedIn) return;
+  Future<Map<String, dynamic>?> ensureMemberExists(
+    User? user, {
+    String? fallbackName,
+  }) async {
+    user ??= currentUser;
+    if (user == null) return null;
 
-    try {
-      final user = currentUser!;
+    Map<String, dynamic>? member = await _findMember(user.id);
+    if (member == null) {
+      final name = fallbackName?.trim().isNotEmpty == true
+          ? fallbackName!.trim()
+          : user.userMetadata?['full_name'] ??
+              user.email?.split('@').first ??
+              'User';
 
-      final existingMember = await supabase
-          .from('members')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 10));
-
-      if (existingMember == null) {
-        print('🔵 Creating member for OAuth user');
-
+      try {
         await supabase.from('members').insert({
           'auth_user_id': user.id,
           'email': user.email,
-          'name': user.userMetadata?['full_name'] ??
-              user.email?.split('@')[0] ??
-              'User',
+          'name': name,
         }).timeout(const Duration(seconds: 10));
-
-        final member = await supabase
-            .from('members')
-            .select('id')
-            .eq('auth_user_id', user.id)
-            .maybeSingle()
-            .timeout(const Duration(seconds: 10));
-
-        if (member == null) {
-          throw Exception('Member record was not created');
-        }
-
-        await supabase.from('streaks').insert({
-          'member_id': member['id'],
-        }).timeout(const Duration(seconds: 10));
-
-        print('✅ Member created');
+      } catch (e) {
+        debugPrint('Member insert skipped/retried: $e');
       }
+
+      member = await _findMember(user.id);
+    }
+
+    final memberId = member?['id'];
+    if (memberId != null) {
+      await _ensureStreakExists(memberId.toString());
+    }
+
+    return member;
+  }
+
+  Future<Map<String, dynamic>?> _findMember(String authUserId) async {
+    try {
+      return await supabase
+          .from('members')
+          .select('id')
+          .eq('auth_user_id', authUserId)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
     } catch (e) {
-      print('❌ Error ensuring member: $e');
+      debugPrint('Error finding member: $e');
+      return null;
+    }
+  }
+
+  Future<void> _ensureStreakExists(String memberId) async {
+    try {
+      final existing = await supabase
+          .from('streaks')
+          .select('id')
+          .eq('member_id', memberId)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
+
+      if (existing != null) return;
+
+      await supabase.from('streaks').insert({
+        'member_id': memberId,
+      }).timeout(const Duration(seconds: 10));
+    } catch (e) {
+      debugPrint('Streak insert skipped/retried: $e');
     }
   }
 
@@ -200,19 +182,30 @@ class AuthService {
     if (!isLoggedIn) return true;
 
     try {
+      await ensureMemberExists(currentUser);
+
       final member = await supabase
           .from('members')
-          .select('age')
+          .select(OnboardingProfile.selectColumns)
           .eq('auth_user_id', currentUser!.id)
           .maybeSingle()
           .timeout(const Duration(seconds: 10));
 
-      if (member == null) return true;
-
-      final age = member['age'];
-      return age == null || age == 0;
+      return !OnboardingProfile.isComplete(member);
     } catch (e) {
-      return true;
+      debugPrint('Full onboarding check failed, falling back to age gate: $e');
+      try {
+        final member = await supabase
+            .from('members')
+            .select('age')
+            .eq('auth_user_id', currentUser!.id)
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
+        final age = member?['age'];
+        return age == null || (age is num && age < 13);
+      } catch (_) {
+        return true;
+      }
     }
   }
 
@@ -220,17 +213,15 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await supabase.auth
-          .signInWithPassword(
-            email: email,
-            password: password,
-          )
-          .timeout(const Duration(seconds: 20));
-      return response;
-    } catch (e) {
-      rethrow;
-    }
+    final response = await supabase.auth
+        .signInWithPassword(
+          email: email.trim(),
+          password: password,
+        )
+        .timeout(const Duration(seconds: 20));
+
+    await ensureMemberExists(response.user);
+    return response;
   }
 
   Future<void> signOut() async {
@@ -238,7 +229,7 @@ class AuthService {
       await supabase.auth.signOut().timeout(const Duration(seconds: 10));
       if (!kIsWeb) await _googleSignIn.signOut();
     } catch (e) {
-      print('Signout error: $e');
+      debugPrint('Signout error: $e');
     }
   }
 
@@ -249,16 +240,10 @@ class AuthService {
     if (!isLoggedIn) return null;
 
     try {
-      final data = await supabase
-          .from('members')
-          .select('id')
-          .eq('auth_user_id', currentUser!.id)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 10));
-      if (data == null) return null;
-      return data['id'];
+      final member = await ensureMemberExists(currentUser);
+      return member?['id']?.toString();
     } catch (e) {
-      print('❌ Error getting member ID: $e');
+      debugPrint('Error getting member ID: $e');
       return null;
     }
   }

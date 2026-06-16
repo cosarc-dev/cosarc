@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
+import '../../widgets/cosarc/cosarc_button.dart';
+import '../../widgets/cosarc/cosarc_input.dart';
+import '../../widgets/cosarc/cosarc_scaffold.dart';
 import '../dashboard/dashboard_root.dart';
 import '../onboarding/onboarding_wrapper.dart';
 import 'signup_screen.dart';
@@ -12,195 +17,212 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _authService = AuthService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  late AnimationController _fadeCtrl;
+  late Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _fade = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic);
+    _fadeCtrl.forward();
+  }
 
   @override
   void dispose() {
+    _fadeCtrl.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showError('Please enter email and password');
+    final email = _emailController.text.trim();
+    if (!_isValidEmail(email) || _passwordController.text.isEmpty) {
+      _showError('Enter a valid email and password');
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      print('🔵 Attempting login...');
-
-      await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      print('✅ Login successful, checking onboarding status...');
-
-      // Check if user needs onboarding
-      final needsOnboarding = await _authService.needsOnboarding();
-
-      if (mounted) {
-        if (needsOnboarding) {
-          print('🔵 User needs onboarding');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const OnboardingWrapper()),
-          );
-        } else {
-          print('🔵 User completed onboarding, going to dashboard');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardRoot()),
-          );
-        }
-      }
+      await _authService.signIn(email: email, password: _passwordController.text);
+      await _routeAfterAuth();
     } catch (e) {
-      print('❌ Login error: $e');
       _showError('Invalid email or password');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final success = await _authService.signInWithGoogle();
+      if (!success) {
+        _showError('Sign-in was cancelled');
+        return;
+      }
+      await _routeAfterAuth();
+    } catch (e) {
+      _showError('Google sign-in failed. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _routeAfterAuth() async {
+    final needsOnboarding = await _authService.needsOnboarding();
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => needsOnboarding ? const OnboardingWrapper() : const DashboardRoot(),
+      ),
+    );
+  }
+
+  bool _isValidEmail(String email) =>
+      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: CosarcColors.error),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF0B0B0B),
-                image: const DecorationImage(
-                  image: AssetImage('assets/backgrounds/gym_doodles.png'),
-                  fit: BoxFit.cover,
-                  opacity: 0.08,
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Center(
+    return CosarcScaffold(
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fade,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 40),
+                    const SizedBox(height: CosarcSpacing.huge),
+                    Text('cosarc', textAlign: TextAlign.center, style: CosarcTypography.brandMark(size: 32)),
+                    const SizedBox(height: CosarcSpacing.sm),
                     Text(
-                      "cosarc",
+                      'Welcome back',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 44,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.3,
-                        color: Colors.white,
-                      ),
+                      style: CosarcTypography.headline(context).copyWith(fontSize: 24),
                     ),
-                    const SizedBox(height: 50),
-                    TextField(
+                    const SizedBox(height: CosarcSpacing.xs),
+                    Text(
+                      'Sign in to continue your journey',
+                      textAlign: TextAlign.center,
+                      style: CosarcTypography.body(context),
+                    ),
+                    const SizedBox(height: CosarcSpacing.huge),
+                    CosarcInput(
                       controller: _emailController,
-                      style: GoogleFonts.montserrat(color: Colors.white),
+                      label: 'Email',
+                      hint: 'you@example.com',
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: "Email",
-                      ),
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
                     ),
-                    const SizedBox(height: 20),
-                    TextField(
+                    const SizedBox(height: CosarcSpacing.lg),
+                    CosarcInput(
                       controller: _passwordController,
+                      label: 'Password',
+                      hint: '••••••••',
                       obscureText: _obscurePassword,
-                      style: GoogleFonts.montserrat(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.white54,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.password],
                       onSubmitted: (_) => _login(),
+                      suffix: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          color: CosarcColors.textTertiary,
+                          size: 20,
+                        ),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
                     ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
+                    const SizedBox(height: CosarcSpacing.xxl),
+                    CosarcButton(
+                      label: 'Sign in',
+                      isLoading: _isLoading,
                       onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
+                    ),
+                    const SizedBox(height: CosarcSpacing.md),
+                    _GoogleButton(isLoading: _isLoading, onPressed: _isLoading ? null : _loginWithGoogle),
+                    const SizedBox(height: CosarcSpacing.xl),
+                    TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SignupScreen()),
                       ),
-                      child: _isLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.black,
-                              ),
-                            )
-                          : Text(
-                              "Login",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
+                      child: Text(
+                        'Create an account',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: CosarcColors.textSecondary,
                             ),
-                    ),
-                    const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SignupScreen(),
-                          ),
-                        );
-                      },
-                      child: Center(
-                        child: Text(
-                          "Create an account",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            color: Colors.white70,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
                       ),
                     ),
+                    const SizedBox(height: CosarcSpacing.xxl),
                   ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoogleButton extends StatelessWidget {
+  const _GoogleButton({required this.isLoading, required this.onPressed});
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: isLoading ? 0.65 : 1,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+          child: Ink(
+            height: CosarcSpacing.buttonHeight,
+            decoration: BoxDecoration(
+              color: CosarcColors.glassFill(0.055),
+              borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+              border: Border.all(color: CosarcColors.glassBorder()),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icons/google.png',
+                  height: 20,
+                  width: 20,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.login_rounded, size: 20),
+                ),
+                const SizedBox(width: CosarcSpacing.sm),
+                Text(
+                  'Continue with Google',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

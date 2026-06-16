@@ -1,21 +1,11 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:cosarc/models/food_log.dart';
-import 'package:cosarc/services/enhanced_nutrition_service.dart';
-import 'package:cosarc/screens/dashboard/enhanced_food_search.dart'; // ADD THIS LINE
-
-// COSARC Professional Color System
-const Color cosarcPink = Color(0xFFE91E63);
-const Color cosarcDark = Color(0xFF080808);
-const Color cosarcSurface = Color(0xFF121212);
-const Color cosarcCard = Color(0xFF1A1A1A);
-const Color cosarcAccent = Color(0xFF00E676);
-const Color cosarcBlue = Color(0xFF2196F3);
-const Color cosarcOrange = Color(0xFFFF9800);
-const Color cosarcPurple = Color(0xFF9C27B0);
+import 'package:cosarc/screens/dashboard/enhanced_food_search.dart';
+import '../../core/theme/cosarc_colors.dart';
+import '../../core/theme/cosarc_spacing.dart';
+import '../../core/theme/cosarc_typography.dart';
+import '../../widgets/cosarc/cosarc_glass.dart';
 
 /// ======================================================
 /// ENHANCED NUTRITION SCREEN V2.0
@@ -51,7 +41,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: cosarcDark,
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -97,44 +87,28 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
   /// ======================================================
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 100,
+      expandedHeight: 120,
       floating: false,
       pinned: true,
       backgroundColor: Colors.transparent,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              cosarcPink.withOpacity(0.1),
-              cosarcDark,
-            ],
-          ),
+      leading: IconButton(
+        icon: CosarcGlass(
+          radius: CosarcSpacing.radiusPill,
+          blur: 12,
+          padding: const EdgeInsets.all(8),
+          child: const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
         ),
-        child: FlexibleSpaceBar(
-          centerTitle: true,
-          title: Text(
-            'FUEL LOG',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 4,
-              color: Colors.white,
-            ),
-          ),
-          background: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  cosarcPink.withOpacity(0.2),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
+        onPressed: () => Navigator.pop(context),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('FUEL LOG', style: CosarcTypography.overline('')),
+            Text('Nutrition', style: CosarcTypography.title(context).copyWith(fontSize: 18)),
+          ],
         ),
       ),
     );
@@ -157,8 +131,8 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              cosarcCard,
-              cosarcSurface,
+              CosarcColors.surfaceHighlight,
+              CosarcColors.surfaceElevated,
             ],
           ),
           borderRadius: BorderRadius.circular(30),
@@ -168,7 +142,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: cosarcPink.withOpacity(0.1),
+              color: CosarcColors.primary.withOpacity(0.1),
               blurRadius: 20,
               offset: Offset(0, 10),
             ),
@@ -183,7 +157,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                 _buildMainStat(
                   label: "CONSUMED",
                   value: cal.toInt().toString(),
-                  color: cosarcPink,
+                  color: CosarcColors.primary,
                   icon: Icons.local_fire_department_rounded,
                 ),
                 Container(
@@ -204,7 +178,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                 _buildMainStat(
                   label: "REMAINING",
                   value: remaining.toInt().toString(),
-                  color: remaining > 500 ? cosarcAccent : Colors.orangeAccent,
+                  color: remaining > 500 ? CosarcColors.accent : Colors.orangeAccent,
                   icon: Icons.favorite_rounded,
                 ),
               ],
@@ -229,7 +203,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                     Text(
                       "${(progress * 100).toInt()}%",
                       style: TextStyle(
-                        color: cosarcPink,
+                        color: CosarcColors.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -253,12 +227,12 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                       width: MediaQuery.of(context).size.width * 0.85 * progress,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [cosarcPink, cosarcPink.withOpacity(0.6)],
+                          colors: [CosarcColors.primary, CosarcColors.primary.withOpacity(0.6)],
                         ),
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: cosarcPink.withOpacity(0.3),
+                            color: CosarcColors.primary.withOpacity(0.3),
                             blurRadius: 8,
                           ),
                         ],
@@ -328,7 +302,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             child: _buildMacroCard(
               label: "Protein",
               value: protein.toInt(),
-              color: cosarcBlue,
+              color: CosarcColors.protein,
               icon: "💪",
               percentage: total > 0 ? (protein / total * 100).toInt() : 0,
             ),
@@ -338,7 +312,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             child: _buildMacroCard(
               label: "Carbs",
               value: carbs.toInt(),
-              color: cosarcOrange,
+              color: CosarcColors.carbs,
               icon: "⚡",
               percentage: total > 0 ? (carbs / total * 100).toInt() : 0,
             ),
@@ -348,7 +322,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             child: _buildMacroCard(
               label: "Fat",
               value: fat.toInt(),
-              color: cosarcPurple,
+              color: CosarcColors.fat,
               icon: "🔥",
               percentage: total > 0 ? (fat / total * 100).toInt() : 0,
             ),
@@ -444,7 +418,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: cosarcCard,
+                    color: CosarcColors.surfaceHighlight,
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
                       color: Colors.white.withOpacity(0.05),
@@ -474,7 +448,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                         isEmpty ? "No items logged" : "${totalCal.toInt()} kcal",
                         style: TextStyle(
                           fontSize: 12,
-                          color: isEmpty ? Colors.white24 : cosarcAccent,
+                          color: isEmpty ? Colors.white24 : CosarcColors.accent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -491,12 +465,12 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [cosarcPink, cosarcPink.withOpacity(0.7)],
+                          colors: [CosarcColors.primary, CosarcColors.primary.withOpacity(0.7)],
                         ),
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: cosarcPink.withOpacity(0.3),
+                            color: CosarcColors.primary.withOpacity(0.3),
                             blurRadius: 10,
                             offset: Offset(0, 4),
                           ),
@@ -561,7 +535,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${log.name} removed'),
-            backgroundColor: cosarcPink,
+            backgroundColor: CosarcColors.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -592,8 +566,8 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              cosarcCard.withOpacity(0.5),
-              cosarcSurface,
+              CosarcColors.surfaceHighlight.withOpacity(0.5),
+              CosarcColors.surfaceElevated,
             ],
           ),
           borderRadius: BorderRadius.circular(20),
@@ -615,12 +589,12 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: cosarcPink.withOpacity(0.1),
+                      color: CosarcColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.restaurant_rounded,
-                      color: cosarcPink,
+                      color: CosarcColors.primary,
                       size: 24,
                     ),
                   ),
@@ -645,11 +619,11 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                         SizedBox(height: 4),
                         Row(
                           children: [
-                            _buildMicroStat("P", log.protein.toInt(), cosarcBlue),
+                            _buildMicroStat("P", log.protein.toInt(), CosarcColors.protein),
                             SizedBox(width: 12),
-                            _buildMicroStat("C", log.carbs.toInt(), cosarcOrange),
+                            _buildMicroStat("C", log.carbs.toInt(), CosarcColors.carbs),
                             SizedBox(width: 12),
-                            _buildMicroStat("F", log.fat.toInt(), cosarcPurple),
+                            _buildMicroStat("F", log.fat.toInt(), CosarcColors.fat),
                           ],
                         ),
                         SizedBox(height: 4),
@@ -673,7 +647,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          color: cosarcAccent,
+                          color: CosarcColors.accent,
                         ),
                       ),
                       Text(
@@ -731,7 +705,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [cosarcCard, cosarcSurface],
+              colors: [CosarcColors.surfaceHighlight, CosarcColors.surfaceElevated],
             ),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
@@ -761,18 +735,18 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 30),
-              _buildDetailRow("Energy", "${log.calories.toInt()} kcal", cosarcPink),
-              _buildDetailRow("Protein", "${log.protein.toInt()} g", cosarcBlue),
-              _buildDetailRow("Carbs", "${log.carbs.toInt()} g", cosarcOrange),
-              _buildDetailRow("Fat", "${log.fat.toInt()} g", cosarcPurple),
-              _buildDetailRow("Quantity", "${log.quantity} ${log.unit}", cosarcAccent),
+              _buildDetailRow("Energy", "${log.calories.toInt()} kcal", CosarcColors.primary),
+              _buildDetailRow("Protein", "${log.protein.toInt()} g", CosarcColors.protein),
+              _buildDetailRow("Carbs", "${log.carbs.toInt()} g", CosarcColors.carbs),
+              _buildDetailRow("Fat", "${log.fat.toInt()} g", CosarcColors.fat),
+              _buildDetailRow("Quantity", "${log.quantity} ${log.unit}", CosarcColors.accent),
               SizedBox(height: 20),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   "CLOSE",
                   style: TextStyle(
-                    color: cosarcPink,
+                    color: CosarcColors.primary,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
                   ),

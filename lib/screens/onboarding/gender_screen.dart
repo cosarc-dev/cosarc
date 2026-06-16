@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../widgets/cosarc/onboarding_step.dart';
 
 class GenderScreen extends StatefulWidget {
   final void Function(String gender)? onChanged;
@@ -13,54 +12,46 @@ class GenderScreen extends StatefulWidget {
 class GenderScreenState extends State<GenderScreen> {
   String selected = '';
 
-  Widget option(String label, IconData icon) {
-    final isSelected = selected == label;
-    return GestureDetector(
-      onTap: () {
-        setState(() => selected = label);
-        widget.onChanged?.call(label);
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white10,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white24),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 26),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          "Tell us about yourself",
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          "What is your gender?",
-          style: TextStyle(color: Colors.white70),
-        ),
-        const SizedBox(height: 32),
-        option("Male", Icons.male),
-        option("Female", Icons.female),
-        option("Prefer not to say", Icons.circle_outlined),
-      ],
+    return OnboardingStep(
+      stepNumber: 1,
+      totalSteps: 7,
+      overline: 'Identity',
+      icon: Icons.person_outline_rounded,
+      title: 'Tell us\nabout you',
+      subtitle: 'This helps us personalize your training and nutrition plan.',
+      body: Column(
+        children: [
+          OnboardingOption(
+            label: 'Male',
+            icon: Icons.male_rounded,
+            selected: selected == 'Male',
+            onTap: () {
+              setState(() => selected = 'Male');
+              widget.onChanged?.call('Male');
+            },
+          ),
+          OnboardingOption(
+            label: 'Female',
+            icon: Icons.female_rounded,
+            selected: selected == 'Female',
+            onTap: () {
+              setState(() => selected = 'Female');
+              widget.onChanged?.call('Female');
+            },
+          ),
+          OnboardingOption(
+            label: 'Prefer not to say',
+            icon: Icons.circle_outlined,
+            selected: selected == 'Prefer not to say',
+            onTap: () {
+              setState(() => selected = 'Prefer not to say');
+              widget.onChanged?.call('Prefer not to say');
+            },
+          ),
+        ],
+      ),
     );
   }
 }
