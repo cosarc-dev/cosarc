@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'setup_complete_screen.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class SetupAnimationScreen extends StatefulWidget {
   const SetupAnimationScreen({super.key});
@@ -31,7 +31,7 @@ class _SetupAnimationScreenState extends State<SetupAnimationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: cosarcPink),
+            CircularProgressIndicator(color: CosarcColors.gold),
             SizedBox(height: 24),
             Text(
               "Just a sec, setting your profile",

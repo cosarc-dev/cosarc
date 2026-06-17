@@ -12,7 +12,7 @@ import 'training_frequency_screen.dart';
 import 'goal_screen.dart';
 import 'setup_animation_screen.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class OnboardingWrapper extends StatefulWidget {
   const OnboardingWrapper({super.key});
@@ -205,18 +205,18 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
                 child: LinearProgressIndicator(
                   value: (step + 1) / screens.length,
                   backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation<Color>(cosarcPink),
+                  valueColor: const AlwaysStoppedAnimation<Color>(CosarcColors.gold),
                 ),
               ),
               Expanded(
                 child: _isSaving
-                    ? Center(
+                    ? const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const CircularProgressIndicator(color: cosarcPink),
-                            const SizedBox(height: 24),
-                            const Text(
+                            CircularProgressIndicator(color: CosarcColors.gold),
+                            SizedBox(height: 24),
+                            Text(
                               'Saving your profile...',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 16),
@@ -231,7 +231,7 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : next,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: cosarcPink,
+                    backgroundColor: CosarcColors.gold,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(

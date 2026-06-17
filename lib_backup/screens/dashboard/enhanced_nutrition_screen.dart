@@ -1,10 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:cosarc/models/food_log.dart';
-import 'package:cosarc/services/enhanced_nutrition_service.dart';
 import 'package:cosarc/screens/dashboard/enhanced_food_search.dart'; // ADD THIS LINE
 
 // COSARC Professional Color System
@@ -56,7 +52,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
         physics: const BouncingScrollPhysics(),
         slivers: [
           _buildAppBar(),
-          SliverToBoxAdapter(child: SizedBox(height: 10)),
+          const SliverToBoxAdapter(child: SizedBox(height: 10)),
           ValueListenableBuilder(
             valueListenable: Hive.box<FoodLog>('daily_logs').listenable(),
             builder: (context, Box<FoodLog> box, _) {
@@ -75,14 +71,14 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
               return SliverList(
                 delegate: SliverChildListDelegate([
                   _buildStatsHeader(tCal, tP, tC, tF),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildMacroBreakdown(tP, tC, tF),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   _buildMealSection("Breakfast", "🌅", logs, MealType.breakfast),
                   _buildMealSection("Lunch", "☀️", logs, MealType.lunch),
                   _buildMealSection("Dinner", "🌙", logs, MealType.dinner),
                   _buildMealSection("Snacks", "🍿", logs, MealType.snack),
-                  SizedBox(height: 100),
+                  const SizedBox(height: 100),
                 ]),
               );
             },
@@ -114,7 +110,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
         ),
         child: FlexibleSpaceBar(
           centerTitle: true,
-          title: Text(
+          title: const Text(
             'FUEL LOG',
             style: TextStyle(
               fontSize: 16,
@@ -150,10 +146,10 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
     return FadeTransition(
       opacity: _animController,
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20),
-        padding: EdgeInsets.all(28),
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
@@ -170,7 +166,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             BoxShadow(
               color: cosarcPink.withOpacity(0.1),
               blurRadius: 20,
-              offset: Offset(0, 10),
+              offset: const Offset(0, 10),
             ),
           ],
         ),
@@ -210,7 +206,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
               ],
             ),
             
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             
             // Progress Bar
             Column(
@@ -218,7 +214,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       "Daily Target",
                       style: TextStyle(
                         color: Colors.white38,
@@ -228,7 +224,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                     ),
                     Text(
                       "${(progress * 100).toInt()}%",
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: cosarcPink,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -236,7 +232,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Stack(
                   children: [
                     Container(
@@ -247,7 +243,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                       ),
                     ),
                     AnimatedContainer(
-                      duration: Duration(milliseconds: 600),
+                      duration: const Duration(milliseconds: 600),
                       curve: Curves.easeOut,
                       height: 14,
                       width: MediaQuery.of(context).size.width * 0.85 * progress,
@@ -283,17 +279,17 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
     return Column(
       children: [
         Icon(icon, color: color, size: 28),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white38,
             fontSize: 10,
             letterSpacing: 2,
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         Text(
           value,
           style: TextStyle(
@@ -303,7 +299,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             height: 1,
           ),
         ),
-        Text(
+        const Text(
           "kcal",
           style: TextStyle(
             color: Colors.white24,
@@ -321,7 +317,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
     final total = protein + carbs + fat;
     
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           Expanded(
@@ -333,7 +329,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
               percentage: total > 0 ? (protein / total * 100).toInt() : 0,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: _buildMacroCard(
               label: "Carbs",
@@ -343,7 +339,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
               percentage: total > 0 ? (carbs / total * 100).toInt() : 0,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: _buildMacroCard(
               label: "Fat",
@@ -366,7 +362,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
     required int percentage,
   }) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
@@ -379,9 +375,9 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
         children: [
           Text(
             icon,
-            style: TextStyle(fontSize: 24),
+            style: const TextStyle(fontSize: 24),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             "$value",
             style: TextStyle(
@@ -390,17 +386,17 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
               color: color,
             ),
           ),
-          Text(
+          const Text(
             "grams",
             style: TextStyle(
               fontSize: 9,
               color: Colors.white38,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 11,
               color: Colors.white54,
               fontWeight: FontWeight.w600,
@@ -433,16 +429,16 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
     final isEmpty = logs.isEmpty;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 20),
       child: Column(
         children: [
           // Meal Header
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: cosarcCard,
                     borderRadius: BorderRadius.circular(15),
@@ -452,24 +448,24 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                   ),
                   child: Text(
                     emoji,
-                    style: TextStyle(fontSize: 24),
+                    style: const TextStyle(fontSize: 24),
                   ),
                 ),
-                SizedBox(width: 15),
+                const SizedBox(width: 15),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         name.toUpperCase(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         isEmpty ? "No items logged" : "${totalCal.toInt()} kcal",
                         style: TextStyle(
@@ -488,7 +484,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                     onTap: () => _openEnhancedSearch(context, mealType),
                     borderRadius: BorderRadius.circular(15),
                     child: Container(
-                      padding: EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [cosarcPink, cosarcPink.withOpacity(0.7)],
@@ -498,11 +494,11 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                           BoxShadow(
                             color: cosarcPink.withOpacity(0.3),
                             blurRadius: 10,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.add_rounded,
                         color: Colors.white,
                         size: 24,
@@ -514,16 +510,16 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             ),
           ),
           
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           
           // Food Items
-          ...logs.map((log) => _buildFoodItem(log)).toList(),
+          ...logs.map((log) => _buildFoodItem(log)),
           
           // Empty State
           if (isEmpty)
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 20),
-              padding: EdgeInsets.all(24),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.02),
                 borderRadius: BorderRadius.circular(20),
@@ -536,7 +532,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
               child: Center(
                 child: Text(
                   "Track your $name here",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white24,
                     fontSize: 13,
                     fontStyle: FontStyle.italic,
@@ -570,8 +566,8 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
         );
       },
       background: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        padding: EdgeInsets.only(right: 20),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.transparent, Colors.red.withOpacity(0.3)],
@@ -579,14 +575,14 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
           borderRadius: BorderRadius.circular(20),
         ),
         alignment: Alignment.centerRight,
-        child: Icon(
+        child: const Icon(
           Icons.delete_rounded,
           color: Colors.red,
           size: 28,
         ),
       ),
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -607,7 +603,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
             borderRadius: BorderRadius.circular(20),
             onTap: () => _showFoodDetail(log),
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   // Food Icon/Type Indicator
@@ -618,14 +614,14 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                       color: cosarcPink.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.restaurant_rounded,
                       color: cosarcPink,
                       size: 24,
                     ),
                   ),
                   
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
                   
                   // Food Info
                   Expanded(
@@ -634,7 +630,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                       children: [
                         Text(
                           log.name,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -642,20 +638,20 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             _buildMicroStat("P", log.protein.toInt(), cosarcBlue),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             _buildMicroStat("C", log.carbs.toInt(), cosarcOrange),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             _buildMicroStat("F", log.fat.toInt(), cosarcPurple),
                           ],
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           "${log.quantity.toInt()} ${log.unit}",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 11,
                             color: Colors.white24,
                           ),
@@ -670,13 +666,13 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                     children: [
                       Text(
                         "${log.calories.toInt()}",
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
                           color: cosarcAccent,
                         ),
                       ),
-                      Text(
+                      const Text(
                         "kcal",
                         style: TextStyle(
                           fontSize: 10,
@@ -707,7 +703,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
         ),
         Text(
           " $value",
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 11,
             color: Colors.white54,
             fontWeight: FontWeight.w600,
@@ -726,9 +722,9 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [cosarcCard, cosarcSurface],
@@ -741,7 +737,7 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 "NUTRITIONAL INFO",
                 style: TextStyle(
                   fontSize: 12,
@@ -750,26 +746,26 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 log.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               _buildDetailRow("Energy", "${log.calories.toInt()} kcal", cosarcPink),
               _buildDetailRow("Protein", "${log.protein.toInt()} g", cosarcBlue),
               _buildDetailRow("Carbs", "${log.carbs.toInt()} g", cosarcOrange),
               _buildDetailRow("Fat", "${log.fat.toInt()} g", cosarcPurple),
               _buildDetailRow("Quantity", "${log.quantity} ${log.unit}", cosarcAccent),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
+                child: const Text(
                   "CLOSE",
                   style: TextStyle(
                     color: cosarcPink,
@@ -787,13 +783,13 @@ class _EnhancedNutritionScreenState extends State<EnhancedNutritionScreen>
 
   Widget _buildDetailRow(String label, String value, Color color) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white54,
               fontSize: 14,
             ),

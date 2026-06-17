@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
-import '../onboarding/onboarding_wrapper.dart';
+import '../../theme/cosarc_colors.dart';
+import '../../widgets/cosarc_button.dart';
+import '../../widgets/cosarc_page_route.dart';
 import '../dashboard/dashboard_root.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../onboarding/onboarding_wrapper.dart';
+import 'login_screen.dart';
+import 'otp_verification_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -18,21 +22,23 @@ class _SignupScreenState extends State<SignupScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
   bool _isLoading = false;
-  bool _showEmailForm = false;
+  _SignupView _view = _SignupView.options;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
     );
     _animController.forward();
   }
@@ -43,45 +49,52 @@ class _SignupScreenState extends State<SignupScreen>
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
+  Future<void> _navigateAfterAuth() async {
+    final needsOnboarding = await _authService.needsOnboarding();
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      CosarcPageRoute(
+        page: needsOnboarding
+            ? const OnboardingWrapper()
+            : const DashboardRoot(),
+      ),
+      (_) => false,
+    );
+  }
+
   Future<void> _signUpWithEmail() async {
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
+    if (_nameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
       _showError('Please fill all fields');
       return;
     }
-
     if (_passwordController.text.length < 6) {
       _showError('Password must be at least 6 characters');
       return;
     }
 
     setState(() => _isLoading = true);
-
     try {
-      print('🔵 Email signup: ${_emailController.text}');
-
       await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         name: _nameController.text.trim(),
-        onboardingData: null,
       );
-
-      print('✅ Account created, going to onboarding');
-
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const OnboardingWrapper()),
+          CosarcPageRoute(page: const OnboardingWrapper()),
         );
       }
     } catch (e) {
-      print('❌ Signup error: $e');
-      _showError(e.toString().replaceAll('Exception: ', ''));
+      _showError(AuthService.humanizeError(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -89,93 +102,81 @@ class _SignupScreenState extends State<SignupScreen>
 
   Future<void> _signUpWithGoogle() async {
     setState(() => _isLoading = true);
-
     try {
-      print('🔵 Starting Google signup flow...');
-
       final success = await _authService.signInWithGoogle();
-
       if (!success) {
-        print('⚠️ User cancelled Google sign-in');
-        if (mounted) {
-          _showError('Sign-in was cancelled');
-        }
+        if (mounted) _showError('Sign-up was cancelled');
         return;
       }
-
-      print('✅ Google authentication successful');
-      print('🔵 Checking onboarding status...');
-
-      final needsOnboarding = await _authService.needsOnboarding();
-
-      if (mounted) {
-        if (needsOnboarding) {
-          print('🔵 Navigating to onboarding...');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const OnboardingWrapper()),
-          );
-        } else {
-          print('🔵 Navigating to dashboard...');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardRoot()),
-          );
-        }
-      }
+      await _navigateAfterAuth();
     } catch (e) {
-      print('❌ Google sign-in failed: $e');
-
-      String errorMessage = 'Google sign-in failed. ';
-
-      if (e.toString().contains('DEVELOPER_ERROR')) {
-        errorMessage +=
-            'Please check SHA-1 configuration in Google Cloud Console.';
-      } else if (e.toString().contains('network_error')) {
-        errorMessage += 'Please check your internet connection.';
-      } else if (e.toString().contains('sign_in_failed')) {
-        errorMessage += 'Unable to complete sign-in. Try again.';
-      } else if (e.toString().contains('PlatformException')) {
-        errorMessage += 'Google Play Services error.';
-      } else {
-        errorMessage += 'Please try again.';
-      }
-
-      if (mounted) {
-        _showError(errorMessage);
-      }
+      _showError(AuthService.humanizeError(e));
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showComingSoon(String method) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1A1A1A),
-        title: Text('Coming Soon', style: TextStyle(color: Colors.white)),
-        content: Text(
-          '$method sign-in requires additional setup. Please use email or Google for now.',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: TextStyle(color: cosarcPink)),
+  Future<void> _signUpWithEmailOtp() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      _showError('Enter a valid email address');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await _authService.sendEmailOtp(email);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        CosarcPageRoute(
+          page: OtpVerificationScreen(
+            channel: OtpChannel.email,
+            destination: email,
+            isSignUp: true,
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    } catch (e) {
+      _showError(AuthService.humanizeError(e));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signUpWithPhone() async {
+    final phone = _phoneController.text.trim();
+    if (phone.length < 10) {
+      _showError('Enter a valid phone number with country code');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await _authService.sendPhoneOtp(phone);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        CosarcPageRoute(
+          page: OtpVerificationScreen(
+            channel: OtpChannel.phone,
+            destination: phone,
+            isSignUp: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      _showError(AuthService.humanizeError(e));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: CosarcColors.error,
       ),
     );
   }
@@ -183,151 +184,143 @@ class _SignupScreenState extends State<SignupScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.topLeft,
-                radius: 1.5,
-                colors: [
-                  cosarcPink.withOpacity(0.08),
-                  Colors.black,
-                ],
+      backgroundColor: CosarcColors.black,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  28,
+                  56,
+                  28,
+                  28 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: _buildContent(),
               ),
-            ),
-          ),
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child:
-                    _showEmailForm ? _buildEmailForm() : _buildSocialOptions(),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  onPressed: () {
+                    if (_view != _SignupView.options) {
+                      setState(() => _view = _SignupView.options);
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: CosarcColors.textSecondary,
+                    size: 20,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 8,
-            child: IconButton(
-              onPressed: () {
-                if (_showEmailForm) {
-                  setState(() => _showEmailForm = false);
-                } else {
-                  Navigator.pop(context);
-                }
-              },
-              icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white.withOpacity(0.8),
-                size: 20,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSocialOptions() {
+  Widget _buildContent() {
+    switch (_view) {
+      case _SignupView.options:
+        return _buildOptions();
+      case _SignupView.email:
+        return _buildEmailForm();
+      case _SignupView.emailOtp:
+        return _buildEmailOtpForm();
+      case _SignupView.phone:
+        return _buildPhoneForm();
+    }
+  }
+
+  Widget _buildOptions() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 60),
+        const SizedBox(height: 24),
         Text(
-          "Welcome",
-          style: TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.w300,
-            color: Colors.white,
-            letterSpacing: -1,
+          'Join cosarc',
+          style: GoogleFonts.inter(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            color: CosarcColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          "Choose how you'd like to continue",
-          style: TextStyle(
+          'Choose how you\'d like to get started',
+          style: GoogleFonts.inter(
             fontSize: 15,
-            color: Colors.white.withOpacity(0.5),
-            fontWeight: FontWeight.w400,
+            color: CosarcColors.textSecondary,
           ),
         ),
-        const Spacer(),
+        const SizedBox(height: 40),
         if (_isLoading)
-          Column(
-            children: [
-              CircularProgressIndicator(color: cosarcPink),
-              const SizedBox(height: 16),
-              Text(
-                'Signing you in...',
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
-              ),
-            ],
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(color: CosarcColors.gold),
+            ),
           )
         else ...[
-          _buildSocialButton(
-            icon: 'assets/icons/google.png',
+          CosarcButton(
             label: 'Continue with Google',
+            variant: CosarcButtonVariant.primary,
+            icon: Icons.g_mobiledata_rounded,
             onPressed: _signUpWithGoogle,
-            isPrimary: true,
-          ),
-          const SizedBox(height: 16),
-          _buildSocialButton(
-            icon: null,
-            iconWidget: const Icon(Icons.apple, color: Colors.white, size: 24),
-            label: 'Continue with Apple',
-            onPressed: () => _showComingSoon('Apple'),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                  child: Divider(
-                      color: Colors.white.withOpacity(0.1), thickness: 1)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'or',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              Expanded(
-                  child: Divider(
-                      color: Colors.white.withOpacity(0.1), thickness: 1)),
-            ],
-          ),
-          const SizedBox(height: 32),
-          _buildSocialButton(
-            icon: null,
-            iconWidget:
-                const Icon(Icons.email_outlined, color: Colors.white, size: 22),
-            label: 'Continue with Email',
-            onPressed: () => setState(() => _showEmailForm = true),
           ),
           const SizedBox(height: 14),
-          _buildSocialButton(
-            icon: null,
-            iconWidget: const Icon(Icons.phone_android_rounded,
-                color: Colors.white, size: 22),
-            label: 'Continue with Phone',
-            onPressed: () => _showComingSoon('Phone'),
+          CosarcButton(
+            label: 'Sign up with Email & Password',
+            variant: CosarcButtonVariant.secondary,
+            icon: Icons.email_outlined,
+            onPressed: () => setState(() => _view = _SignupView.email),
+          ),
+          const SizedBox(height: 14),
+          CosarcButton(
+            label: 'Sign up with Email OTP',
+            variant: CosarcButtonVariant.secondary,
+            icon: Icons.mark_email_read_outlined,
+            onPressed: () => setState(() => _view = _SignupView.emailOtp),
+          ),
+          const SizedBox(height: 14),
+          CosarcButton(
+            label: 'Sign up with Phone',
+            variant: CosarcButtonVariant.secondary,
+            icon: Icons.phone_android_rounded,
+            onPressed: () => setState(() => _view = _SignupView.phone),
           ),
         ],
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 32),
+        const SizedBox(height: 32),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              CosarcPageRoute(page: const LoginScreen()),
+            );
+          },
           child: Text(
-            'By continuing, you agree to our Terms & Privacy Policy',
+            'Already have an account? Sign in',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white.withOpacity(0.3),
-              height: 1.4,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CosarcColors.gold,
+              fontWeight: FontWeight.w500,
             ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'By continuing, you agree to our Terms & Privacy Policy',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: CosarcColors.textMuted,
+            height: 1.4,
           ),
         ),
       ],
@@ -336,191 +329,137 @@ class _SignupScreenState extends State<SignupScreen>
 
   Widget _buildEmailForm() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 60),
+        const SizedBox(height: 24),
         Text(
-          "Create Account",
-          style: TextStyle(
-            fontSize: 32,
+          'Create Account',
+          style: GoogleFonts.inter(
+            fontSize: 28,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: CosarcColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          "Sign up with your email",
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.white.withOpacity(0.5),
-          ),
-        ),
-        const Spacer(),
+        const SizedBox(height: 32),
         TextField(
           controller: _nameController,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: 'Full Name',
-            labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: cosarcPink, width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
-          ),
+          textInputAction: TextInputAction.next,
+          style: const TextStyle(color: CosarcColors.textPrimary),
+          decoration: const InputDecoration(labelText: 'Full Name'),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: 'Email',
-            labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: cosarcPink, width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
-          ),
+          textInputAction: TextInputAction.next,
+          autocorrect: false,
+          style: const TextStyle(color: CosarcColors.textPrimary),
+          decoration: const InputDecoration(labelText: 'Email'),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _passwordController,
           obscureText: true,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
+          textInputAction: TextInputAction.done,
+          style: const TextStyle(color: CosarcColors.textPrimary),
+          decoration: const InputDecoration(
             labelText: 'Password (min 6 characters)',
-            labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: cosarcPink, width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
           ),
           onSubmitted: (_) => _signUpWithEmail(),
         ),
         const SizedBox(height: 24),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [cosarcPink, Color(0xFFD81B60)],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: cosarcPink.withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _signUpWithEmail,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: _isLoading
-                ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-          ),
+        CosarcButton(
+          label: 'Create Account',
+          isLoading: _isLoading,
+          onPressed: _signUpWithEmail,
         ),
-        const Spacer(),
-        const SizedBox(height: 32),
       ],
     );
   }
 
-  Widget _buildSocialButton({
-    String? icon,
-    Widget? iconWidget,
-    required String label,
-    required VoidCallback onPressed,
-    bool isPrimary = false,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: isPrimary ? Colors.white : Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isPrimary
-                  ? Colors.transparent
-                  : Colors.white.withOpacity(0.1),
-              width: 1,
-            ),
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null)
-                  Image.asset(
-                    icon,
-                    height: 22,
-                    width: 22,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.login,
-                      color: isPrimary ? Colors.black : Colors.white,
-                      size: 22,
-                    ),
-                  )
-                else if (iconWidget != null)
-                  iconWidget,
-                const SizedBox(width: 12),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isPrimary ? Colors.black : Colors.white,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildEmailOtpForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 24),
+        Text(
+          'Email Sign Up',
+          style: GoogleFonts.inter(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: CosarcColors.textPrimary,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          'We\'ll send a verification code to your email',
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: CosarcColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 32),
+        TextField(
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.done,
+          autocorrect: false,
+          style: const TextStyle(color: CosarcColors.textPrimary),
+          decoration: const InputDecoration(labelText: 'Email'),
+          onSubmitted: (_) => _signUpWithEmailOtp(),
+        ),
+        const SizedBox(height: 24),
+        CosarcButton(
+          label: 'Send Verification Code',
+          isLoading: _isLoading,
+          onPressed: _signUpWithEmailOtp,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhoneForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 24),
+        Text(
+          'Phone Sign Up',
+          style: GoogleFonts.inter(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: CosarcColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'We\'ll send an SMS verification code',
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: CosarcColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 32),
+        TextField(
+          controller: _phoneController,
+          keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.done,
+          style: const TextStyle(color: CosarcColors.textPrimary),
+          decoration: const InputDecoration(
+            labelText: 'Phone number',
+            hintText: '+91 98765 43210',
+          ),
+          onSubmitted: (_) => _signUpWithPhone(),
+        ),
+        const SizedBox(height: 24),
+        CosarcButton(
+          label: 'Send SMS Code',
+          isLoading: _isLoading,
+          onPressed: _signUpWithPhone,
+        ),
+      ],
     );
   }
 }
+
+enum _SignupView { options, email, emailOtp, phone }

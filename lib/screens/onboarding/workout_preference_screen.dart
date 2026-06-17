@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class WorkoutPreferenceScreen extends StatefulWidget {
   const WorkoutPreferenceScreen({super.key});
@@ -21,7 +21,7 @@ class WorkoutPreferenceScreenState extends State<WorkoutPreferenceScreen> {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white12,
+          color: isSelected ? CosarcColors.gold : Colors.white12,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(

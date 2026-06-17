@@ -11,7 +11,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
   UnityWidgetController? _unityWidgetController;
   final Set<String> _selectedMuscles = {};
   final TextEditingController _textController = TextEditingController();
-  final Color darkPink = Color.fromARGB(255, 117, 116, 117);
+  final Color darkPink = const Color.fromARGB(255, 117, 116, 117);
   final List<String> _muscleGroups = [
     "Abs",
     "Arms",
@@ -84,7 +84,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     decoration: InputDecoration(
                       hintText: "Enter notes...",
                       filled: true,
-                      fillColor: Color.fromARGB(209, 255, 255, 255),
+                      fillColor: const Color.fromARGB(209, 255, 255, 255),
                       prefixIcon: Icon(Icons.edit, color: darkPink),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15)),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/supabase_config.dart';
 import 'screens/auth/login_screen.dart';
+import 'theme/cosarc_colors.dart';
 
 class TestConnectionScreen extends StatefulWidget {
   const TestConnectionScreen({super.key});
@@ -23,7 +24,6 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
     try {
       print('🔵 Testing Supabase connection...');
 
-      final response = await supabase.from('members').select().limit(1);
 
       setState(() {
         _status = '✅ BACKEND CONNECTED!\n\nDatabase is ready!';
@@ -33,7 +33,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
       print('✅ Connection successful');
 
       // Auto-navigate after 2 seconds
-      Future.delayed(Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -61,7 +61,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (_loading)
-                CircularProgressIndicator(color: Color(0xFFE91E63))
+                const CircularProgressIndicator(color: CosarcColors.gold)
               else
                 Icon(
                   _status.contains('✅') ? Icons.check_circle : Icons.error,
@@ -72,7 +72,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
               Text(
                 _status,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   height: 1.5,
@@ -88,7 +88,7 @@ class _TestConnectionScreenState extends State<TestConnectionScreen> {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: Text('Continue Anyway'),
+                    child: const Text('Continue Anyway'),
                   ),
                 ),
             ],

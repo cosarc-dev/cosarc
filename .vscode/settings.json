@@ -1,5 +1,6 @@
 {
     "dart.flutterSdkPath": "C:\\Users\\hp\\flutter_3_19\\flutter",
     "dart.sdkPath": "C:\\Users\\hp\\flutter_3_19\\flutter\\bin\\cache\\dart-sdk",
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "cmake.sourceDirectory": "C:/Users/hp/cosarc/windows"
 }

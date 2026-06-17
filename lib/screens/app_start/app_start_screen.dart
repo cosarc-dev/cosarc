@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../auth/login_screen.dart';
+import '../dashboard/dashboard_root.dart';
 
 class AppStartScreen extends StatefulWidget {
   const AppStartScreen({super.key});
@@ -16,7 +18,13 @@ class _AppStartScreenState extends State<AppStartScreen> {
   @override
   void initState() {
     super.initState();
+
+    print("🔥 AppStartScreen started");
+
     _initVideo();
+
+    // 🔥 HARD FAILSAFE (GUARANTEED NAVIGATION)
+    Future.delayed(const Duration(seconds: 3), _decideNextScreen);
   }
 
   Future<void> _initVideo() async {
@@ -31,25 +39,38 @@ class _AppStartScreenState extends State<AppStartScreen> {
         ..setVolume(0)
         ..play();
 
-      _controller = controller;
-      setState(() {});
+      setState(() {
+        _controller = controller;
+      });
 
-      // Navigate after video
-      Future.delayed(controller.value.duration, _goNext);
+      print("✅ Video initialized");
+
     } catch (e) {
-      // VIDEO FAILED → still move forward
-      Future.delayed(const Duration(seconds: 2), _goNext);
+      print("❌ Video error: $e");
     }
   }
 
-  void _goNext() {
+  void _decideNextScreen() {
     if (!mounted || _navigated) return;
     _navigated = true;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    final session = Supabase.instance.client.auth.currentSession;
+
+    if (session != null) {
+      print("➡️ User already logged in");
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardRoot()),
+      );
+    } else {
+      print("➡️ No user, going to login");
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override
@@ -77,7 +98,9 @@ class _AppStartScreenState extends State<AppStartScreen> {
                 ),
               ),
             )
-          : const SizedBox.expand(), // BLACK SCREEN ONLY
+          : const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
     );
   }
 }

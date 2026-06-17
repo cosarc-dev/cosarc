@@ -10,7 +10,7 @@ import 'enhanced_nutrition_screen.dart';
 import 'profile_screen.dart';
 import '../../models/food_log.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class CosmosScreen extends StatefulWidget {
   const CosmosScreen({super.key});
@@ -246,7 +246,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                                           width: 1,
                                         ),
                                       ),
-                                      child: Icon(
+                                      child: const Icon(
                                         Icons.person_outline_rounded,
                                         color: Colors.white,
                                         size: 22,
@@ -400,14 +400,14 @@ class _CosmosScreenState extends State<CosmosScreen> {
               decoration: BoxDecoration(
                 // IMPROVED: Grey frosted glass effect for better readability
                 color: completed
-                    ? Color(0xFF2A2A2A)
+                    ? const Color(0xFF2A2A2A)
                         .withOpacity(0.85) // Darker grey when completed
-                    : Color(0xFF1A1A1A)
+                    : const Color(0xFF1A1A1A)
                         .withOpacity(0.75), // Medium grey when not completed
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: completed
-                      ? cosarcPink.withOpacity(0.6)
+                      ? CosarcColors.gold.withOpacity(0.6)
                       : Colors.white.withOpacity(0.08),
                   width: completed ? 2 : 1,
                 ),
@@ -419,14 +419,14 @@ class _CosmosScreenState extends State<CosmosScreen> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: (completed ? cosarcPink : Colors.white)
+                        color: (completed ? CosarcColors.gold : Colors.white)
                             .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
                         icon,
                         color: completed
-                            ? cosarcPink
+                            ? CosarcColors.gold
                             : Colors.white.withOpacity(0.6),
                         size: 24,
                       ),
@@ -460,7 +460,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                           ? Icons.check_circle_rounded
                           : Icons.arrow_forward_ios_rounded,
                       color: completed
-                          ? cosarcPink
+                          ? CosarcColors.gold
                           : Colors.white.withOpacity(0.3),
                       size: completed ? 28 : 18,
                     ),
@@ -491,12 +491,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
         decoration: BoxDecoration(
           // IMPROVED: Grey frosted glass effect
           color: completed
-              ? Color(0xFF2A2A2A).withOpacity(0.85)
-              : Color(0xFF1A1A1A).withOpacity(0.75),
+              ? const Color(0xFF2A2A2A).withOpacity(0.85)
+              : const Color(0xFF1A1A1A).withOpacity(0.75),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: completed
-                ? cosarcPink.withOpacity(0.6)
+                ? CosarcColors.gold.withOpacity(0.6)
                 : Colors.white.withOpacity(0.08),
             width: completed ? 2 : 1,
           ),
@@ -516,14 +516,14 @@ class _CosmosScreenState extends State<CosmosScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: (completed ? cosarcPink : Colors.white)
+                    color: (completed ? CosarcColors.gold : Colors.white)
                         .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
                     icon,
                     color:
-                        completed ? cosarcPink : Colors.white.withOpacity(0.6),
+                        completed ? CosarcColors.gold : Colors.white.withOpacity(0.6),
                     size: 24,
                   ),
                 ),
@@ -562,12 +562,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
                             horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
                           color: progress < 1.0
-                              ? cosarcPink.withOpacity(0.15)
+                              ? CosarcColors.gold.withOpacity(0.15)
                               : Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: progress < 1.0
-                                ? cosarcPink.withOpacity(0.3)
+                                ? CosarcColors.gold.withOpacity(0.3)
                                 : Colors.white.withOpacity(0.1),
                             width: 1,
                           ),
@@ -578,7 +578,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: progress < 1.0
-                                ? cosarcPink
+                                ? CosarcColors.gold
                                 : Colors.white.withOpacity(0.3),
                           ),
                         ),
@@ -595,7 +595,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                 minHeight: 8,
                 backgroundColor:
                     Colors.white.withOpacity(0.15), // Brighter background
-                valueColor: AlwaysStoppedAnimation<Color>(cosarcPink),
+                valueColor: const AlwaysStoppedAnimation<Color>(CosarcColors.gold),
               ),
             ),
           ],
@@ -611,12 +611,12 @@ class _CosmosScreenState extends State<CosmosScreen> {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: _contractComplete
-              ? cosarcPink.withOpacity(0.1)
+              ? CosarcColors.gold.withOpacity(0.1)
               : Colors.white.withOpacity(0.03),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: _contractComplete
-                ? cosarcPink.withOpacity(0.3)
+                ? CosarcColors.gold.withOpacity(0.3)
                 : Colors.white.withOpacity(0.08),
             width: 1,
           ),
@@ -635,7 +635,7 @@ class _CosmosScreenState extends State<CosmosScreen> {
                   ? Icons.auto_awesome_rounded
                   : Icons.lock_outline_rounded,
               color: _contractComplete
-                  ? cosarcPink
+                  ? CosarcColors.gold
                   : Colors.white.withOpacity(0.3),
               size: 32,
             ),

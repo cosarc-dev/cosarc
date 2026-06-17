@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class GoalScreen extends StatefulWidget {
   const GoalScreen({super.key});
@@ -21,7 +21,7 @@ class GoalScreenState extends State<GoalScreen> {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white10,
+          color: isSelected ? CosarcColors.gold : Colors.white10,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white24),
         ),

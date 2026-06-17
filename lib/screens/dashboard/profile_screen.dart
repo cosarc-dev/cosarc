@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import '../../core/supabase_config.dart';
+import '../../theme/cosarc_colors.dart';
+import '../../widgets/cosarc_skeleton.dart';
 import '../auth/login_screen.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _memberData;
   Map<String, dynamic>? _streakData;
   bool _isLoading = true;
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -49,12 +51,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } catch (e) {
-      print('Error loading profile: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _logout() async {
+    setState(() => _isLoggingOut = true);
     await _authService.signOut();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
@@ -66,31 +68,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _getDisplayValue(dynamic value, String defaultValue) {
-    if (value == null || value.toString().isEmpty) {
-      return defaultValue;
-    }
+    if (value == null || value.toString().isEmpty) return defaultValue;
     return value.toString();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: CircularProgressIndicator(color: cosarcPink),
-        ),
-      );
-    }
+    return Scaffold(
+      backgroundColor: CosarcColors.black,
+      body: _isLoading ? _buildSkeleton() : _buildContent(),
+    );
+  }
 
-    // Extract data with fallbacks
-    final name = _getDisplayValue(_memberData?['name'], 'Fitness Warrior');
-    final email = _getDisplayValue(_memberData?['email'], 'warrior@cosarc.app');
+  Widget _buildSkeleton() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const CosarcSkeleton(width: 96, height: 96, borderRadius: 48),
+            const SizedBox(height: 16),
+            const CosarcSkeleton(width: 160, height: 20),
+            const SizedBox(height: 8),
+            const CosarcSkeleton(width: 200, height: 14),
+            const SizedBox(height: 32),
+            Row(
+              children: List.generate(
+                3,
+                (_) => const Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: CosarcSkeleton(width: double.infinity, height: 90),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    final name = _getDisplayValue(_memberData?['name'], 'Member');
+    final email = _getDisplayValue(_memberData?['email'], '');
     final currentStreak = _streakData?['current_streak'] ?? 0;
     final longestStreak = _streakData?['longest_streak'] ?? 0;
     final thisMonthWorkouts = _streakData?['this_month_workouts'] ?? 0;
-
-    // Onboarding data
     final age = _memberData?['age'] ?? 0;
     final height = _memberData?['height'] ?? 0.0;
     final weight = _memberData?['weight'] ?? 0.0;
@@ -103,366 +127,225 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _getDisplayValue(_memberData?['activity_level'], 'Not set');
     final trainingFrequency = _memberData?['training_frequency'] ?? 0;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.black,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(
-                Icons.close_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      cosarcPink.withOpacity(0.2),
-                      Colors.black,
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        top: 60,
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    cosarcPink,
-                                    cosarcPink.withOpacity(0.7)
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                  width: 3,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  name[0].toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              name,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              email,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.white.withOpacity(0.6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 220,
+          pinned: true,
+          backgroundColor: CosarcColors.black,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close_rounded, color: CosarcColors.textPrimary),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Stats Row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          label: 'Streak',
-                          value: currentStreak.toString(),
-                          icon: Icons.local_fire_department_rounded,
-                          color: Color(0xFFFF5722),
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    CosarcColors.gold.withOpacity(0.12),
+                    CosarcColors.black,
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [CosarcColors.gold, CosarcColors.goldDark],
+                        ),
+                        border: Border.all(
+                          color: CosarcColors.gold.withOpacity(0.4),
+                          width: 2,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          label: 'Workouts',
-                          value: thisMonthWorkouts.toString(),
-                          icon: Icons.fitness_center_rounded,
-                          color: cosarcPink,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          label: 'Best',
-                          value: longestStreak.toString(),
-                          icon: Icons.emoji_events_rounded,
-                          color: Color(0xFF2196F3),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Personal Information Section
-                  Text(
-                    'Personal Information',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildInfoCard(
-                    icon: Icons.person_outline,
-                    label: 'Gender',
-                    value: gender,
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildInfoCard(
-                    icon: Icons.cake_rounded,
-                    label: 'Age',
-                    value: age > 0 ? '$age years' : 'Not set',
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildInfoCard(
-                    icon: Icons.height_rounded,
-                    label: 'Height',
-                    value: height > 0
-                        ? '${height.toStringAsFixed(1)} cm'
-                        : 'Not set',
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildInfoCard(
-                    icon: Icons.monitor_weight_rounded,
-                    label: 'Weight',
-                    value: weight > 0
-                        ? '${weight.toStringAsFixed(1)} kg'
-                        : 'Not set',
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Fitness Profile Section
-                  Text(
-                    'Fitness Profile',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildInfoCard(
-                    icon: Icons.flag_rounded,
-                    label: 'Fitness Goal',
-                    value: fitnessGoal,
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildInfoCard(
-                    icon: Icons.fitness_center,
-                    label: 'Workout Preference',
-                    value: workoutPreference,
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildInfoCard(
-                    icon: Icons.speed_rounded,
-                    label: 'Activity Level',
-                    value: activityLevel,
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildInfoCard(
-                    icon: Icons.calendar_month,
-                    label: 'Training Frequency',
-                    value: trainingFrequency > 0
-                        ? '$trainingFrequency days/week'
-                        : 'Not set',
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Settings Section
-                  Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildSettingsButton(
-                    icon: Icons.edit_rounded,
-                    label: 'Edit Profile',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Edit profile feature coming soon!'),
-                          backgroundColor: cosarcPink,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildSettingsButton(
-                    icon: Icons.notifications_rounded,
-                    label: 'Notifications',
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildSettingsButton(
-                    icon: Icons.lock_rounded,
-                    label: 'Privacy & Security',
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildSettingsButton(
-                    icon: Icons.help_rounded,
-                    label: 'Help & Support',
-                    onTap: () {},
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Logout Button
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _logout,
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.red.withOpacity(0.3),
-                            width: 1,
+                      child: Center(
+                        child: Text(
+                          name[0].toUpperCase(),
+                          style: GoogleFonts.inter(
+                            color: CosarcColors.black,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.logout_rounded,
-                              color: Colors.red,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Logout',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      name,
+                      style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: CosarcColors.textPrimary,
+                      ),
+                    ),
+                    if (email.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CosarcColors.textSecondary,
                         ),
                       ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Center(
-                    child: Text(
-                      'Cosarc v1.0.0',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.3),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-                ],
+                    ],
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
-        ],
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionTitle('Membership Insights'),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _statCard(
+                        label: 'Current Streak',
+                        value: '$currentStreak',
+                        unit: 'days',
+                        icon: Icons.local_fire_department_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _statCard(
+                        label: 'This Month',
+                        value: '$thisMonthWorkouts',
+                        unit: 'workouts',
+                        icon: Icons.fitness_center_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _statCard(
+                        label: 'Best Streak',
+                        value: '$longestStreak',
+                        unit: 'days',
+                        icon: Icons.emoji_events_rounded,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                _sectionTitle('Personal Information'),
+                const SizedBox(height: 12),
+                _infoRow(Icons.person_outline, 'Gender', gender),
+                _infoRow(Icons.cake_rounded, 'Age',
+                    age > 0 ? '$age years' : 'Not set'),
+                _infoRow(Icons.height_rounded, 'Height',
+                    height > 0 ? '${height.toStringAsFixed(1)} cm' : 'Not set'),
+                _infoRow(Icons.monitor_weight_rounded, 'Weight',
+                    weight > 0 ? '${weight.toStringAsFixed(1)} kg' : 'Not set'),
+                const SizedBox(height: 32),
+                _sectionTitle('Fitness Profile'),
+                const SizedBox(height: 12),
+                _infoRow(Icons.flag_rounded, 'Goal', fitnessGoal),
+                _infoRow(Icons.fitness_center, 'Preference', workoutPreference),
+                _infoRow(Icons.speed_rounded, 'Activity', activityLevel),
+                _infoRow(
+                  Icons.calendar_month,
+                  'Frequency',
+                  trainingFrequency > 0
+                      ? '$trainingFrequency days/week'
+                      : 'Not set',
+                ),
+                const SizedBox(height: 32),
+                _sectionTitle('Account'),
+                const SizedBox(height: 12),
+                _settingsTile(
+                  icon: Icons.logout_rounded,
+                  label: 'Logout',
+                  isDestructive: true,
+                  isLoading: _isLoggingOut,
+                  onTap: _isLoggingOut ? null : _logout,
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Text(
+                    'Cosarc v1.0.0',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CosarcColors.textMuted,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.inter(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.2,
+        color: CosarcColors.gold,
       ),
     );
   }
 
-  Widget _buildStatCard({
+  Widget _statCard({
     required String label,
     required String value,
+    required String unit,
     required IconData icon,
-    required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: CosarcColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 1,
-        ),
+        border: Border.all(color: CosarcColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
+          Icon(icon, color: CosarcColors.gold, size: 20),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: CosarcColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 2),
+          Text(
+            unit,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: CosarcColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 11,
-              color: Colors.white.withOpacity(0.5),
+              color: CosarcColors.textSecondary,
             ),
           ),
         ],
@@ -470,54 +353,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+  Widget _infoRow(IconData icon, String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 1,
-        ),
+        color: CosarcColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CosarcColors.border),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: cosarcPink.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: cosarcPink,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 16),
+          Icon(icon, color: CosarcColors.gold, size: 20),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.6),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CosarcColors.textMuted,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: CosarcColors.textPrimary,
                   ),
                 ),
               ],
@@ -528,49 +393,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingsButton({
+  Widget _settingsTile({
     required IconData icon,
     required String label,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
+    bool isDestructive = false,
+    bool isLoading = false,
   }) {
+    final color = isDestructive ? CosarcColors.error : CosarcColors.textPrimary;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
+            color: isDestructive
+                ? CosarcColors.error.withOpacity(0.08)
+                : CosarcColors.surface,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withOpacity(0.08),
-              width: 1,
+              color: isDestructive
+                  ? CosarcColors.error.withOpacity(0.25)
+                  : CosarcColors.border,
             ),
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: Colors.white.withOpacity(0.8),
-                size: 22,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
+              if (isLoading)
+                SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: color,
+                  ),
+                )
+              else ...[
+                Icon(icon, color: color, size: 20),
+                const SizedBox(width: 10),
+                Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    color: color,
                   ),
                 ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Colors.white.withOpacity(0.3),
-                size: 16,
-              ),
+              ],
             ],
           ),
         ),

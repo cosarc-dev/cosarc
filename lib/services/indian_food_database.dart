@@ -141,7 +141,7 @@ class IndianFoodDatabase {
   static Future<List<Map<String, dynamic>>> _searchOpenFoodFacts(String query) async {
     try {
       final url = Uri.parse('$openFoodFactsUrl?search_terms=$query&search_simple=1&json=1&page_size=10');
-      final response = await http.get(url).timeout(Duration(seconds: 5));
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -170,7 +170,7 @@ class IndianFoodDatabase {
   static Future<List<Map<String, dynamic>>> _searchUSDA(String query) async {
     try {
       final url = Uri.parse('$usdaBaseUrl/foods/search?api_key=$usdaApiKey&query=$query&pageSize=10');
-      final response = await http.get(url).timeout(Duration(seconds: 5));
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

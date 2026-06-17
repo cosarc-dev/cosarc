@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'theme/cosarc_theme.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/supabase_config.dart';
@@ -57,7 +57,7 @@ class _CosarcAppState extends State<CosarcApp> {
 
         print('🔵 Auth state changed - user logged in: ${session.user.email}');
 
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
 
         try {
           await _ensureMemberExists(session.user);
@@ -134,30 +134,7 @@ class _CosarcAppState extends State<CosarcApp> {
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Cosarc',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0C0C0C),
-        textTheme: GoogleFonts.montserratTextTheme(
-          Theme.of(context).textTheme.apply(
-                bodyColor: Colors.white,
-                displayColor: Colors.white,
-              ),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF161616),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          hintStyle: const TextStyle(color: Colors.white54),
-        ),
-      ),
+      theme: CosarcTheme.dark,
       home: const AppStartScreen(),
     );
   }

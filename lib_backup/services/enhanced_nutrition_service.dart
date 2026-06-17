@@ -30,8 +30,6 @@ class NutritionServiceV2 {
   
   // FatSecret - 500k+ foods (FREE)
   // Get key: https://platform.fatsecret.com/api/
-  final String _fatSecretKey = 'YOUR_KEY';
-  final String _fatSecretSecret = 'YOUR_SECRET';
   
   // Spoonacular - 350k+ recipes and foods (FREE tier: 150 calls/day)
   // Get key: https://spoonacular.com/food-api
@@ -66,7 +64,7 @@ class NutritionServiceV2 {
       // Combine all results
       List<Map<String, dynamic>> combined = [
         ...indianResults,
-        ...apiResults.expand((results) => results ?? []),
+        ...apiResults.expand((results) => results),
       ];
 
       print('📊 Total results before deduplication: ${combined.length}');
@@ -321,7 +319,6 @@ class NutritionServiceV2 {
       
       final data = json.decode(res.body);
       final branded = (data['branded'] as List?) ?? [];
-      final common = (data['common'] as List?) ?? [];
       
       List<Map<String, dynamic>> results = [];
       
@@ -415,8 +412,7 @@ class NutritionServiceV2 {
       final res = await http.get(url).timeout(const Duration(seconds: 5));
       if (res.statusCode != 200) return [];
       
-      final data = json.decode(res.body);
-      final results = (data['results'] as List?) ?? [];
+      json.decode(res.body);
       
       // Note: Spoonacular requires additional call for nutrition data
       // This is simplified - full implementation would need ingredient ID lookup

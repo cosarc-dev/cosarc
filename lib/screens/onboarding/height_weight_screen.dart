@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class HeightWeightScreen extends StatefulWidget {
   const HeightWeightScreen({super.key});
@@ -84,7 +84,7 @@ class HeightWeightScreenState extends State<HeightWeightScreen> {
         ToggleButtons(
           isSelected: [isFtKg, !isFtKg],
           borderRadius: BorderRadius.circular(20),
-          fillColor: cosarcPink,
+          fillColor: CosarcColors.gold,
           selectedColor: Colors.white,
           color: Colors.white,
           onPressed: (i) => toggleUnit(i == 0),

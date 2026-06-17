@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import '../../services/auth_service.dart';
-import '../../core/supabase_config.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../services/workout_service.dart';
+import '../../theme/cosarc_colors.dart';
 
 class WorkoutLogScreen extends StatefulWidget {
   const WorkoutLogScreen({super.key});
@@ -21,6 +21,9 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   final TextEditingController _notesController = TextEditingController();
   double _duration = 30;
   double _intensity = 50;
+  bool _isSubmitting = false;
+
+  final _workoutService = WorkoutService();
 
   final List<String> muscleGroups = [
     'Abs',
@@ -130,7 +133,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back_ios_rounded,
                 color: Colors.white,
                 size: 18,
@@ -138,7 +141,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
+          const Text(
             'Log Workout',
             style: TextStyle(
               fontSize: 20,
@@ -219,7 +222,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w700,
         color: Colors.white,
@@ -240,11 +243,11 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected
-                  ? cosarcPink.withOpacity(0.2)
+                  ? CosarcColors.gold.withOpacity(0.2)
                   : Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? cosarcPink : Colors.white.withOpacity(0.1),
+                color: isSelected ? CosarcColors.gold : Colors.white.withOpacity(0.1),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -253,7 +256,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? cosarcPink : Colors.white.withOpacity(0.7),
+                color: isSelected ? CosarcColors.gold : Colors.white.withOpacity(0.7),
               ),
             ),
           ),
@@ -276,7 +279,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
       child: TextField(
         controller: _notesController,
         maxLines: 3,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
           color: Colors.white,
         ),
@@ -320,10 +323,10 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               ),
               Text(
                 '${_duration.toInt()} min',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: cosarcPink,
+                  color: CosarcColors.gold,
                 ),
               ),
             ],
@@ -331,10 +334,10 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           const SizedBox(height: 8),
           SliderTheme(
             data: SliderThemeData(
-              activeTrackColor: cosarcPink,
+              activeTrackColor: CosarcColors.gold,
               inactiveTrackColor: Colors.white.withOpacity(0.1),
-              thumbColor: cosarcPink,
-              overlayColor: cosarcPink.withOpacity(0.2),
+              thumbColor: CosarcColors.gold,
+              overlayColor: CosarcColors.gold.withOpacity(0.2),
               trackHeight: 6,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
             ),
@@ -376,7 +379,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               ),
               Text(
                 _getIntensityLabel(),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -387,10 +390,10 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           const SizedBox(height: 8),
           SliderTheme(
             data: SliderThemeData(
-              activeTrackColor: cosarcPink,
+              activeTrackColor: CosarcColors.gold,
               inactiveTrackColor: Colors.white.withOpacity(0.1),
-              thumbColor: cosarcPink,
-              overlayColor: cosarcPink.withOpacity(0.2),
+              thumbColor: CosarcColors.gold,
+              overlayColor: CosarcColors.gold.withOpacity(0.2),
               trackHeight: 6,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
             ),
@@ -410,59 +413,26 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _canSubmit
-            ? () async {
-                if (_memberId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please login first')),
-                  );
-                  return;
-                }
-
-                try {
-                  await supabase.from('workout_logs').insert({
-                    'member_id': _memberId,
-                    'workout_date':
-                        DateTime.now().toIso8601String().split('T')[0],
-                    'target_muscles': selectedMuscles.toList(),
-                    'exercises': _notesController.text,
-                    'duration_minutes': _duration.toInt(),
-                    'intensity': _intensity.toInt(),
-                  });
-
-                  final today = DateTime.now().toIso8601String().split('T')[0];
-                  await supabase
-                      .from('daily_contracts')
-                      .update({'workout_completed': true})
-                      .eq('member_id', _memberId!)
-                      .eq('contract_date', today);
-
-                  await supabase.rpc('calculate_streak',
-                      params: {'p_member_id': _memberId});
-
-                  if (mounted) Navigator.pop(context, true);
-                } catch (e) {
-                  print('Error logging workout: $e');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
-                }
-              }
-            : null,
+        onTap: _canSubmit && !_isSubmitting ? _submitWorkout : null,
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: _canSubmit
+            gradient: _canSubmit && !_isSubmitting
                 ? LinearGradient(
-                    colors: [cosarcPink, cosarcPink.withOpacity(0.8)],
+                    colors: [
+                      CosarcColors.gold,
+                      CosarcColors.gold.withOpacity(0.8),
+                    ],
                   )
                 : null,
-            color: _canSubmit ? null : Colors.white.withOpacity(0.05),
+            color: _canSubmit && !_isSubmitting
+                ? null
+                : Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: _canSubmit
+            boxShadow: _canSubmit && !_isSubmitting
                 ? [
                     BoxShadow(
-                      color: cosarcPink.withOpacity(0.3),
+                      color: CosarcColors.gold.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -472,19 +442,67 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             alignment: Alignment.center,
-            child: Text(
-              'Confirm Workout',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color:
-                    _canSubmit ? Colors.white : Colors.white.withOpacity(0.3),
-                letterSpacing: 0.5,
-              ),
-            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: CosarcColors.black,
+                    ),
+                  )
+                : Text(
+                    'Confirm Workout',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: _canSubmit
+                          ? CosarcColors.black
+                          : Colors.white.withOpacity(0.3),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _submitWorkout() async {
+    if (_memberId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to log workouts')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      await _workoutService.logWorkout(
+        memberId: _memberId!,
+        targetMuscles: selectedMuscles.toList(),
+        exercises: _notesController.text,
+        durationMinutes: _duration.toInt(),
+        intensity: _intensity.toInt(),
+      );
+
+      if (!mounted) return;
+      HapticFeedback.mediumImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Workout logged successfully')),
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(WorkoutService.humanizeError(e)),
+          backgroundColor: CosarcColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../dashboard/dashboard_root.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class SetupCompleteScreen extends StatefulWidget {
   const SetupCompleteScreen({super.key});
@@ -37,7 +37,7 @@ class _SetupCompleteScreenState extends State<SetupCompleteScreen> {
           children: [
             Icon(
               Icons.check_circle,
-              color: cosarcPink,
+              color: CosarcColors.gold,
               size: 96,
             ),
             SizedBox(height: 24),

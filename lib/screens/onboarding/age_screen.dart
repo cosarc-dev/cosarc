@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class AgeScreen extends StatefulWidget {
   final void Function(int age)? onChanged;
@@ -40,7 +40,7 @@ class AgeScreenState extends State<AgeScreen> {
           min: 5,
           max: 100,
           divisions: 95,
-          activeColor: cosarcPink,
+          activeColor: CosarcColors.gold,
           onChanged: (v) {
             setState(() => age = v);
             widget.onChanged?.call(v.toInt());

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class ActivityLevelScreen extends StatefulWidget {
   const ActivityLevelScreen({super.key});
@@ -23,7 +23,7 @@ class ActivityLevelScreenState extends State<ActivityLevelScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white10,
+          color: isSelected ? CosarcColors.gold : Colors.white10,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white24),
         ),

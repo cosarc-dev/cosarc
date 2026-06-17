@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../theme/cosarc_colors.dart';
 import 'cosmos_screen.dart';
 import 'my_gym_screen.dart';
 import 'nutriwave_screen.dart';
 import 'cosarc_ai_screen.dart';
-
-const Color cosarcPink = Color(0xFFE91E63);
 
 class DashboardRoot extends StatefulWidget {
   const DashboardRoot({super.key});
@@ -23,22 +24,25 @@ class _DashboardRootState extends State<DashboardRoot> {
     CosarcAIScreen(),
   ];
 
+  void _onTabTap(int index) {
+    if (index == _currentIndex) return;
+    HapticFeedback.selectionClick();
+    setState(() => _currentIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: CosarcColors.black,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
+        decoration: const BoxDecoration(
+          color: CosarcColors.black,
           border: Border(
-            top: BorderSide(
-              color: Colors.white.withOpacity(0.1),
-              width: 0.5,
-            ),
+            top: BorderSide(color: CosarcColors.border, width: 0.5),
           ),
         ),
         child: SafeArea(
@@ -81,10 +85,10 @@ class _DashboardRootState extends State<DashboardRoot> {
     required int index,
   }) {
     final isSelected = _currentIndex == index;
-    
+
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _currentIndex = index),
+        onTap: () => _onTabTap(index),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -92,30 +96,41 @@ class _DashboardRootState extends State<DashboardRoot> {
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
                 padding: EdgeInsets.all(isSelected ? 8 : 6),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? cosarcPink.withOpacity(0.15)
+                  color: isSelected
+                      ? CosarcColors.gold.withOpacity(0.12)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
+                  border: isSelected
+                      ? Border.all(
+                          color: CosarcColors.gold.withOpacity(0.35),
+                        )
+                      : null,
                 ),
                 child: Icon(
                   icon,
-                  color: isSelected ? cosarcPink : Colors.white.withOpacity(0.5),
-                  size: isSelected ? 26 : 24,
+                  color: isSelected
+                      ? CosarcColors.gold
+                      : CosarcColors.textMuted,
+                  size: isSelected ? 24 : 22,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+                style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? cosarcPink : Colors.white.withOpacity(0.5),
+                  color: isSelected
+                      ? CosarcColors.gold
+                      : CosarcColors.textMuted,
                   letterSpacing: 0.3,
                 ),
+                child: Text(label),
               ),
             ],
           ),

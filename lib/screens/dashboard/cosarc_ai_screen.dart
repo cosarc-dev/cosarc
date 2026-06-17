@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class CosarcAIScreen extends StatefulWidget {
   const CosarcAIScreen({super.key});
@@ -83,7 +83,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            cosarcPink.withOpacity(0.15),
+            CosarcColors.gold.withOpacity(0.15),
             Colors.black,
           ],
         ),
@@ -104,20 +104,20 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  cosarcPink,
-                  cosarcPink.withOpacity(0.6),
+                  CosarcColors.gold,
+                  CosarcColors.gold.withOpacity(0.6),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: cosarcPink.withOpacity(0.3),
+                  color: CosarcColors.gold.withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Icon(
+            child: const Icon(
               Icons.psychology_rounded, // BETTER AI ICON
               color: Colors.white,
               size: 28,
@@ -128,7 +128,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Cosarc AI',
                   style: TextStyle(
                     fontSize: 20,
@@ -152,10 +152,10 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Color(0xFF4CAF50).withOpacity(0.15),
+              color: const Color(0xFF4CAF50).withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Color(0xFF4CAF50).withOpacity(0.3),
+                color: const Color(0xFF4CAF50).withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -164,13 +164,13 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Color(0xFF4CAF50),
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
+                const Text(
                   'Online',
                   style: TextStyle(
                     fontSize: 11,
@@ -199,8 +199,8 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  cosarcPink.withOpacity(0.2),
-                  cosarcPink.withOpacity(0.05),
+                  CosarcColors.gold.withOpacity(0.2),
+                  CosarcColors.gold.withOpacity(0.05),
                   Colors.transparent,
                 ],
               ),
@@ -213,20 +213,20 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    cosarcPink,
-                    cosarcPink.withOpacity(0.7),
+                    CosarcColors.gold,
+                    CosarcColors.gold.withOpacity(0.7),
                   ],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: cosarcPink.withOpacity(0.4),
+                    color: CosarcColors.gold.withOpacity(0.4),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                 ],
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.psychology_rounded,
                 size: 64,
                 color: Colors.white,
@@ -236,7 +236,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
           
           const SizedBox(height: 32),
           
-          Text(
+          const Text(
             'Ask me anything',
             style: TextStyle(
               fontSize: 28,
@@ -339,12 +339,12 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: cosarcPink.withOpacity(0.15),
+                    color: CosarcColors.gold.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.lightbulb_outline_rounded,
-                    color: cosarcPink,
+                    color: CosarcColors.gold,
                     size: 18,
                   ),
                 ),
@@ -352,7 +352,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 Expanded(
                   child: Text(
                     question,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -399,11 +399,11 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [cosarcPink, cosarcPink.withOpacity(0.7)],
+                  colors: [CosarcColors.gold, CosarcColors.gold.withOpacity(0.7)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.psychology_rounded,
                 color: Colors.white,
                 size: 20,
@@ -416,19 +416,19 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isUser
-                    ? cosarcPink.withOpacity(0.2)
+                    ? CosarcColors.gold.withOpacity(0.2)
                     : Colors.white.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isUser
-                      ? cosarcPink.withOpacity(0.3)
+                      ? CosarcColors.gold.withOpacity(0.3)
                       : Colors.white.withOpacity(0.1),
                   width: 1,
                 ),
               ),
               child: Text(
                 text,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   color: Colors.white,
                   height: 1.5,
@@ -444,7 +444,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.person_rounded,
                 color: Colors.white,
                 size: 20,
@@ -483,7 +483,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
               ),
               child: TextField(
                 controller: _messageController,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   color: Colors.white,
                 ),
@@ -511,12 +511,12 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
               child: Ink(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [cosarcPink, cosarcPink.withOpacity(0.8)],
+                    colors: [CosarcColors.gold, CosarcColors.gold.withOpacity(0.8)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: cosarcPink.withOpacity(0.3),
+                      color: CosarcColors.gold.withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -524,7 +524,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 ),
                 child: Container(
                   padding: const EdgeInsets.all(14),
-                  child: Icon(
+                  child: const Icon(
                     Icons.send_rounded,
                     color: Colors.white,
                     size: 22,

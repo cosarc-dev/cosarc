@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class MyGymScreen extends StatefulWidget {
   const MyGymScreen({super.key});
@@ -88,7 +88,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        cosarcPink.withOpacity(0.15),
+                        CosarcColors.gold.withOpacity(0.15),
                         Colors.black,
                       ],
                     ),
@@ -137,7 +137,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     icon: Icons.celebration_rounded,
                     title: 'Special Class Tomorrow',
                     message: 'Yoga session at 7 AM with celebrity trainer',
-                    color: Color(0xFF4CAF50),
+                    color: const Color(0xFF4CAF50),
                     time: '2h ago',
                   ),
                   
@@ -147,7 +147,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     icon: Icons.build_rounded,
                     title: 'Maintenance Notice',
                     message: 'Treadmills will be serviced this Sunday',
-                    color: Color(0xFFFF9800),
+                    color: const Color(0xFFFF9800),
                     time: '1d ago',
                   ),
                   
@@ -168,46 +168,10 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     icon: Icons.calendar_month_rounded,
                     title: 'Attendance History',
                     subtitle: 'View your gym attendance records',
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
                     ),
                     onTap: () => _showAttendanceHistory(),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  _buildFeatureCard(
-                    icon: Icons.schedule_rounded,
-                    title: 'Class Schedule',
-                    subtitle: 'Book your spot in group classes',
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
-                    ),
-                    onTap: () {},
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  _buildFeatureCard(
-                    icon: Icons.person_add_rounded,
-                    title: 'Personal Trainer',
-                    subtitle: 'Book sessions with certified trainers',
-                    gradient: LinearGradient(
-                      colors: [cosarcPink, cosarcPink.withOpacity(0.7)],
-                    ),
-                    onTap: () {},
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  _buildFeatureCard(
-                    icon: Icons.leaderboard_rounded,
-                    title: 'Gym Leaderboard',
-                    subtitle: 'Compete with other members',
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFFF5722), Color(0xFFE64A19)],
-                    ),
-                    onTap: () {},
                   ),
                   
                   const SizedBox(height: 40),
@@ -228,14 +192,14 @@ class _MyGymScreenState extends State<MyGymScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: _isCheckedIn
-              ? [Color(0xFF4CAF50).withOpacity(0.2), Color(0xFF4CAF50).withOpacity(0.05)]
-              : [cosarcPink.withOpacity(0.15), cosarcPink.withOpacity(0.05)],
+              ? [const Color(0xFF4CAF50).withOpacity(0.2), const Color(0xFF4CAF50).withOpacity(0.05)]
+              : [CosarcColors.gold.withOpacity(0.15), CosarcColors.gold.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: _isCheckedIn 
-              ? Color(0xFF4CAF50).withOpacity(0.3)
-              : cosarcPink.withOpacity(0.3),
+              ? const Color(0xFF4CAF50).withOpacity(0.3)
+              : CosarcColors.gold.withOpacity(0.3),
           width: 2,
         ),
       ),
@@ -246,12 +210,12 @@ class _MyGymScreenState extends State<MyGymScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: (_isCheckedIn ? Color(0xFF4CAF50) : cosarcPink).withOpacity(0.2),
+                  color: (_isCheckedIn ? const Color(0xFF4CAF50) : CosarcColors.gold).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   _isCheckedIn ? Icons.fitness_center_rounded : Icons.qr_code_scanner_rounded,
-                  color: _isCheckedIn ? Color(0xFF4CAF50) : cosarcPink,
+                  color: _isCheckedIn ? const Color(0xFF4CAF50) : CosarcColors.gold,
                   size: 32,
                 ),
               ),
@@ -266,7 +230,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2,
-                        color: _isCheckedIn ? Color(0xFF4CAF50) : cosarcPink,
+                        color: _isCheckedIn ? const Color(0xFF4CAF50) : CosarcColors.gold,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -297,12 +261,12 @@ class _MyGymScreenState extends State<MyGymScreen> {
                   gradient: LinearGradient(
                     colors: _isCheckedIn 
                         ? [Colors.red, Colors.red.withOpacity(0.8)]
-                        : [cosarcPink, cosarcPink.withOpacity(0.8)],
+                        : [CosarcColors.gold, CosarcColors.gold.withOpacity(0.8)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: (_isCheckedIn ? Colors.red : cosarcPink).withOpacity(0.3),
+                      color: (_isCheckedIn ? Colors.red : CosarcColors.gold).withOpacity(0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 6),
                     ),
@@ -342,7 +306,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.schedule_rounded, color: Color(0xFF4CAF50), size: 20),
+          const Icon(Icons.schedule_rounded, color: Color(0xFF4CAF50), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -374,7 +338,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
             label: 'This Month',
             value: '18',
             icon: Icons.check_circle_outline_rounded,
-            color: Color(0xFF4CAF50),
+            color: const Color(0xFF4CAF50),
           ),
         ),
         const SizedBox(width: 12),
@@ -383,7 +347,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
             label: 'Streak',
             value: '5',
             icon: Icons.local_fire_department_rounded,
-            color: Color(0xFFFF5722),
+            color: const Color(0xFFFF5722),
           ),
         ),
         const SizedBox(width: 12),
@@ -392,7 +356,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
             label: 'Total',
             value: '127',
             icon: Icons.emoji_events_rounded,
-            color: Color(0xFFFFD700),
+            color: const Color(0xFFFFD700),
           ),
         ),
       ],
@@ -442,8 +406,8 @@ class _MyGymScreenState extends State<MyGymScreen> {
   }
 
   Widget _buildMembershipCard() {
-    final daysLeft = 37;
-    final progress = 1 - (daysLeft / 365);
+    const daysLeft = 37;
+    const progress = 1 - (daysLeft / 365);
     
     return Container(
       padding: const EdgeInsets.all(24),
@@ -452,13 +416,13 @@ class _MyGymScreenState extends State<MyGymScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFFFD700).withOpacity(0.15),
-            Color(0xFFFFD700).withOpacity(0.05),
+            const Color(0xFFFFD700).withOpacity(0.15),
+            const Color(0xFFFFD700).withOpacity(0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Color(0xFFFFD700).withOpacity(0.3),
+          color: const Color(0xFFFFD700).withOpacity(0.3),
           width: 2,
         ),
       ),
@@ -470,10 +434,10 @@ class _MyGymScreenState extends State<MyGymScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Color(0xFFFFD700).withOpacity(0.2),
+                  color: const Color(0xFFFFD700).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.card_membership_rounded,
                   color: Color(0xFFFFD700),
                   size: 28,
@@ -490,7 +454,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2,
-                        color: Color(0xFFFFD700),
+                        color: const Color(0xFFFFD700),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -535,7 +499,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
               value: progress,
               minHeight: 8,
               backgroundColor: Colors.white.withOpacity(0.1),
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFD700)),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFD700)),
             ),
           ),
           const SizedBox(height: 16),
@@ -561,7 +525,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF4CAF50),
+                  color: const Color(0xFF4CAF50),
                 ),
               ),
             ],
@@ -723,7 +687,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
         height: MediaQuery.of(context).size.height * 0.75,
         decoration: BoxDecoration(
           color: Colors.black,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           border: Border.all(
             color: Colors.white.withOpacity(0.1),
             width: 1,
@@ -756,7 +720,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close_rounded, color: Colors.white),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
                   ),
                 ],
               ),
@@ -786,10 +750,10 @@ class _MyGymScreenState extends State<MyGymScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Color(0xFF4CAF50).withOpacity(0.15),
+                            color: const Color(0xFF4CAF50).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.check_circle_rounded,
                             color: Color(0xFF4CAF50),
                             size: 20,
@@ -824,7 +788,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: cosarcPink,
+                            color: CosarcColors.gold,
                           ),
                         ),
                       ],

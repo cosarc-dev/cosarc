@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class TrainingFrequencyScreen extends StatefulWidget {
   const TrainingFrequencyScreen({super.key});
@@ -51,7 +51,7 @@ class TrainingFrequencyScreenState extends State<TrainingFrequencyScreen> {
             min: 0,
             max: 7,
             divisions: 7,
-            activeColor: cosarcPink,
+            activeColor: CosarcColors.gold,
             onChanged: (v) => setState(() => days = v),
           ),
           const Text(

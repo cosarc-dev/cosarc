@@ -20,9 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
           // ---------- DOODLE BACKGROUND (WHATSAPP STYLE) ----------
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF0B0B0B),
-                image: const DecorationImage(
+              decoration: const BoxDecoration(
+                color: Color(0xFF0B0B0B),
+                image: DecorationImage(
                   image: AssetImage('assets/backgrounds/gym_doodles.png'),
                   fit: BoxFit.cover,
                   opacity: 0.08, // subtle premium

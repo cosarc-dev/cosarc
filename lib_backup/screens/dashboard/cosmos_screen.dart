@@ -6,7 +6,6 @@ import 'workout_log_screen.dart';
 import 'package:cosarc/screens/dashboard/enhanced_nutrition_screen.dart';
 
 // IMPORTANT: Ensure these paths match your project exactly
-import 'package:cosarc/services/nutrition_tracker.dart'; 
 import 'package:cosarc/models/food_log.dart'; 
 
 const Color cosarcPink = Color(0xFFE91E63);
@@ -142,15 +141,15 @@ class _CosmosScreenState extends State<CosmosScreen> {
                         ),
 
                         // 🔠 HEADER
-                        SafeArea(
+                        const SafeArea(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 12,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
+                              children: [
                                 Text(
                                   "cosarc",
                                   style: TextStyle(
@@ -170,13 +169,13 @@ class _CosmosScreenState extends State<CosmosScreen> {
                         ),
 
                         // 🧠 QUOTE
-                        Positioned(
+                        const Positioned(
                           left: 20,
                           right: 20,
                           bottom: 36,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 "“",
                                 style: TextStyle(

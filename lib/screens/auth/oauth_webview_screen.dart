@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../theme/cosarc_colors.dart';
 
 class OAuthWebViewScreen extends StatefulWidget {
   final String url;
@@ -53,7 +54,7 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
       print('✅ OAuth callback detected!');
 
       // Close the WebView and return the URL
-      Future.delayed(Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           Navigator.pop(context, url);
         }
@@ -72,14 +73,14 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Color(0xFF1A1A1A),
+        backgroundColor: const Color(0xFF1A1A1A),
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Sign in with Google',
           style: TextStyle(color: Colors.white, fontSize: 18),
         ),
         leading: IconButton(
-          icon: Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -89,12 +90,12 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
           if (_isLoading)
             Container(
               color: Colors.black,
-              child: Center(
+              child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
-                      color: Color(0xFFE91E63),
+                      color: CosarcColors.gold,
                     ),
                     SizedBox(height: 16),
                     Text(

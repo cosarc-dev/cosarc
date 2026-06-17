@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color cosarcPink = Color(0xFFE91E63);
+import '../../theme/cosarc_colors.dart';
 
 class GenderScreen extends StatefulWidget {
   final void Function(String gender)? onChanged;
@@ -24,7 +24,7 @@ class GenderScreenState extends State<GenderScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isSelected ? cosarcPink : Colors.white10,
+          color: isSelected ? CosarcColors.gold : Colors.white10,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white24),
         ),

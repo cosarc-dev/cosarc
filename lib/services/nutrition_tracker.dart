@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:cosarc/models/food_log.dart';
 
 // Cinematic Professional Palette
@@ -296,8 +295,9 @@ class _FoodSearchComponentState extends State<FoodSearchComponent> {
             double base = item['servingWeight'];
             double factor = 1.0;
 
-            if (selectedUnit == 'servings') factor = (qty * base) / 100;
-            else if (selectedUnit == 'grams' || selectedUnit == 'ml') factor = qty / 100;
+            if (selectedUnit == 'servings') {
+              factor = (qty * base) / 100;
+            } else if (selectedUnit == 'grams' || selectedUnit == 'ml') factor = qty / 100;
             else if (selectedUnit == 'tsp') factor = (qty * 5) / 100;
             else if (selectedUnit == 'tbsp') factor = (qty * 15) / 100;
 
@@ -332,7 +332,7 @@ class _FoodSearchComponentState extends State<FoodSearchComponent> {
   void _showDetail(Map item, double f) {
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: cosarcSurface, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      title: Text("Nutritional Intelligence", style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 2)),
+      title: const Text("Nutritional Intelligence", style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 2)),
       content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(item['name'], style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 20),
