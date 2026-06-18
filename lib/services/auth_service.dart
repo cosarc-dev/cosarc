@@ -421,13 +421,28 @@ class AuthService {
   String friendlyAuthError(Object error) {
     final message = error.toString().toLowerCase();
     if (message.contains('invalid login credentials')) {
-      return 'Invalid email or password.';
+      return 'Incorrect email or password. Please try again.';
     }
     if (message.contains('email not confirmed')) {
-      return 'Please confirm your email before signing in.';
+      return 'Please check your email and confirm your account first.';
     }
     if (message.contains('user already registered')) {
       return 'An account with this email already exists.';
+    }
+    if (message.contains('email rate limit')) {
+      return 'Too many attempts. Please wait a few minutes before trying again.';
+    }
+    if (message.contains('not enabled') ||
+        message.contains('provider is not enabled')) {
+      return 'This sign-in method is not available. Please use email instead.';
+    }
+    if (message.contains('user not found') ||
+        message.contains('user_not_found')) {
+      return 'No account found with this email. Please sign up first.';
+    }
+    if (message.contains('phone not confirmed') ||
+        message.contains('phone')) {
+      return 'Phone verification failed. Please try again.';
     }
     if (message.contains('network') || message.contains('socket')) {
       return 'Network error. Check your connection and try again.';

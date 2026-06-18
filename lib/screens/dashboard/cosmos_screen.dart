@@ -53,19 +53,19 @@ class _CosmosScreenState extends State<CosmosScreen> {
           .maybeSingle()
           .timeout(const Duration(seconds: 10));
 
-      if (contract == null) {
-        await supabase.from('daily_contracts').insert({
-          'member_id': _memberId,
-          'contract_date': today,
-        }).timeout(const Duration(seconds: 10));
-        contract = await supabase
-            .from('daily_contracts')
-            .select()
-            .eq('member_id', _memberId!)
-            .eq('contract_date', today)
-            .maybeSingle()
-            .timeout(const Duration(seconds: 10));
-      }
+      // Upsert is safe against duplicate-insert races (unique constraint on member_id, contract_date)
+      await supabase.from('daily_contracts').upsert(
+        {'member_id': _memberId, 'contract_date': today},
+        onConflict: 'member_id,contract_date',
+        ignoreDuplicates: true,
+      ).timeout(const Duration(seconds: 10));
+      contract = await supabase
+          .from('daily_contracts')
+          .select()
+          .eq('member_id', _memberId!)
+          .eq('contract_date', today)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       var streak = await supabase
           .from('streaks')
@@ -74,16 +74,18 @@ class _CosmosScreenState extends State<CosmosScreen> {
           .maybeSingle()
           .timeout(const Duration(seconds: 10));
 
-      if (streak == null) {
-        await supabase.from('streaks').insert({'member_id': _memberId}).timeout(
-            const Duration(seconds: 10));
-        streak = await supabase
-            .from('streaks')
-            .select()
-            .eq('member_id', _memberId!)
-            .maybeSingle()
-            .timeout(const Duration(seconds: 10));
-      }
+      // Upsert is safe against duplicate-insert races (streaks unique on member_id)
+      await supabase.from('streaks').upsert(
+        {'member_id': _memberId},
+        onConflict: 'member_id',
+        ignoreDuplicates: true,
+      ).timeout(const Duration(seconds: 10));
+      streak = await supabase
+          .from('streaks')
+          .select()
+          .eq('member_id', _memberId!)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (mounted) {
         setState(() {

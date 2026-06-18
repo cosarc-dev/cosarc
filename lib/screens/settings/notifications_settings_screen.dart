@@ -4,6 +4,7 @@ import '../../core/theme/cosarc_spacing.dart';
 import '../../core/theme/cosarc_typography.dart';
 import '../../widgets/cosarc/cosarc_glass.dart';
 import '../../widgets/cosarc/cosarc_scaffold.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationsSettingsScreen extends StatefulWidget {
   const NotificationsSettingsScreen({super.key});
@@ -18,6 +19,22 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
   bool _streakAlerts = true;
   bool _workoutTips = false;
   bool _productUpdates = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _dailyReminders = prefs.getBool('workoutReminders') ?? true;
+      _streakAlerts = prefs.getBool('goalProgress') ?? true;
+      _workoutTips = prefs.getBool('communityUpdates') ?? false;
+      _productUpdates = prefs.getBool('marketingEmails') ?? true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,25 +58,41 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
               title: 'Daily contract reminders',
               subtitle: 'Morning nudge to complete your four pillars',
               value: _dailyReminders,
-              onChanged: (v) => setState(() => _dailyReminders = v),
+              onChanged: (v) async {
+                setState(() => _dailyReminders = v);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('workoutReminders', v);
+              },
             ),
             _ToggleRow(
               title: 'Streak alerts',
               subtitle: 'Celebrate milestones and streak saves',
               value: _streakAlerts,
-              onChanged: (v) => setState(() => _streakAlerts = v),
+              onChanged: (v) async {
+                setState(() => _streakAlerts = v);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('goalProgress', v);
+              },
             ),
             _ToggleRow(
               title: 'Workout tips',
               subtitle: 'Occasional training insights from Cosarc',
               value: _workoutTips,
-              onChanged: (v) => setState(() => _workoutTips = v),
+              onChanged: (v) async {
+                setState(() => _workoutTips = v);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('communityUpdates', v);
+              },
             ),
             _ToggleRow(
               title: 'Product updates',
               subtitle: 'New features and launch announcements',
               value: _productUpdates,
-              onChanged: (v) => setState(() => _productUpdates = v),
+              onChanged: (v) async {
+                setState(() => _productUpdates = v);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('marketingEmails', v);
+              },
             ),
             const SizedBox(height: CosarcSpacing.huge),
           ],

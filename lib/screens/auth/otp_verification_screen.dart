@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../core/theme/cosarc_colors.dart';
@@ -31,8 +33,37 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   bool _isLoading = false;
   bool _resending = false;
 
+  // ── Resend cooldown ──────────────────────────────────────────────────────────
+  Timer? _cooldownTimer;
+  int _cooldownSeconds = 60;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start the initial cooldown immediately — the code was just sent.
+    _startCooldown();
+  }
+
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    setState(() => _cooldownSeconds = 60);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      if (_cooldownSeconds <= 1) {
+        t.cancel();
+        setState(() => _cooldownSeconds = 0);
+      } else {
+        setState(() => _cooldownSeconds--);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _cooldownTimer?.cancel();
     _codeController.dispose();
     super.dispose();
   }
@@ -105,6 +136,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     final destination = widget.email ?? widget.phone ?? '';
+    final canResend = !_resending && _cooldownSeconds == 0;
 
     return CosarcScaffold(
       body: SafeArea(
@@ -145,8 +177,19 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               const SizedBox(height: CosarcSpacing.md),
               TextButton(
-                onPressed: _resending ? null : _resend,
-                child: Text(_resending ? 'Sending…' : 'Resend code'),
+                onPressed: canResend
+                    ? () async {
+                        await _resend();
+                        _startCooldown();
+                      }
+                    : null,
+                child: Text(
+                  _resending
+                      ? 'Sending…'
+                      : _cooldownSeconds > 0
+                          ? 'Resend in ${_cooldownSeconds}s'
+                          : 'Resend code',
+                ),
               ),
             ],
           ),

@@ -1,3 +1,8 @@
+// WARNING: The defaultValue strings for supabaseAnonKey and usdaApiKey are
+// embedded in the compiled binary. If this repository is or becomes public,
+// rotate these keys immediately and supply them exclusively via --dart-define
+// (CI/CD) before shipping to production.
+
 /// Runtime configuration via `--dart-define` (production) or defaults (local dev).
 ///
 /// Example:
@@ -7,6 +12,10 @@
 ///   --dart-define=SUPABASE_ANON_KEY=your_anon_key \
 ///   --dart-define=USDA_API_KEY=your_usda_key
 /// ```
+///
+/// SECURITY NOTE: The `defaultValue` keys below are embedded in the compiled
+/// binary. Rotate them before open-sourcing the repository or publishing to
+/// app stores. In CI/CD, always pass keys via --dart-define instead.
 class AppConfig {
   AppConfig._();
 
@@ -17,12 +26,12 @@ class AppConfig {
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: '',
+    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImxnYmx4eGl4Z2xkaXpmaWRzY3B6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDA1ODksImV4cCI6MjA5NDA3NjU4OX0.GYARRKYcjPrc2f-TGEAol7Zq1g4oiQJuiT8ZJpKayIA',
   );
 
   static const String usdaApiKey = String.fromEnvironment(
     'USDA_API_KEY',
-    defaultValue: '',
+    defaultValue: 'ZTyV5h6wZjtkKhp0GlMT4pkuMyQw5bU0DZLTjRvR',
   );
 
   static const String nutritionixAppId = String.fromEnvironment(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../../core/app_state.dart';
 import '../../core/config/app_config.dart';
 import '../../core/supabase_config.dart';
 import '../../core/theme/cosarc_colors.dart';
@@ -60,6 +61,9 @@ class _AppStartScreenState extends State<AppStartScreen> {
   Future<void> _goNext() async {
     if (!mounted || _navigated) return;
     _navigated = true;
+    // Unlock the auth-state listener in main.dart. From this point on,
+    // any auth change should drive navigation (splash is done).
+    splashNavigationDone = true;
 
     final configError = AppConfig.configurationError;
     if (configError != null) {

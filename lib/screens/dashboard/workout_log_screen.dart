@@ -18,6 +18,8 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   UnityWidgetController? _unityController;
   final _authService = AuthService();
   String? _memberId;
+  final bool _isUnityReady = false;
+  bool _isSubmitting = false;
 
   Set<String> selectedMuscles = {};
   final TextEditingController _notesController = TextEditingController();
@@ -79,7 +81,8 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
   }
 
   bool get _canSubmit {
-    return selectedMuscles.isNotEmpty &&
+    return _memberId != null &&
+        selectedMuscles.isNotEmpty &&
         _notesController.text.trim().isNotEmpty;
   }
 
@@ -90,10 +93,26 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: UnityWidget(
-              onUnityCreated: _onUnityCreated,
-              fullscreen: false,
-            ),
+            child: _isUnityReady
+                ? UnityWidget(
+                    onUnityCreated: _onUnityCreated,
+                    fullscreen: false,
+                  )
+                : Center(
+                    child: CosarcGlass(
+                      radius: CosarcSpacing.radiusMd,
+                      blur: 16,
+                      padding: const EdgeInsets.all(CosarcSpacing.xl),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.view_in_ar_rounded, size: 48, color: Colors.white.withOpacity(0.5)),
+                          const SizedBox(height: CosarcSpacing.sm),
+                          Text('3D Model Unavailable', style: CosarcTypography.body(context)),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
           SafeArea(
             child: Column(
@@ -363,65 +382,80 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
     );
   }
 
+  Future<void> _submitWorkout() async {
+    if (_memberId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please login first')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await supabase.from('workout_logs').insert({
+        'member_id': _memberId,
+        'workout_date': DateTime.now().toIso8601String().split('T')[0],
+        'target_muscles': selectedMuscles.toList(),
+        'exercises': _notesController.text,
+        'duration_minutes': _duration.toInt(),
+        'intensity': _intensity.toInt(),
+      }).timeout(const Duration(seconds: 10));
+
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      await supabase
+          .from('daily_contracts')
+          .update({'workout_completed': true})
+          .eq('member_id', _memberId!)
+          .eq('contract_date', today)
+          .timeout(const Duration(seconds: 10));
+
+      await supabase.rpc('calculate_streak',
+          params: {'p_member_id': _memberId}).timeout(
+        const Duration(seconds: 10),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Workout logged successfully!')),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      debugPrint('Error logging workout: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
   Widget _buildSubmitButton() {
+    final bool canSubmitNow = _canSubmit && !_isSubmitting;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _canSubmit
-            ? () async {
-                if (_memberId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please login first')),
-                  );
-                  return;
-                }
-
-                try {
-                  await supabase.from('workout_logs').insert({
-                    'member_id': _memberId,
-                    'workout_date':
-                        DateTime.now().toIso8601String().split('T')[0],
-                    'target_muscles': selectedMuscles.toList(),
-                    'exercises': _notesController.text,
-                    'duration_minutes': _duration.toInt(),
-                    'intensity': _intensity.toInt(),
-                  }).timeout(const Duration(seconds: 10));
-
-                  final today = DateTime.now().toIso8601String().split('T')[0];
-                  await supabase
-                      .from('daily_contracts')
-                      .update({'workout_completed': true})
-                      .eq('member_id', _memberId!)
-                      .eq('contract_date', today)
-                      .timeout(const Duration(seconds: 10));
-
-                  await supabase.rpc('calculate_streak',
-                      params: {'p_member_id': _memberId}).timeout(
-                    const Duration(seconds: 10),
-                  );
-
-                  if (mounted) Navigator.pop(context, true);
-                } catch (e) {
-                  debugPrint('Error logging workout: $e');
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
-                }
-              }
-            : null,
+        onTap: canSubmitNow ? _submitWorkout : null,
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: _canSubmit
+            gradient: canSubmitNow
                 ? LinearGradient(
                     colors: [CosarcColors.primary, CosarcColors.primary.withOpacity(0.8)],
                   )
                 : null,
-            color: _canSubmit ? null : Colors.white.withOpacity(0.05),
+            color: canSubmitNow ? null : Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: _canSubmit
+            boxShadow: canSubmitNow
                 ? [
                     BoxShadow(
                       color: CosarcColors.primary.withOpacity(0.3),
@@ -434,16 +468,24 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             alignment: Alignment.center,
-            child: Text(
-              'Confirm Workout',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color:
-                    _canSubmit ? Colors.white : Colors.white.withOpacity(0.3),
-                letterSpacing: 0.5,
-              ),
-            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    'Confirm Workout',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: canSubmitNow ? Colors.white : Colors.white.withOpacity(0.3),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
           ),
         ),
       ),

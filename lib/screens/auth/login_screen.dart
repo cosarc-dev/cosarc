@@ -95,7 +95,33 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = true);
     try {
       if (_useEmailOtp) {
-        await _authService.sendEmailOtp(email, shouldCreateUser: false);
+        try {
+          await _authService.sendEmailOtp(email, shouldCreateUser: false);
+        } catch (otpErr) {
+          final errStr = otpErr.toString().toLowerCase();
+          if (errStr.contains('user not found') ||
+              errStr.contains('user_not_found')) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'No account found with this email. Please sign up or use a password to continue.',
+                ),
+                backgroundColor: CosarcColors.error,
+                action: SnackBarAction(
+                  label: 'Sign up',
+                  textColor: Colors.white,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignupScreen()),
+                  ),
+                ),
+              ),
+            );
+            return;
+          }
+          rethrow;
+        }
         if (!mounted) return;
         Navigator.push(
           context,

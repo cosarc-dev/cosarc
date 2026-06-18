@@ -35,31 +35,35 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add({
-        'text': _messageController.text,
-        'isUser': true,
+    try {
+      setState(() {
+        _messages.add({
+          'text': _messageController.text,
+          'isUser': true,
+        });
+
+        // Simulate AI response
+        _messages.add({
+          'text': 'This is where Cosarc AI would respond to your fitness questions. Connect your AI service here.',
+          'isUser': false,
+        });
       });
 
-      // Simulate AI response
-      _messages.add({
-        'text': 'This is where Cosarc AI would respond to your fitness questions. Connect your AI service here.',
-        'isUser': false,
+      _messageController.clear();
+
+      // Scroll to bottom
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
-    });
-
-    _messageController.clear();
-
-    // Scroll to bottom
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+    }
   }
 
   double _bottomPadding(BuildContext context) =>
@@ -117,9 +121,35 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'COSARC AI',
-                  style: CosarcTypography.overline('COSARC AI'),
+                Row(
+                  children: [
+                    Text(
+                      'COSARC AI',
+                      style: CosarcTypography.overline('COSARC AI'),
+                    ),
+                    const SizedBox(width: CosarcSpacing.xs),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: CosarcColors.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: CosarcColors.primary.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        'BETA',
+                        style: CosarcTypography.caption(context).copyWith(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: CosarcColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: CosarcSpacing.xxs),
                 Text(

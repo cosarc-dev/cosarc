@@ -337,7 +337,7 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
       radius: CosarcSpacing.radiusPill,
       blur: 28,
       opacity: 0.1,
-      onTap: () {},
+      onTap: () => _showComingSoonDialog('Cart View'),
       child: Row(
         children: [
           Container(
@@ -507,7 +507,7 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
               CosarcButton(
                 label: 'ADD',
                 expand: false,
-                onPressed: () {},
+                onPressed: () => _showComingSoonDialog('Add to Cart'),
               ),
             ],
           ),
@@ -697,6 +697,34 @@ class _NutriwaveScreenState extends State<NutriwaveScreen> {
               color: color,
               fontWeight: FontWeight.w800,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showComingSoonDialog(String feature) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CosarcColors.backgroundElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CosarcSpacing.radiusLg),
+          side: BorderSide(color: CosarcColors.borderStrong),
+        ),
+        title: Text(
+          'Coming Soon',
+          style: CosarcTypography.headline(context),
+        ),
+        content: Text(
+          '$feature is currently under development and will be available in a future update.',
+          style: CosarcTypography.body(context),
+        ),
+        actions: [
+          CosarcButton(
+            label: 'OK',
+            expand: false,
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),

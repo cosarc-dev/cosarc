@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../services/auth_service.dart';
 import '../../core/supabase_config.dart';
 import '../../core/theme/cosarc_colors.dart';
@@ -9,7 +10,11 @@ import '../../widgets/cosarc/cosarc_glass.dart';
 import '../../widgets/cosarc/cosarc_loader.dart';
 import '../../widgets/cosarc/cosarc_section.dart';
 import '../auth/login_screen.dart';
-
+import '../settings/appearance_settings_screen.dart';
+import '../settings/edit_profile_screen.dart';
+import '../settings/help_support_screen.dart';
+import '../settings/notifications_settings_screen.dart';
+import '../settings/security_settings_screen.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -21,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
   Map<String, dynamic>? _memberData;
   Map<String, dynamic>? _streakData;
+  int _thisMonthWorkouts = 0;
   bool _isLoading = true;
 
   @override
@@ -51,10 +57,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .maybeSingle()
           .timeout(const Duration(seconds: 10));
 
+      // Count this month's workouts from workout_logs
+      final now = DateTime.now();
+      final firstOfMonth = DateTime(now.year, now.month, 1).toIso8601String().split('T')[0];
+      final wlResponse = await supabase
+          .from('workout_logs')
+          .select('id')
+          .eq('member_id', memberId)
+          .gte('created_at', firstOfMonth)
+          .timeout(const Duration(seconds: 10));
+      final monthCount = (wlResponse as List).length;
+
       if (mounted) {
         setState(() {
           _memberData = member;
           _streakData = streak;
+          _thisMonthWorkouts = monthCount;
           _isLoading = false;
         });
       }
@@ -96,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final email = _getDisplayValue(_memberData?['email'], 'warrior@cosarc.app');
     final currentStreak = _streakData?['current_streak'] ?? 0;
     final longestStreak = _streakData?['longest_streak'] ?? 0;
-    final thisMonthWorkouts = _streakData?['this_month_workouts'] ?? 0;
+    final thisMonthWorkouts = _thisMonthWorkouts;
 
     // Onboarding data
     final age = _memberData?['age'] ?? 0;
@@ -433,12 +451,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.edit_rounded,
                       label: 'Edit Profile',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Edit profile feature coming soon!',
-                            ),
-                            backgroundColor: CosarcColors.primary,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfileScreen(),
                           ),
                         );
                       },
@@ -447,19 +463,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _SettingsRow(
                       icon: Icons.notifications_rounded,
                       label: 'Notifications',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsSettingsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const _SectionDivider(),
                     _SettingsRow(
                       icon: Icons.lock_rounded,
                       label: 'Privacy & Security',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SecuritySettingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const _SectionDivider(),
+                    _SettingsRow(
+                      icon: Icons.palette_rounded,
+                      label: 'Appearance',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AppearanceSettingsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const _SectionDivider(),
                     _SettingsRow(
                       icon: Icons.help_rounded,
                       label: 'Help & Support',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HelpSupportScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/supabase_config.dart';
 import '../../services/auth_service.dart';
 import '../../core/theme/cosarc_colors.dart';
 import '../../core/theme/cosarc_spacing.dart';
@@ -9,6 +8,7 @@ import '../../widgets/cosarc/cosarc_glass.dart';
 import '../../widgets/cosarc/cosarc_input.dart';
 import '../../widgets/cosarc/cosarc_scaffold.dart';
 import 'two_factor_settings_screen.dart';
+import '../../core/supabase_config.dart';
 
 class SecuritySettingsScreen extends StatefulWidget {
   const SecuritySettingsScreen({super.key});
@@ -32,6 +32,10 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   }
 
   Future<void> _changePassword() async {
+    if (_currentPasswordController.text.isEmpty) {
+      _showMessage('Please enter your current password', isError: true);
+      return;
+    }
     if (_newPasswordController.text.length < 6) {
       _showMessage('Password must be at least 6 characters', isError: true);
       return;
@@ -39,6 +43,19 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
     setState(() => _changingPassword = true);
     try {
+      final email = _authService.currentUser?.email;
+      if (email == null) throw Exception('No email found for current user');
+
+      try {
+        await supabase.auth.signInWithPassword(
+          email: email,
+          password: _currentPasswordController.text,
+        );
+      } catch (e) {
+        _showMessage('Incorrect current password', isError: true);
+        return;
+      }
+
       await _authService.updatePassword(_newPasswordController.text);
       _currentPasswordController.clear();
       _newPasswordController.clear();
@@ -137,6 +154,13 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               ),
               const SizedBox(height: CosarcSpacing.xl),
               Text('Change password', style: CosarcTypography.title(context)),
+              const SizedBox(height: CosarcSpacing.md),
+              CosarcInput(
+                controller: _currentPasswordController,
+                label: 'Current password',
+                hint: '••••••••',
+                obscureText: true,
+              ),
               const SizedBox(height: CosarcSpacing.md),
               CosarcInput(
                 controller: _newPasswordController,

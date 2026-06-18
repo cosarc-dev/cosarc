@@ -211,14 +211,14 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     gradient: const LinearGradient(
                       colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
                     ),
-                    onTap: () {},
+                    onTap: () => _showComingSoonDialog('Class Schedule'),
                   ),
                   _buildFeatureCard(
                     icon: Icons.person_add_rounded,
                     title: 'Personal Trainer',
                     subtitle: 'Book sessions with certified trainers',
                     gradient: CosarcColors.brandSweep,
-                    onTap: () {},
+                    onTap: () => _showComingSoonDialog('Personal Trainer'),
                   ),
                   _buildFeatureCard(
                     icon: Icons.leaderboard_rounded,
@@ -227,7 +227,7 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     gradient: const LinearGradient(
                       colors: [Color(0xFFFF5722), Color(0xFFE64A19)],
                     ),
-                    onTap: () {},
+                    onTap: () => _showComingSoonDialog('Gym Leaderboard'),
                   ),
                 ]),
               ),
@@ -235,6 +235,40 @@ class _MyGymScreenState extends State<MyGymScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showComingSoonDialog(String featureName) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: CosarcGlass(
+          padding: const EdgeInsets.all(CosarcSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.build_circle_rounded, size: 48, color: CosarcColors.primary),
+              const SizedBox(height: CosarcSpacing.md),
+              Text(
+                'Coming Soon',
+                style: CosarcTypography.headline(context),
+              ),
+              const SizedBox(height: CosarcSpacing.sm),
+              Text(
+                '$featureName is currently under development and will be available in a future update.',
+                style: CosarcTypography.body(context),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: CosarcSpacing.lg),
+              CosarcButton(
+                label: 'Got it',
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
         ),
       ),
     );

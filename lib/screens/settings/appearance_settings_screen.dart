@@ -3,6 +3,8 @@ import '../../core/theme/cosarc_spacing.dart';
 import '../../core/theme/cosarc_typography.dart';
 import '../../widgets/cosarc/cosarc_glass.dart';
 import '../../widgets/cosarc/cosarc_scaffold.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../main.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
@@ -14,6 +16,20 @@ class AppearanceSettingsScreen extends StatefulWidget {
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   String _theme = 'Dark';
   String _accent = 'Gold';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _theme = prefs.getString('theme') ?? 'Dark';
+      _accent = prefs.getString('accent') ?? 'Gold';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +53,22 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               title: 'Theme',
               value: _theme,
               options: const ['Dark', 'System'],
-              onChanged: (v) => setState(() => _theme = v),
+              onChanged: (v) async {
+                setState(() => _theme = v);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('theme', v);
+                themeNotifier.value = v == 'System' ? ThemeMode.system : ThemeMode.dark;
+              },
             ),
             _PickerRow(
               title: 'Accent',
               value: _accent,
               options: const ['Gold', 'Rose'],
-              onChanged: (v) => setState(() => _accent = v),
+              onChanged: (v) async {
+                setState(() => _accent = v);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('accent', v);
+              },
             ),
             const SizedBox(height: CosarcSpacing.huge),
           ],
