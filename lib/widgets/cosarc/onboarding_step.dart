@@ -62,7 +62,10 @@ class OnboardingStep extends StatelessWidget {
             ],
           ),
           const SizedBox(height: CosarcSpacing.xxxl),
-          Text(title, style: CosarcTypography.display(context, color: CosarcColors.textPrimary).copyWith(fontSize: 34)),
+          Text(title,
+              style: CosarcTypography.display(context,
+                      color: CosarcColors.textPrimary)
+                  .copyWith(fontSize: 34)),
           const SizedBox(height: CosarcSpacing.sm),
           Text(subtitle, style: CosarcTypography.body(context)),
           const SizedBox(height: CosarcSpacing.xxxl),
@@ -113,7 +116,9 @@ class OnboardingOption extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color: selected ? CosarcColors.primary : CosarcColors.textSecondary,
+                  color: selected
+                      ? CosarcColors.primary
+                      : CosarcColors.textSecondary,
                 ),
               ),
               const SizedBox(width: CosarcSpacing.md),
@@ -132,7 +137,8 @@ class OnboardingOption extends StatelessWidget {
                   ),
                   if (description != null) ...[
                     const SizedBox(height: 2),
-                    Text(description!, style: CosarcTypography.caption(context)),
+                    Text(description!,
+                        style: CosarcTypography.caption(context)),
                   ],
                 ],
               ),
@@ -152,7 +158,8 @@ class OnboardingOption extends StatelessWidget {
                 color: selected ? CosarcColors.primary : Colors.transparent,
               ),
               child: selected
-                  ? const Icon(Icons.check_rounded, size: 14, color: CosarcColors.ink)
+                  ? const Icon(Icons.check_rounded,
+                      size: 14, color: CosarcColors.ink)
                   : null,
             ),
           ],

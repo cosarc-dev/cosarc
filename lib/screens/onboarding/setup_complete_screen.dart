@@ -22,7 +22,8 @@ class _SetupCompleteScreenState extends State<SetupCompleteScreen>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900));
     _scale = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack);
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _ctrl.forward();
@@ -59,9 +60,11 @@ class _SetupCompleteScreenState extends State<SetupCompleteScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle_rounded, color: CosarcColors.primary, size: 64),
+                    const Icon(Icons.check_circle_rounded,
+                        color: CosarcColors.primary, size: 64),
                     const SizedBox(height: CosarcSpacing.xl),
-                    Text('Welcome to', style: CosarcTypography.overline('WELCOME')),
+                    Text('Welcome to',
+                        style: CosarcTypography.overline('WELCOME')),
                     const SizedBox(height: CosarcSpacing.xs),
                     Text('The Arc', style: CosarcTypography.display(context)),
                     const SizedBox(height: CosarcSpacing.sm),

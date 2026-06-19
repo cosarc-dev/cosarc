@@ -180,7 +180,7 @@ class _ConfigurationErrorScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              Icon(
+              const Icon(
                 Icons.settings_outlined,
                 size: 48,
                 color: CosarcColors.textTertiary,

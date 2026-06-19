@@ -10,7 +10,8 @@ class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
 
   @override
-  State<AppearanceSettingsScreen> createState() => _AppearanceSettingsScreenState();
+  State<AppearanceSettingsScreen> createState() =>
+      _AppearanceSettingsScreenState();
 }
 
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
@@ -36,7 +37,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     return CosarcScaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: CosarcSpacing.screenHorizontal),
           children: [
             const SizedBox(height: CosarcSpacing.sm),
             Row(
@@ -57,7 +59,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 setState(() => _theme = v);
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('theme', v);
-                themeNotifier.value = v == 'System' ? ThemeMode.system : ThemeMode.dark;
+                themeNotifier.value =
+                    v == 'System' ? ThemeMode.system : ThemeMode.dark;
               },
             ),
             _PickerRow(

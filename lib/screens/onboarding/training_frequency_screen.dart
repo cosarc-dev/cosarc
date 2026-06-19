@@ -9,7 +9,8 @@ class TrainingFrequencyScreen extends StatefulWidget {
   const TrainingFrequencyScreen({super.key});
 
   @override
-  State<TrainingFrequencyScreen> createState() => TrainingFrequencyScreenState();
+  State<TrainingFrequencyScreen> createState() =>
+      TrainingFrequencyScreenState();
 }
 
 class TrainingFrequencyScreenState extends State<TrainingFrequencyScreen> {

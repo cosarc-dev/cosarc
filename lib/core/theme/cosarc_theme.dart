@@ -133,10 +133,10 @@ abstract final class CosarcTheme {
           color: CosarcColors.textPrimary,
         ),
       ),
-      bottomSheetTheme: BottomSheetThemeData(
+      bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: CosarcColors.surfaceElevated,
         modalBackgroundColor: CosarcColors.surfaceElevated,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(CosarcSpacing.radiusXl),
           ),

@@ -11,7 +11,7 @@ class InMemoryChatRepository implements ChatRepository {
   @override
   Future<ChatSession> createSession({String? title}) async {
     final session = ChatSession(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), 
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title ?? 'New Chat',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -22,11 +22,13 @@ class InMemoryChatRepository implements ChatRepository {
   }
 
   @override
-  Future<ChatSession> appendMessage({required String sessionId, required ChatMessage message}) async {
+  Future<ChatSession> appendMessage(
+      {required String sessionId, required ChatMessage message}) async {
     final index = _sessions.indexWhere((s) => s.id == sessionId);
     if (index >= 0) {
       final session = _sessions[index];
-      _sessions[index] = session.copyWith(messages: [...session.messages, message]);
+      _sessions[index] =
+          session.copyWith(messages: [...session.messages, message]);
       return _sessions[index];
     }
     throw Exception('Session not found');

@@ -33,7 +33,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(CosarcSpacing.lg),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: CosarcColors.primaryMuted,
                 shape: BoxShape.circle,
               ),

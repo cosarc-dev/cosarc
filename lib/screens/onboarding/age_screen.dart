@@ -24,7 +24,8 @@ class AgeScreenState extends State<AgeScreen> {
       overline: 'Age',
       icon: Icons.cake_outlined,
       title: 'How old\nare you?',
-      subtitle: 'Age helps us calibrate intensity and recovery recommendations.',
+      subtitle:
+          'Age helps us calibrate intensity and recovery recommendations.',
       body: CosarcGlass(
         expand: true,
         padding: const EdgeInsets.all(CosarcSpacing.xxl),

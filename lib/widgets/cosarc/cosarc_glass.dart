@@ -36,9 +36,8 @@ class CosarcGlass extends StatelessWidget {
         ? CosarcColors.primary.withOpacity(0.45)
         : CosarcColors.glassBorder(borderOpacity);
 
-    final fillColor = highlight
-        ? CosarcColors.primaryMuted
-        : CosarcColors.glassFill(opacity);
+    final fillColor =
+        highlight ? CosarcColors.primaryMuted : CosarcColors.glassFill(opacity);
 
     Widget content = ClipRRect(
       borderRadius: BorderRadius.circular(radius),
@@ -49,14 +48,17 @@ class CosarcGlass extends StatelessWidget {
           decoration: BoxDecoration(
             color: fillColor,
             borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: borderColor, width: highlight ? 1.5 : 0.5),
-            boxShadow: highlight ? CosarcColors.glow(CosarcColors.primary, 0.12) : [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            border:
+                Border.all(color: borderColor, width: highlight ? 1.5 : 0.5),
+            boxShadow: highlight
+                ? CosarcColors.glow(CosarcColors.primary, 0.12)
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
           ),
           child: child,
         ),

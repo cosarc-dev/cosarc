@@ -106,9 +106,11 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.view_in_ar_rounded, size: 48, color: Colors.white.withOpacity(0.5)),
+                          Icon(Icons.view_in_ar_rounded,
+                              size: 48, color: Colors.white.withOpacity(0.5)),
                           const SizedBox(height: CosarcSpacing.sm),
-                          Text('3D Model Unavailable', style: CosarcTypography.body(context)),
+                          Text('3D Model Unavailable',
+                              style: CosarcTypography.body(context)),
                         ],
                       ),
                     ),
@@ -130,16 +132,17 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.md, vertical: CosarcSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+          horizontal: CosarcSpacing.md, vertical: CosarcSpacing.sm),
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: CosarcGlass(
+            child: const CosarcGlass(
               radius: CosarcSpacing.radiusMd,
               blur: 16,
-              padding: const EdgeInsets.all(10),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+              padding: EdgeInsets.all(10),
+              child: Icon(Icons.arrow_back_ios_new_rounded, size: 16),
             ),
           ),
           const SizedBox(width: CosarcSpacing.md),
@@ -147,7 +150,9 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('WORKOUT', style: CosarcTypography.overline('')),
-              Text('Log session', style: CosarcTypography.title(context).copyWith(fontSize: 18)),
+              Text('Log session',
+                  style:
+                      CosarcTypography.title(context).copyWith(fontSize: 18)),
             ],
           ),
         ],
@@ -159,14 +164,15 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(CosarcSpacing.radiusXl)),
+      borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(CosarcSpacing.radiusXl)),
       child: CosarcGlass(
         radius: 0,
         blur: 32,
         opacity: 0.12,
         padding: EdgeInsets.zero,
         child: Container(
-          constraints: BoxConstraints(maxHeight: screenHeight * 0.42),
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -182,7 +188,13 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               const SizedBox(height: CosarcSpacing.md),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(CosarcSpacing.screenHorizontal, 0, CosarcSpacing.screenHorizontal, CosarcSpacing.lg),
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    CosarcSpacing.screenHorizontal,
+                    0,
+                    CosarcSpacing.screenHorizontal,
+                    CosarcSpacing.lg + MediaQuery.of(context).viewInsets.bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -228,12 +240,17 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           onTap: () => _toggleMuscle(muscle),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.md, vertical: CosarcSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+                horizontal: CosarcSpacing.md, vertical: CosarcSpacing.sm),
             decoration: BoxDecoration(
-              color: isSelected ? CosarcColors.primaryMuted : CosarcColors.glassFill(0.05),
+              color: isSelected
+                  ? CosarcColors.primaryMuted
+                  : CosarcColors.glassFill(0.05),
               borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
               border: Border.all(
-                color: isSelected ? CosarcColors.primary.withOpacity(0.5) : CosarcColors.glassBorder(),
+                color: isSelected
+                    ? CosarcColors.primary.withOpacity(0.5)
+                    : CosarcColors.glassBorder(),
               ),
             ),
             child: Text(
@@ -241,7 +258,9 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? CosarcColors.primary : CosarcColors.textSecondary,
+                color: isSelected
+                    ? CosarcColors.primary
+                    : CosarcColors.textSecondary,
               ),
             ),
           ),
@@ -296,7 +315,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               ),
               Text(
                 '${_duration.toInt()} min',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: CosarcColors.primary,
@@ -352,7 +371,7 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
               ),
               Text(
                 _getIntensityLabel(),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -412,8 +431,8 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           .eq('contract_date', today)
           .timeout(const Duration(seconds: 10));
 
-      await supabase.rpc('calculate_streak',
-          params: {'p_member_id': _memberId}).timeout(
+      await supabase
+          .rpc('calculate_streak', params: {'p_member_id': _memberId}).timeout(
         const Duration(seconds: 10),
       );
 
@@ -450,7 +469,10 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
           decoration: BoxDecoration(
             gradient: canSubmitNow
                 ? LinearGradient(
-                    colors: [CosarcColors.primary, CosarcColors.primary.withOpacity(0.8)],
+                    colors: [
+                      CosarcColors.primary,
+                      CosarcColors.primary.withOpacity(0.8)
+                    ],
                   )
                 : null,
             color: canSubmitNow ? null : Colors.white.withOpacity(0.05),
@@ -482,7 +504,9 @@ class _WorkoutLogScreenState extends State<WorkoutLogScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: canSubmitNow ? Colors.white : Colors.white.withOpacity(0.3),
+                      color: canSubmitNow
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.3),
                       letterSpacing: 0.5,
                     ),
                   ),

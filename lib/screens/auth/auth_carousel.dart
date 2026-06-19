@@ -67,7 +67,7 @@ class _AuthCarouselState extends State<AuthCarousel> {
                       Container(
                         width: 52,
                         height: 52,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: CosarcColors.brandSweep,
                         ),

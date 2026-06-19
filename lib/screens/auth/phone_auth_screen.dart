@@ -80,7 +80,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
               title: Text(c.name),
               trailing: Text(
                 c.code,
-                style: TextStyle(color: CosarcColors.textSecondary),
+                style: const TextStyle(color: CosarcColors.textSecondary),
               ),
               selected: c.code == _selectedCountry.code &&
                   c.name == _selectedCountry.name,
@@ -96,7 +96,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   }
 
   Future<void> _sendCode() async {
-    final local = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    final local =
+        _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
     if (local.length < 7) {
       _showError('Enter a valid local phone number');
       return;
@@ -155,7 +156,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     return CosarcScaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(
+              horizontal: CosarcSpacing.screenHorizontal),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -184,10 +187,12 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                     onTap: _showCountryPicker,
                     child: Container(
                       height: 56,
-                      padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: CosarcSpacing.sm),
                       decoration: BoxDecoration(
                         color: CosarcColors.glassFill(0.06),
-                        borderRadius: BorderRadius.circular(CosarcSpacing.radiusMd),
+                        borderRadius:
+                            BorderRadius.circular(CosarcSpacing.radiusMd),
                         border: Border.all(color: CosarcColors.glassBorder()),
                       ),
                       child: Row(
@@ -203,7 +208,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                             style: CosarcTypography.body(context),
                           ),
                           const SizedBox(width: 2),
-                          Icon(
+                          const Icon(
                             Icons.arrow_drop_down,
                             size: 18,
                             color: CosarcColors.textTertiary,
@@ -225,20 +230,26 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                         style: CosarcTypography.body(context),
                         decoration: InputDecoration(
                           hintText: '9876543210',
-                          hintStyle: TextStyle(color: CosarcColors.textTertiary),
+                          hintStyle:
+                              const TextStyle(color: CosarcColors.textTertiary),
                           filled: true,
                           fillColor: CosarcColors.glassFill(0.06),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(CosarcSpacing.radiusMd),
-                            borderSide: BorderSide(color: CosarcColors.glassBorder()),
+                            borderRadius:
+                                BorderRadius.circular(CosarcSpacing.radiusMd),
+                            borderSide:
+                                BorderSide(color: CosarcColors.glassBorder()),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(CosarcSpacing.radiusMd),
-                            borderSide: BorderSide(color: CosarcColors.glassBorder()),
+                            borderRadius:
+                                BorderRadius.circular(CosarcSpacing.radiusMd),
+                            borderSide:
+                                BorderSide(color: CosarcColors.glassBorder()),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(CosarcSpacing.radiusMd),
-                            borderSide: BorderSide(color: CosarcColors.primary),
+                            borderRadius:
+                                BorderRadius.circular(CosarcSpacing.radiusMd),
+                            borderSide: const BorderSide(color: CosarcColors.primary),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: CosarcSpacing.md,

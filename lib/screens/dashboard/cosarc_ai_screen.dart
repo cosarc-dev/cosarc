@@ -44,7 +44,8 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
 
         // Simulate AI response
         _messages.add({
-          'text': 'This is where Cosarc AI would respond to your fitness questions. Connect your AI service here.',
+          'text':
+              'This is where Cosarc AI would respond to your fitness questions. Connect your AI service here.',
           'isUser': false,
         });
       });
@@ -198,7 +199,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
   Widget _buildEmptyState(BuildContext context) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         CosarcSpacing.screenHorizontal,
         CosarcSpacing.xxxl,
         CosarcSpacing.screenHorizontal,
@@ -220,7 +221,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
             style: CosarcTypography.body(context),
           ),
           const SizedBox(height: CosarcSpacing.xxxl),
-          CosarcSectionHeader(
+          const CosarcSectionHeader(
             overline: 'Suggestions',
             title: 'Try asking',
           ),
@@ -235,7 +236,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline_rounded,
                   color: CosarcColors.textTertiary,
                   size: 18,
@@ -345,7 +346,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 ),
               ),
             ),
-            Icon(
+            const Icon(
               Icons.chevron_right_rounded,
               color: CosarcColors.textTertiary,
               size: 20,
@@ -360,7 +361,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
     return ListView.builder(
       controller: _scrollController,
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         CosarcSpacing.screenHorizontal,
         CosarcSpacing.md,
         CosarcSpacing.screenHorizontal,
@@ -386,12 +387,12 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
-            CosarcGlass(
+            const CosarcGlass(
               radius: CosarcSpacing.radiusSm,
               blur: 12,
-              padding: const EdgeInsets.all(CosarcSpacing.xs),
+              padding: EdgeInsets.all(CosarcSpacing.xs),
               highlight: true,
-              child: const Icon(
+              child: Icon(
                 Icons.auto_awesome_rounded,
                 color: CosarcColors.primary,
                 size: 16,
@@ -420,11 +421,11 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
           ),
           if (isUser) ...[
             const SizedBox(width: CosarcSpacing.sm),
-            CosarcGlass(
+            const CosarcGlass(
               radius: CosarcSpacing.radiusSm,
               blur: 12,
               opacity: 0.04,
-              padding: const EdgeInsets.all(CosarcSpacing.xs),
+              padding: EdgeInsets.all(CosarcSpacing.xs),
               child: Icon(
                 Icons.person_outline_rounded,
                 color: CosarcColors.textSecondary,
@@ -516,9 +517,7 @@ class _CosarcAIScreenState extends State<CosarcAIScreen> {
                 ),
                 child: Icon(
                   Icons.arrow_upward_rounded,
-                  color: hasText
-                      ? CosarcColors.ink
-                      : CosarcColors.textTertiary,
+                  color: hasText ? CosarcColors.ink : CosarcColors.textTertiary,
                   size: 20,
                 ),
               ),

@@ -18,7 +18,8 @@ class SignupScreen extends StatefulWidget {
   State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderStateMixin {
+class _SignupScreenState extends State<SignupScreen>
+    with SingleTickerProviderStateMixin {
   final _authService = AuthService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -36,7 +37,8 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic);
+    _fadeAnimation =
+        CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic);
     _animController.forward();
   }
 
@@ -75,7 +77,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
         );
       }
     } catch (e) {
-      _showError(e.toString().replaceAll('Exception: ', ''));
+      _showError(_authService.friendlyAuthError(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -94,13 +96,16 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => needsOnboarding ? const OnboardingWrapper() : const DashboardRoot(),
+          builder: (_) => needsOnboarding
+              ? const OnboardingWrapper()
+              : const DashboardRoot(),
         ),
       );
     } catch (e) {
       String errorMessage = 'Google sign-in failed. ';
       if (e.toString().contains('DEVELOPER_ERROR')) {
-        errorMessage += 'Please check SHA-1 configuration in Google Cloud Console.';
+        errorMessage +=
+            'Please check SHA-1 configuration in Google Cloud Console.';
       } else if (e.toString().contains('network_error')) {
         errorMessage += 'Please check your internet connection.';
       } else {
@@ -127,8 +132,10 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
-                child: _showEmailForm ? _buildEmailForm() : _buildSocialOptions(),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: CosarcSpacing.screenHorizontal),
+                child:
+                    _showEmailForm ? _buildEmailForm() : _buildSocialOptions(),
               ),
             ),
           ),
@@ -143,11 +150,11 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                   Navigator.pop(context);
                 }
               },
-              icon: CosarcGlass(
+              icon: const CosarcGlass(
                 radius: CosarcSpacing.radiusPill,
                 blur: 12,
-                padding: const EdgeInsets.all(10),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.arrow_back_ios_new_rounded, size: 16),
               ),
             ),
           ),
@@ -162,23 +169,29 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
         const SizedBox(height: 72),
         Text('cosarc', style: CosarcTypography.brandMark(size: 28)),
         const SizedBox(height: CosarcSpacing.xxl),
-        Text('Begin your\njourney', style: CosarcTypography.display(context).copyWith(fontSize: 36)),
+        Text('Begin your\njourney',
+            style: CosarcTypography.display(context).copyWith(fontSize: 36)),
         const SizedBox(height: CosarcSpacing.sm),
-        Text('Choose how you would like to continue', style: CosarcTypography.body(context)),
+        Text('Choose how you would like to continue',
+            style: CosarcTypography.body(context)),
         const Spacer(),
         if (_isLoading)
           const CosarcLoader(message: 'Signing you in...')
         else ...[
-          CosarcButton(label: 'Continue with Google', icon: Icons.login_rounded, onPressed: _signUpWithGoogle),
+          CosarcButton(
+              label: 'Continue with Google',
+              icon: Icons.login_rounded,
+              onPressed: _signUpWithGoogle),
           const SizedBox(height: CosarcSpacing.lg),
           Row(
             children: [
-              Expanded(child: Divider(color: CosarcColors.divider)),
+              const Expanded(child: Divider(color: CosarcColors.divider)),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.md),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: CosarcSpacing.md),
                 child: Text('or', style: CosarcTypography.caption(context)),
               ),
-              Expanded(child: Divider(color: CosarcColors.divider)),
+              const Expanded(child: Divider(color: CosarcColors.divider)),
             ],
           ),
           const SizedBox(height: CosarcSpacing.lg),
@@ -204,15 +217,21 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
 
   Widget _buildEmailForm() {
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 72),
-          Text('Create\naccount', style: CosarcTypography.display(context).copyWith(fontSize: 34)),
+          Text('Create\naccount',
+              style: CosarcTypography.display(context).copyWith(fontSize: 34)),
           const SizedBox(height: CosarcSpacing.sm),
-          Text('Sign up with your email', style: CosarcTypography.body(context)),
+          Text('Sign up with your email',
+              style: CosarcTypography.body(context)),
           const SizedBox(height: CosarcSpacing.xxxl),
-          CosarcInput(controller: _nameController, label: 'Full name', hint: 'Your name'),
+          CosarcInput(
+              controller: _nameController,
+              label: 'Full name',
+              hint: 'Your name'),
           const SizedBox(height: CosarcSpacing.lg),
           CosarcInput(
             controller: _emailController,

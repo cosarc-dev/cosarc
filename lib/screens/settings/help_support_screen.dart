@@ -13,12 +13,13 @@ class HelpSupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CosarcScaffold(
-      body: ListView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: CosarcSpacing.screenHorizontal,
-          vertical: CosarcSpacing.xl,
-        ),
-        physics: const BouncingScrollPhysics(),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: CosarcSpacing.screenHorizontal,
+            vertical: CosarcSpacing.xl,
+          ),
+          physics: const BouncingScrollPhysics(),
         children: [
           Row(
             children: [
@@ -38,13 +39,15 @@ class HelpSupportScreen extends StatelessWidget {
           CosarcGlass(
             padding: EdgeInsets.zero,
             child: Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              data:
+                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: Column(
                 children: [
                   ExpansionTile(
                     title: Text(
                       'How to log a workout?',
-                      style: CosarcTypography.body(context).copyWith(fontWeight: FontWeight.bold),
+                      style: CosarcTypography.body(context)
+                          .copyWith(fontWeight: FontWeight.bold),
                     ),
                     children: [
                       Padding(
@@ -56,7 +59,8 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                         child: Text(
                           'Tap the large plus button on the dashboard or go to the "Log Workout" tab to start tracking your session.',
-                          style: CosarcTypography.caption(context).copyWith(color: CosarcColors.textSecondary),
+                          style: CosarcTypography.caption(context)
+                              .copyWith(color: CosarcColors.textSecondary),
                         ),
                       ),
                     ],
@@ -65,7 +69,8 @@ class HelpSupportScreen extends StatelessWidget {
                   ExpansionTile(
                     title: Text(
                       'How are streaks calculated?',
-                      style: CosarcTypography.body(context).copyWith(fontWeight: FontWeight.bold),
+                      style: CosarcTypography.body(context)
+                          .copyWith(fontWeight: FontWeight.bold),
                     ),
                     children: [
                       Padding(
@@ -77,7 +82,8 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                         child: Text(
                           'Streaks are increased by 1 for each consecutive day you log a workout. If you miss a day, the streak resets to zero.',
-                          style: CosarcTypography.caption(context).copyWith(color: CosarcColors.textSecondary),
+                          style: CosarcTypography.caption(context)
+                              .copyWith(color: CosarcColors.textSecondary),
                         ),
                       ),
                     ],
@@ -86,7 +92,8 @@ class HelpSupportScreen extends StatelessWidget {
                   ExpansionTile(
                     title: Text(
                       'Can I edit a logged workout?',
-                      style: CosarcTypography.body(context).copyWith(fontWeight: FontWeight.bold),
+                      style: CosarcTypography.body(context)
+                          .copyWith(fontWeight: FontWeight.bold),
                     ),
                     children: [
                       Padding(
@@ -98,7 +105,8 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                         child: Text(
                           'Currently, workouts cannot be edited once saved. You will need to delete the incorrect log and create a new one.',
-                          style: CosarcTypography.caption(context).copyWith(color: CosarcColors.textSecondary),
+                          style: CosarcTypography.caption(context)
+                              .copyWith(color: CosarcColors.textSecondary),
                         ),
                       ),
                     ],
@@ -120,7 +128,8 @@ class HelpSupportScreen extends StatelessWidget {
               children: [
                 Text(
                   'If you have encountered a bug or need further assistance, please contact us.',
-                  style: CosarcTypography.body(context).copyWith(color: CosarcColors.textSecondary),
+                  style: CosarcTypography.body(context)
+                      .copyWith(color: CosarcColors.textSecondary),
                 ),
                 const SizedBox(height: CosarcSpacing.lg),
                 CosarcButton(
@@ -128,8 +137,8 @@ class HelpSupportScreen extends StatelessWidget {
                   icon: Icons.email_outlined,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Email client opened...'),
+                      const SnackBar(
+                        content: Text('Email client opened...'),
                         backgroundColor: CosarcColors.primary,
                       ),
                     );
@@ -140,6 +149,7 @@ class HelpSupportScreen extends StatelessWidget {
           ),
           const SizedBox(height: CosarcSpacing.xl),
         ],
+      ),
       ),
     );
   }

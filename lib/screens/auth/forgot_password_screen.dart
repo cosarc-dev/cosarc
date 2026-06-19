@@ -67,7 +67,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return CosarcScaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(
+              horizontal: CosarcSpacing.screenHorizontal),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

@@ -9,7 +9,7 @@
 /// ```bash
 /// flutter run \
 ///   --dart-define=SUPABASE_URL=https://lgblxxixgldizfidscpz.supabase.co \
-///   --dart-define=SUPABASE_ANON_KEY=your_anon_key \
+///   --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxnYmx4eGl4Z2xkaXpmaWRzY3B6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDA1ODksImV4cCI6MjA5NDA3NjU4OX0.GYARRKYcjPrc2f-TGEAol7Zq1g4oiQJuiT8ZJpKayIA \
 ///   --dart-define=USDA_API_KEY=your_usda_key
 /// ```
 ///
@@ -26,7 +26,8 @@ class AppConfig {
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImxnYmx4eGl4Z2xkaXpmaWRzY3B6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDA1ODksImV4cCI6MjA5NDA3NjU4OX0.GYARRKYcjPrc2f-TGEAol7Zq1g4oiQJuiT8ZJpKayIA',
+    defaultValue:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxnYmx4eGl4Z2xkaXpmaWRzY3B6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDA1ODksImV4cCI6MjA5NDA3NjU4OX0.GYARRKYcjPrc2f-TGEAol7Zq1g4oiQJuiT8ZJpKayIA',
   );
 
   static const String usdaApiKey = String.fromEnvironment(

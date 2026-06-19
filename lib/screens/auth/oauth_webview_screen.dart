@@ -84,10 +84,11 @@ class _OAuthWebViewScreenState extends State<OAuthWebViewScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading) const ColoredBox(
-            color: CosarcColors.background,
-            child: CosarcLoader(message: 'Loading Google Sign-In...'),
-          ),
+          if (_isLoading)
+            const ColoredBox(
+              color: CosarcColors.background,
+              child: CosarcLoader(message: 'Loading Google Sign-In...'),
+            ),
         ],
       ),
     );

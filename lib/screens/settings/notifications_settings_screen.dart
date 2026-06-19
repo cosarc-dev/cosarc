@@ -14,7 +14,8 @@ class NotificationsSettingsScreen extends StatefulWidget {
       _NotificationsSettingsScreenState();
 }
 
-class _NotificationsSettingsScreenState extends State<NotificationsSettingsScreen> {
+class _NotificationsSettingsScreenState
+    extends State<NotificationsSettingsScreen> {
   bool _dailyReminders = true;
   bool _streakAlerts = true;
   bool _workoutTips = false;
@@ -41,7 +42,8 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
     return CosarcScaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: CosarcSpacing.screenHorizontal),
           children: [
             const SizedBox(height: CosarcSpacing.sm),
             Row(
@@ -50,7 +52,8 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.arrow_back_rounded),
                 ),
-                Text('Notifications', style: CosarcTypography.headline(context)),
+                Text('Notifications',
+                    style: CosarcTypography.headline(context)),
               ],
             ),
             const SizedBox(height: CosarcSpacing.xl),
@@ -128,7 +131,9 @@ class _ToggleRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 16)),
+                  Text(title,
+                      style: CosarcTypography.title(context)
+                          .copyWith(fontSize: 16)),
                   Text(subtitle, style: CosarcTypography.caption(context)),
                 ],
               ),

@@ -6,6 +6,7 @@ import 'package:cosarc/models/food_log.dart';
 import 'package:cosarc/services/enhanced_nutrition_service.dart';
 import 'package:cosarc/services/daily_contract_service.dart';
 import 'package:cosarc/core/theme/cosarc_colors.dart';
+import 'package:cosarc/widgets/cosarc/cosarc_button.dart';
 
 /// ======================================================
 /// ENHANCED FOOD SEARCH UI
@@ -13,29 +14,30 @@ import 'package:cosarc/core/theme/cosarc_colors.dart';
 /// ======================================================
 class EnhancedFoodSearchSheet extends StatefulWidget {
   final String mealType;
-  
+
   const EnhancedFoodSearchSheet({
     super.key,
     required this.mealType,
   });
-  
+
   @override
-  State<EnhancedFoodSearchSheet> createState() => _EnhancedFoodSearchSheetState();
+  State<EnhancedFoodSearchSheet> createState() =>
+      _EnhancedFoodSearchSheetState();
 }
 
-class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet> 
+class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
     with SingleTickerProviderStateMixin {
   final NutritionServiceV2 _service = NutritionServiceV2();
   final DailyContractService _contractService = DailyContractService();
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _qtyCtrl = TextEditingController(text: "1");
-  
+
   List<Map<String, dynamic>> _results = [];
   bool _loading = false;
   Timer? _debounce;
   String _selectedUnit = 'servings';
   final List<String> _units = ['grams', 'ml', 'servings', 'tsp', 'tbsp'];
-  
+
   late AnimationController _animController;
 
   @override
@@ -43,7 +45,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
     );
   }
 
@@ -58,8 +60,8 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
 
   void _onSearch(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    
-    _debounce = Timer(Duration(milliseconds: 500), () async {
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
       if (query.trim().isEmpty || query.length < 2) {
         setState(() {
           _results = [];
@@ -67,9 +69,9 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
         });
         return;
       }
-      
+
       setState(() => _loading = true);
-      
+
       try {
         final results = await _service.searchFood(query);
         if (mounted) {
@@ -84,7 +86,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
             _loading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Search failed. Please try again.'),
               backgroundColor: Colors.red,
             ),
@@ -96,9 +98,11 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
       height: MediaQuery.of(context).size.height * 0.92,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -118,7 +122,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
           _buildSearchResults(),
         ],
       ),
-    );
+    ));
   }
 
   /// ======================================================
@@ -126,7 +130,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   /// ======================================================
   Widget _buildDragHandle() {
     return Container(
-      margin: EdgeInsets.only(top: 12, bottom: 8),
+      margin: const EdgeInsets.only(top: 12, bottom: 8),
       width: 50,
       height: 5,
       decoration: BoxDecoration(
@@ -141,7 +145,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   /// ======================================================
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -150,15 +154,15 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
             children: [
               Text(
                 "ADD TO ${widget.mealType.toUpperCase()}",
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 4),
-              Text(
+              const SizedBox(height: 4),
+              const Text(
                 "Search from 100,000+ foods",
                 style: TextStyle(
                   fontSize: 12,
@@ -169,7 +173,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
           ),
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Icon(
+            icon: const Icon(
               Icons.close_rounded,
               color: Colors.white54,
               size: 28,
@@ -185,13 +189,13 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   /// ======================================================
   Widget _buildSearchBar() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: cosarcSurface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _searchCtrl.text.isNotEmpty 
+          color: _searchCtrl.text.isNotEmpty
               ? CosarcColors.primary.withOpacity(0.3)
               : Colors.white.withOpacity(0.05),
           width: 2,
@@ -207,22 +211,22 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.search_rounded,
             color: CosarcColors.primary,
             size: 24,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: _searchCtrl,
               autofocus: true,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "burger, chicken, dal, maggi...",
                 hintStyle: TextStyle(
                   color: Colors.white24,
@@ -241,7 +245,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                   _results = [];
                 });
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.clear_rounded,
                 color: Colors.white38,
                 size: 20,
@@ -257,8 +261,8 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   /// ======================================================
   Widget _buildQuantitySelector() {
     return Container(
-      margin: EdgeInsets.all(20),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cosarcSurface,
         borderRadius: BorderRadius.circular(20),
@@ -274,7 +278,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "QUANTITY",
                   style: TextStyle(
                     fontSize: 10,
@@ -283,25 +287,27 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
                     controller: _qtyCtrl,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d{0,2}')),
                     ],
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: cosarcAccent,
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
                     ),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: "0",
                       hintStyle: TextStyle(
@@ -314,16 +320,16 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
               ],
             ),
           ),
-          
-          SizedBox(width: 16),
-          
+
+          const SizedBox(width: 16),
+
           // Unit Selector
           Expanded(
             flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "UNIT",
                   style: TextStyle(
                     fontSize: 10,
@@ -332,9 +338,9 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
@@ -347,11 +353,11 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                       value: _selectedUnit,
                       isExpanded: true,
                       dropdownColor: cosarcCard,
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         color: CosarcColors.primary,
                       ),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -383,7 +389,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   /// ======================================================
   Widget _buildSearchResults() {
     if (_loading) {
-      return Expanded(
+      return const Expanded(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -417,16 +423,16 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                 size: 80,
                 color: Colors.white.withOpacity(0.1),
               ),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 "Start typing to search",
                 style: TextStyle(
                   color: Colors.white24,
                   fontSize: 16,
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
+              const SizedBox(height: 8),
+              const Text(
                 "Indian brands, fast food, and 100k+ items",
                 style: TextStyle(
                   color: Colors.white12,
@@ -450,8 +456,8 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                 size: 80,
                 color: Colors.white.withOpacity(0.1),
               ),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 "No results found",
                 style: TextStyle(
                   color: Colors.white24,
@@ -459,8 +465,8 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
+              const SizedBox(height: 8),
+              const Text(
                 "Try a different search term",
                 style: TextStyle(
                   color: Colors.white12,
@@ -475,7 +481,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
 
     return Expanded(
       child: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         itemCount: _results.length,
         itemBuilder: (context, index) {
           return _buildFoodResultCard(_results[index]);
@@ -490,7 +496,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   Widget _buildFoodResultCard(Map<String, dynamic> food) {
     final qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
     final servingWeight = food['servingWeight'] as double;
-    
+
     // Calculate scaling factor based on unit
     double factor = 1.0;
     if (_selectedUnit == 'servings') {
@@ -509,7 +515,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
     final scaledFat = (food['fat'] as double) * factor;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -530,7 +536,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
           borderRadius: BorderRadius.circular(20),
           onTap: () => _showDetailAndAdd(food, factor),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 // Food Type Badge
@@ -547,13 +553,13 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                   child: Center(
                     child: Text(
                       _getTypeEmoji(food['type']),
-                      style: TextStyle(fontSize: 30),
+                      style: const TextStyle(fontSize: 30),
                     ),
                   ),
                 ),
-                
-                SizedBox(width: 15),
-                
+
+                const SizedBox(width: 15),
+
                 // Food Info
                 Expanded(
                   child: Column(
@@ -561,7 +567,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                     children: [
                       Text(
                         food['name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -569,32 +575,35 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Text(
                         "${food['brand']} • ${food['type']}",
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white38,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
-                          _buildMiniMacro("P", scaledProtein.toInt(), Color(0xFF2196F3)),
-                          SizedBox(width: 10),
-                          _buildMiniMacro("C", scaledCarbs.toInt(), Color(0xFFFF9800)),
-                          SizedBox(width: 10),
-                          _buildMiniMacro("F", scaledFat.toInt(), Color(0xFF9C27B0)),
+                          _buildMiniMacro(
+                              "P", scaledProtein.toInt(), const Color(0xFF2196F3)),
+                          const SizedBox(width: 10),
+                          _buildMiniMacro(
+                              "C", scaledCarbs.toInt(), const Color(0xFFFF9800)),
+                          const SizedBox(width: 10),
+                          _buildMiniMacro(
+                              "F", scaledFat.toInt(), const Color(0xFF9C27B0)),
                         ],
                       ),
                     ],
                   ),
                 ),
-                
-                SizedBox(width: 12),
-                
+
+                const SizedBox(width: 12),
+
                 // Add Button + Calories
                 Column(
                   children: [
@@ -604,10 +613,13 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                         onTap: () => _addFood(food, factor),
                         borderRadius: BorderRadius.circular(15),
                         child: Container(
-                          padding: EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [CosarcColors.primary, CosarcColors.primary.withOpacity(0.7)],
+                              colors: [
+                                CosarcColors.primary,
+                                CosarcColors.primary.withOpacity(0.7)
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
@@ -617,7 +629,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                               ),
                             ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.add_rounded,
                             color: Colors.white,
                             size: 24,
@@ -625,16 +637,16 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                         ),
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       "${scaledCal.toInt()}",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: cosarcAccent,
                       ),
                     ),
-                    Text(
+                    const Text(
                       "kcal",
                       style: TextStyle(
                         fontSize: 9,
@@ -653,7 +665,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
 
   Widget _buildMiniMacro(String label, int value, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
@@ -672,15 +684,15 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   Color _getTypeColor(String type) {
     switch (type.toLowerCase()) {
       case 'packaged':
-        return Color(0xFF2196F3);
+        return const Color(0xFF2196F3);
       case 'fast food':
-        return Color(0xFFFF5722);
+        return const Color(0xFFFF5722);
       case 'traditional':
-        return Color(0xFF4CAF50);
+        return const Color(0xFF4CAF50);
       case 'dairy':
-        return Color(0xFFFFEB3B);
+        return const Color(0xFFFFEB3B);
       case 'restaurant':
-        return Color(0xFF9C27B0);
+        return const Color(0xFF9C27B0);
       default:
         return Colors.grey;
     }
@@ -716,9 +728,9 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          padding: EdgeInsets.all(28),
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [cosarcCard, cosarcSurface],
@@ -732,7 +744,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 "NUTRITIONAL BREAKDOWN",
                 style: TextStyle(
                   fontSize: 11,
@@ -741,37 +753,43 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 food['name'],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 food['brand'],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
                   color: CosarcColors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 30),
-              _buildDetailMacro("Energy", "${(food['calories'] * factor).toInt()} kcal", CosarcColors.primary),
-              _buildDetailMacro("Protein", "${(food['protein'] * factor).toInt()} g", Color(0xFF2196F3)),
-              _buildDetailMacro("Carbs", "${(food['carbs'] * factor).toInt()} g", Color(0xFFFF9800)),
-              _buildDetailMacro("Fat", "${(food['fat'] * factor).toInt()} g", Color(0xFF9C27B0)),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
+              _buildDetailMacro(
+                  "Energy",
+                  "${(food['calories'] * factor).toInt()} kcal",
+                  CosarcColors.primary),
+              _buildDetailMacro("Protein",
+                  "${(food['protein'] * factor).toInt()} g", const Color(0xFF2196F3)),
+              _buildDetailMacro("Carbs",
+                  "${(food['carbs'] * factor).toInt()} g", const Color(0xFFFF9800)),
+              _buildDetailMacro("Fat", "${(food['fat'] * factor).toInt()} g",
+                  const Color(0xFF9C27B0)),
+              const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
+                    child: const Text(
                       "CANCEL",
                       style: TextStyle(
                         color: Colors.white38,
@@ -779,25 +797,13 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
                       ),
                     ),
                   ),
-                  ElevatedButton(
+                  CosarcButton(
+                    label: "ADD TO LOG",
+                    expand: false,
                     onPressed: () {
                       Navigator.pop(context);
                       _addFood(food, factor);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: CosarcColors.primary,
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    child: Text(
-                      "ADD TO LOG",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -810,13 +816,13 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
 
   Widget _buildDetailMacro(String label, String value, Color color) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white54,
               fontSize: 15,
             ),
@@ -839,7 +845,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
   /// ======================================================
   void _addFood(Map<String, dynamic> food, double factor) {
     final qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
-    
+
     final log = FoodLog(
       name: "${food['name']}",
       calories: (food['calories'] as double) * factor,
@@ -855,9 +861,9 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
     Hive.box<FoodLog>('daily_logs').add(log);
 
     _contractService.markNutritionLogged();
-    
+
     Navigator.pop(context);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Added to ${widget.mealType}!'),
@@ -866,7 +872,7 @@ class _EnhancedFoodSearchSheetState extends State<EnhancedFoodSearchSheet>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

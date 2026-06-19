@@ -27,7 +27,7 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    prefer_const_constructors: false
+    prefer_const_constructors: true
     prefer_const_literals_to_create_immutables: false
     unnecessary_to_list_in_spreads: false
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule

@@ -5,7 +5,8 @@ class WorkoutPreferenceScreen extends StatefulWidget {
   const WorkoutPreferenceScreen({super.key});
 
   @override
-  State<WorkoutPreferenceScreen> createState() => WorkoutPreferenceScreenState();
+  State<WorkoutPreferenceScreen> createState() =>
+      WorkoutPreferenceScreenState();
 }
 
 class WorkoutPreferenceScreenState extends State<WorkoutPreferenceScreen> {

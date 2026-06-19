@@ -11,12 +11,12 @@ abstract final class CosarcSpacing {
   static const double huge = 48;
 
   static const double screenHorizontal = 24;
-  static const double cardPadding = 20;
-  static const double buttonHeight = 52;
-  static const double inputHeight = 52;
-  static const double radiusSm = 12;
-  static const double radiusMd = 16;
-  static const double radiusLg = 20;
-  static const double radiusXl = 24;
+  static const double cardPadding = 24;
+  static const double buttonHeight = 56;
+  static const double inputHeight = 56;
+  static const double radiusSm = 16;
+  static const double radiusMd = 24;
+  static const double radiusLg = 32;
+  static const double radiusXl = 40;
   static const double radiusPill = 999;
 }

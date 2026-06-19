@@ -89,7 +89,8 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     const SizedBox(height: CosarcSpacing.xxs),
                     Text(
                       'My Gym',
-                      style: CosarcTypography.display(context).copyWith(fontSize: 36),
+                      style: CosarcTypography.display(context)
+                          .copyWith(fontSize: 36),
                     ),
                     const SizedBox(height: CosarcSpacing.xxs),
                     Text(
@@ -100,18 +101,17 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 ),
               ),
             ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: CosarcSpacing.xxl)),
-
+            const SliverToBoxAdapter(
+                child: SizedBox(height: CosarcSpacing.xxl)),
             SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: CosarcSpacing.screenHorizontal,
               ),
               sliver: SliverToBoxAdapter(child: _buildCheckInCard()),
             ),
-
             if (_checkInTime != null) ...[
-              const SliverToBoxAdapter(child: SizedBox(height: CosarcSpacing.md)),
+              const SliverToBoxAdapter(
+                  child: SizedBox(height: CosarcSpacing.md)),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: CosarcSpacing.screenHorizontal,
@@ -119,16 +119,13 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 sliver: SliverToBoxAdapter(child: _buildSessionStats()),
               ),
             ],
-
             const SliverToBoxAdapter(child: SizedBox(height: CosarcSpacing.xl)),
-
             SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: CosarcSpacing.screenHorizontal,
               ),
               sliver: SliverToBoxAdapter(child: _buildQuickStats()),
             ),
-
             const SliverToBoxAdapter(
               child: CosarcSectionHeader(
                 overline: 'Membership',
@@ -136,21 +133,18 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 subtitle: 'Annual plan · auto-renew on',
               ),
             ),
-
             SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: CosarcSpacing.screenHorizontal,
               ),
               sliver: SliverToBoxAdapter(child: _buildMembershipCard()),
             ),
-
             const SliverToBoxAdapter(
               child: CosarcSectionHeader(
                 title: 'Gym Alerts',
                 subtitle: 'Updates from your facility',
               ),
             ),
-
             SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: CosarcSpacing.screenHorizontal,
@@ -175,14 +169,12 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 ]),
               ),
             ),
-
             const SliverToBoxAdapter(
               child: CosarcSectionHeader(
                 title: 'Features',
                 subtitle: 'Tools to level up your training',
               ),
             ),
-
             SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: CosarcSpacing.screenHorizontal,
@@ -232,7 +224,6 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 ]),
               ),
             ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
@@ -250,7 +241,8 @@ class _MyGymScreenState extends State<MyGymScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.build_circle_rounded, size: 48, color: CosarcColors.primary),
+              const Icon(Icons.build_circle_rounded,
+                  size: 48, color: CosarcColors.primary),
               const SizedBox(height: CosarcSpacing.md),
               Text(
                 'Coming Soon',
@@ -432,8 +424,9 @@ class _MyGymScreenState extends State<MyGymScreen> {
           const SizedBox(height: CosarcSpacing.sm),
           Text(
             value,
-            style: CosarcTypography.metric(value, color: CosarcColors.textPrimary)
-                .copyWith(fontSize: 28),
+            style:
+                CosarcTypography.metric(value, color: CosarcColors.textPrimary)
+                    .copyWith(fontSize: 28),
           ),
           const SizedBox(height: CosarcSpacing.xxs),
           Text(
@@ -484,7 +477,8 @@ class _MyGymScreenState extends State<MyGymScreen> {
                     const SizedBox(height: CosarcSpacing.xxs),
                     Text(
                       'Annual Plan',
-                      style: CosarcTypography.title(context).copyWith(fontSize: 17),
+                      style: CosarcTypography.title(context)
+                          .copyWith(fontSize: 17),
                     ),
                   ],
                 ),
@@ -511,13 +505,14 @@ class _MyGymScreenState extends State<MyGymScreen> {
               value: progress,
               minHeight: 6,
               backgroundColor: CosarcColors.glassFill(0.1),
-              valueColor: const AlwaysStoppedAnimation<Color>(CosarcColors.primary),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(CosarcColors.primary),
             ),
           ),
           const SizedBox(height: CosarcSpacing.md),
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.calendar_month_rounded,
                 size: 14,
                 color: CosarcColors.textTertiary,
@@ -587,7 +582,8 @@ class _MyGymScreenState extends State<MyGymScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                    borderRadius:
+                        BorderRadius.circular(CosarcSpacing.radiusPill),
                   ),
                   child: Text(
                     time,
@@ -685,7 +681,8 @@ class _MyGymScreenState extends State<MyGymScreen> {
                 children: [
                   Text(
                     'Attendance History',
-                    style: CosarcTypography.title(context).copyWith(fontSize: 22),
+                    style:
+                        CosarcTypography.title(context).copyWith(fontSize: 22),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),

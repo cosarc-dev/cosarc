@@ -71,7 +71,9 @@ class _CosarcComingSoonState extends State<CosarcComingSoon> {
     if (mounted) {
       setState(() => _notifyMe = value);
       _showFeedback(
-        value ? 'We\'ll notify you when this launches.' : 'Notifications turned off.',
+        value
+            ? 'We\'ll notify you when this launches.'
+            : 'Notifications turned off.',
       );
     }
   }
@@ -149,11 +151,12 @@ class _CosarcComingSoonState extends State<CosarcComingSoon> {
                     const SizedBox(height: CosarcSpacing.md),
                     ...widget.previewItems.map(
                       (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: CosarcSpacing.sm),
+                        padding:
+                            const EdgeInsets.only(bottom: CosarcSpacing.sm),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.check_circle_outline_rounded,
                               size: 18,
                               color: CosarcColors.primary,
@@ -237,7 +240,9 @@ class _CosarcComingSoonState extends State<CosarcComingSoon> {
             ),
             child: CosarcButton(
               label: _onWaitlist ? 'On the waitlist' : 'Join waitlist',
-              icon: _onWaitlist ? Icons.check_rounded : Icons.star_outline_rounded,
+              icon: _onWaitlist
+                  ? Icons.check_rounded
+                  : Icons.star_outline_rounded,
               onPressed: _onWaitlist ? null : _joinWaitlist,
             ),
           ),
@@ -291,8 +296,9 @@ class _CosarcComingSoonState extends State<CosarcComingSoon> {
                           : CosarcColors.glassFill(0.08),
                     ),
                     child: Align(
-                      alignment:
-                          _notifyMe ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: _notifyMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
                         width: 22,
                         height: 22,
@@ -383,7 +389,8 @@ void showCosarcComingSoonSheet(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.hourglass_top_rounded, color: CosarcColors.primary, size: 32),
+            const Icon(Icons.hourglass_top_rounded,
+                color: CosarcColors.primary, size: 32),
             const SizedBox(height: CosarcSpacing.md),
             Text(title, style: CosarcTypography.title(context)),
             const SizedBox(height: CosarcSpacing.sm),

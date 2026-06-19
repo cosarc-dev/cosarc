@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import '../../core/theme/cosarc_colors.dart';
+
 const Color _fireOrange = Color(0xFFFF6B35);
 const Color _fireOrangeLight = Color(0xFFFF8C42);
 
@@ -35,7 +36,8 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
     with SingleTickerProviderStateMixin {
   // ── Spring controller ─────────────────────────────────────
   late AnimationController _ctrl;
-  static const _spring = SpringDescription(mass: 1, stiffness: 300, damping: 28);
+  static const _spring =
+      SpringDescription(mass: 1, stiffness: 300, damping: 28);
 
   bool _isExpanded = false;
 
@@ -48,20 +50,27 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
   double _expandedH = 0; // 0 = not measured yet
 
   static const double _cW = 126; // compact width
-  static const double _cH = 36;  // compact height  (Apple HIG: 36pt)
+  static const double _cH = 36; // compact height  (Apple HIG: 36pt)
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 700));
 
     _ctrl.addListener(() {
       final v = _ctrl.value;
       if (_isExpanded && v >= 0.6 && !_showExpanded) {
-        setState(() { _showExpanded = true; _showCompact = false; });
+        setState(() {
+          _showExpanded = true;
+          _showCompact = false;
+        });
       }
       if (!_isExpanded && v <= 0.15 && !_showCompact) {
-        setState(() { _showCompact = true; _showExpanded = false; });
+        setState(() {
+          _showCompact = true;
+          _showExpanded = false;
+        });
       }
     });
 
@@ -80,7 +89,10 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   void _toggle() {
     // Re-measure each time in case data changed
@@ -101,7 +113,8 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
   Widget build(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
     final eW = (sw - 32).clamp(260.0, 400.0); // expanded width
-    final eH = _expandedH > 0 ? _expandedH : _cH; // fallback to compact until measured
+    final eH =
+        _expandedH > 0 ? _expandedH : _cH; // fallback to compact until measured
 
     return UnconstrainedBox(
       child: Stack(
@@ -327,9 +340,11 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
           // Stats row
           Row(
             children: [
-              _stat('Best', '${widget.longestStreak}', Icons.emoji_events_rounded),
+              _stat('Best', '${widget.longestStreak}',
+                  Icons.emoji_events_rounded),
               _vDiv(),
-              _stat('Week', '${widget.weekStreak}', Icons.calendar_today_rounded),
+              _stat(
+                  'Week', '${widget.weekStreak}', Icons.calendar_today_rounded),
               _vDiv(),
               _stat('Month', '${widget.monthStreak}', Icons.bar_chart_rounded),
             ],
@@ -352,7 +367,9 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
               Text(
                 '${(progress * 100).toInt()}%',
                 style: const TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w700, color: CosarcColors.primary),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: CosarcColors.primary),
               ),
             ],
           ),
@@ -371,7 +388,8 @@ class _DynamicIslandStreakState extends State<DynamicIslandStreak>
                           colors: [CosarcColors.primary, _fireOrange]),
                       boxShadow: [
                         BoxShadow(
-                            color: CosarcColors.primary.withOpacity(0.35), blurRadius: 4),
+                            color: CosarcColors.primary.withOpacity(0.35),
+                            blurRadius: 4),
                       ],
                     ),
                   ),
@@ -436,7 +454,10 @@ class _PulsingFireIconState extends State<_PulsingFireIcon>
   }
 
   @override
-  void dispose() { _c.dispose(); super.dispose(); }
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => ScaleTransition(

@@ -15,7 +15,8 @@ class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
 
   @override
-  State<TwoFactorSettingsScreen> createState() => _TwoFactorSettingsScreenState();
+  State<TwoFactorSettingsScreen> createState() =>
+      _TwoFactorSettingsScreenState();
 }
 
 class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
@@ -45,7 +46,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
   Future<void> _load() async {
     try {
       final factors = await _authService.listMfaFactors();
-      final verified = factors.totp.where((f) => f.status == FactorStatus.verified);
+      final verified =
+          factors.totp.where((f) => f.status == FactorStatus.verified);
       _hasTotp = verified.isNotEmpty;
       if (verified.isNotEmpty) _factorId = verified.first.id;
       _preferred = await _authService.getPreferredTwoFactorMethod();
@@ -125,7 +127,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
   }
 
   Future<void> _reverifyWithSms() async {
-    _showMessage('Add your phone in Connected Accounts to use SMS verification.');
+    _showMessage(
+        'Add your phone in Connected Accounts to use SMS verification.');
   }
 
   void _showMessage(String message, {bool isError = false}) {
@@ -144,6 +147,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(
                   horizontal: CosarcSpacing.screenHorizontal,
                 ),
@@ -160,7 +164,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         Expanded(
                           child: Text(
                             'Two-factor authentication',
-                            style: CosarcTypography.headline(context).copyWith(fontSize: 22),
+                            style: CosarcTypography.headline(context)
+                                .copyWith(fontSize: 22),
                           ),
                         ),
                       ],
@@ -188,7 +193,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: CosarcSpacing.xl),
-                    Text('Preferred method', style: CosarcTypography.title(context)),
+                    Text('Preferred method',
+                        style: CosarcTypography.title(context)),
                     const SizedBox(height: CosarcSpacing.sm),
                     _MethodTile(
                       title: 'Authenticator app (TOTP)',
@@ -223,7 +229,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Scan QR code', style: CosarcTypography.title(context)),
+                            Text('Scan QR code',
+                                style: CosarcTypography.title(context)),
                             const SizedBox(height: CosarcSpacing.sm),
                             Text(
                               'Use Google Authenticator, 1Password, or Authy.',
@@ -239,7 +246,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Clipboard.setData(ClipboardData(text: _totpSecret!));
+                                  Clipboard.setData(
+                                      ClipboardData(text: _totpSecret!));
                                   _showMessage('Secret copied');
                                 },
                                 child: const Text('Copy secret'),
@@ -270,7 +278,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       ),
                     ],
                     const SizedBox(height: CosarcSpacing.xl),
-                    Text('Reverify session', style: CosarcTypography.title(context)),
+                    Text('Reverify session',
+                        style: CosarcTypography.title(context)),
                     const SizedBox(height: CosarcSpacing.sm),
                     CosarcButton(
                       label: 'Send email verification code',
@@ -318,14 +327,17 @@ class _MethodTile extends StatelessWidget {
           children: [
             Icon(
               selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected ? CosarcColors.primary : CosarcColors.textTertiary,
+              color:
+                  selected ? CosarcColors.primary : CosarcColors.textTertiary,
             ),
             const SizedBox(width: CosarcSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 15)),
+                  Text(title,
+                      style: CosarcTypography.title(context)
+                          .copyWith(fontSize: 15)),
                   Text(subtitle, style: CosarcTypography.caption(context)),
                 ],
               ),

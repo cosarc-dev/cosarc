@@ -77,8 +77,7 @@ class DailyContractService {
     final memberId = await _memberId();
     if (memberId == null) return;
 
-    await supabase
-        .rpc('calculate_streak', params: {'p_member_id': memberId})
-        .timeout(const Duration(seconds: 10));
+    await supabase.rpc('calculate_streak',
+        params: {'p_member_id': memberId}).timeout(const Duration(seconds: 10));
   }
 }

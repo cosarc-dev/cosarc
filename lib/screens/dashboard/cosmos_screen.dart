@@ -176,11 +176,14 @@ class _CosmosScreenState extends State<CosmosScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_greeting, style: CosarcTypography.caption(context)),
+                                    Text(_greeting,
+                                        style:
+                                            CosarcTypography.caption(context)),
                                     const SizedBox(height: 4),
                                     Text(
                                       'Command\nCenter',
-                                      style: CosarcTypography.display(context).copyWith(fontSize: 36),
+                                      style: CosarcTypography.display(context)
+                                          .copyWith(fontSize: 36),
                                     ),
                                   ],
                                 ),
@@ -188,13 +191,16 @@ class _CosmosScreenState extends State<CosmosScreen> {
                               GestureDetector(
                                 onTap: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const ProfileScreen()),
                                 ),
-                                child: CosarcGlass(
+                                child: const CosarcGlass(
                                   radius: CosarcSpacing.radiusPill,
                                   blur: 12,
-                                  padding: const EdgeInsets.all(12),
-                                  child: const Icon(Icons.person_outline_rounded, size: 22),
+                                  padding: EdgeInsets.all(12),
+                                  child: Icon(
+                                      Icons.person_outline_rounded,
+                                      size: 22),
                                 ),
                               ),
                             ],
@@ -210,15 +216,18 @@ class _CosmosScreenState extends State<CosmosScreen> {
                       ),
                     ),
                   ),
-                  SliverToBoxAdapter(child: CosarcSectionHeader(
+                  SliverToBoxAdapter(
+                      child: CosarcSectionHeader(
                     overline: 'Daily Contract',
                     title: "Today's commitments",
                     subtitle: '$completed of 4 complete',
                   )),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: CosarcSpacing.screenHorizontal),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         mainAxisSpacing: CosarcSpacing.sm,
                         crossAxisSpacing: CosarcSpacing.sm,
@@ -233,7 +242,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
                           onTap: () async {
                             final result = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const WorkoutLogScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const WorkoutLogScreen()),
                             );
                             if (result == true) await _loadData();
                           },
@@ -245,7 +255,9 @@ class _CosmosScreenState extends State<CosmosScreen> {
                           completed: eatCleanDone,
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const EnhancedNutritionScreen()),
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const EnhancedNutritionScreen()),
                           ),
                         ),
                         _ProgressTile(
@@ -258,11 +270,14 @@ class _CosmosScreenState extends State<CosmosScreen> {
                           onAction: waterMl >= waterTarget
                               ? null
                               : () async {
-                                  if (_isLoading || _todayContract == null) return;
+                                  if (_isLoading || _todayContract == null) {
+                                    return;
+                                  }
                                   try {
                                     await supabase
                                         .from('daily_contracts')
-                                        .update({'water_intake_ml': waterMl + 300})
+                                        .update(
+                                            {'water_intake_ml': waterMl + 300})
                                         .eq('id', _todayContract!['id'])
                                         .timeout(const Duration(seconds: 10));
                                     await _loadData();
@@ -283,7 +298,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(CosarcSpacing.screenHorizontal),
+                      padding:
+                          const EdgeInsets.all(CosarcSpacing.screenHorizontal),
                       child: CosarcGlass(
                         highlight: _contractComplete,
                         expand: true,
@@ -304,7 +320,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
                                   ? 'Reflection unlocked'
                                   : 'Complete all four to unlock reflection',
                               textAlign: TextAlign.center,
-                              style: CosarcTypography.title(context).copyWith(fontSize: 16),
+                              style: CosarcTypography.title(context)
+                                  .copyWith(fontSize: 16),
                             ),
                             const SizedBox(height: CosarcSpacing.xxs),
                             Text(
@@ -326,7 +343,8 @@ class _CosmosScreenState extends State<CosmosScreen> {
                 top: topInset + 8,
                 left: 0,
                 right: 0,
-                child: Center(child: DynamicIslandStreak(streak: currentStreak)),
+                child:
+                    Center(child: DynamicIslandStreak(streak: currentStreak)),
               ),
             ],
           ),
@@ -436,18 +454,28 @@ class _ContractTile extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: completed ? CosarcColors.primary : CosarcColors.textSecondary, size: 24),
+              Icon(icon,
+                  color: completed
+                      ? CosarcColors.primary
+                      : CosarcColors.textSecondary,
+                  size: 24),
               Icon(
-                completed ? Icons.check_circle_rounded : Icons.arrow_outward_rounded,
+                completed
+                    ? Icons.check_circle_rounded
+                    : Icons.arrow_outward_rounded,
                 size: 18,
-                color: completed ? CosarcColors.primary : CosarcColors.textTertiary,
+                color: completed
+                    ? CosarcColors.primary
+                    : CosarcColors.textTertiary,
               ),
             ],
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 17)),
+              Text(title,
+                  style:
+                      CosarcTypography.title(context).copyWith(fontSize: 17)),
               const SizedBox(height: 2),
               Text(subtitle, style: CosarcTypography.caption(context)),
             ],
@@ -489,21 +517,27 @@ class _ProgressTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 22, color: done ? CosarcColors.primary : CosarcColors.textSecondary),
+              Icon(icon,
+                  size: 22,
+                  color:
+                      done ? CosarcColors.primary : CosarcColors.textSecondary),
               const Spacer(),
               if (actionLabel != null && onAction != null && !done)
                 GestureDetector(
                   onTap: onAction,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: CosarcColors.primaryMuted,
-                      borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
-                      border: Border.all(color: CosarcColors.primary.withOpacity(0.3)),
+                      borderRadius:
+                          BorderRadius.circular(CosarcSpacing.radiusPill),
+                      border: Border.all(
+                          color: CosarcColors.primary.withOpacity(0.3)),
                     ),
                     child: Text(
                       actionLabel!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: CosarcColors.primary,
@@ -516,7 +550,9 @@ class _ProgressTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: CosarcTypography.title(context).copyWith(fontSize: 17)),
+              Text(title,
+                  style:
+                      CosarcTypography.title(context).copyWith(fontSize: 17)),
               Text(value, style: CosarcTypography.caption(context)),
               const SizedBox(height: CosarcSpacing.sm),
               ClipRRect(
@@ -531,7 +567,9 @@ class _ProgressTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(target, style: CosarcTypography.caption(context).copyWith(fontSize: 11)),
+              Text(target,
+                  style:
+                      CosarcTypography.caption(context).copyWith(fontSize: 11)),
             ],
           ),
         ],

@@ -24,13 +24,22 @@ class CosarcButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !isLoading;
+
+    Color loadingColor = CosarcColors.ink;
+    if (variant == CosarcButtonVariant.secondary ||
+        variant == CosarcButtonVariant.ghost) {
+      loadingColor = CosarcColors.textPrimary;
+    } else if (variant == CosarcButtonVariant.destructive) {
+      loadingColor = CosarcColors.error;
+    }
+
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             height: 22,
             width: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: CosarcColors.ink,
+              color: loadingColor,
             ),
           )
         : Row(
@@ -53,18 +62,26 @@ class CosarcButton extends StatelessWidget {
           disabledForegroundColor: CosarcColors.textDisabled,
         ),
       CosarcButtonVariant.secondary => ElevatedButton.styleFrom(
-          backgroundColor: CosarcColors.surfaceElevated,
+          backgroundColor: CosarcColors.glassFill(0.1),
           foregroundColor: CosarcColors.textPrimary,
           disabledBackgroundColor: CosarcColors.surface,
           disabledForegroundColor: CosarcColors.textDisabled,
           elevation: 0,
-          side: BorderSide(color: CosarcColors.glassBorder()),
+          side: BorderSide(color: CosarcColors.glassBorder(0.2)),
         ),
       CosarcButtonVariant.ghost => ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           foregroundColor: CosarcColors.primaryLight,
           disabledForegroundColor: CosarcColors.textDisabled,
           elevation: 0,
+        ),
+      CosarcButtonVariant.destructive => ElevatedButton.styleFrom(
+          backgroundColor: CosarcColors.error.withOpacity(0.15),
+          foregroundColor: CosarcColors.error,
+          disabledBackgroundColor: CosarcColors.surface,
+          disabledForegroundColor: CosarcColors.textDisabled,
+          elevation: 0,
+          side: BorderSide(color: CosarcColors.error.withOpacity(0.3)),
         ),
     };
 
@@ -90,11 +107,11 @@ class CosarcButton extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
-        boxShadow: CosarcColors.glow(CosarcColors.primary, 0.18),
+        boxShadow: CosarcColors.glow(CosarcColors.primary, 0.25),
       ),
       child: button,
     );
   }
 }
 
-enum CosarcButtonVariant { primary, secondary, ghost }
+enum CosarcButtonVariant { primary, secondary, ghost, destructive }

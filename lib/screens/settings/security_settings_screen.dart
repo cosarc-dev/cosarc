@@ -95,7 +95,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     return CosarcScaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.screenHorizontal),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(
+              horizontal: CosarcSpacing.screenHorizontal),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -116,7 +118,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Signed in as', style: CosarcTypography.caption(context)),
+                    Text('Signed in as',
+                        style: CosarcTypography.caption(context)),
                     const SizedBox(height: CosarcSpacing.xxs),
                     Text(email, style: CosarcTypography.title(context)),
                   ],
@@ -134,13 +137,15 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                 padding: const EdgeInsets.all(CosarcSpacing.lg),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified_user_outlined, color: CosarcColors.primary),
+                    const Icon(Icons.verified_user_outlined,
+                        color: CosarcColors.primary),
                     const SizedBox(width: CosarcSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Two-factor authentication', style: CosarcTypography.title(context)),
+                          Text('Two-factor authentication',
+                              style: CosarcTypography.title(context)),
                           Text(
                             'Add an extra layer of protection',
                             style: CosarcTypography.caption(context),
@@ -148,7 +153,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded, color: CosarcColors.textTertiary),
+                    const Icon(Icons.chevron_right_rounded,
+                        color: CosarcColors.textTertiary),
                   ],
                 ),
               ),

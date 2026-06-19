@@ -73,8 +73,7 @@ class CosarcMetricTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (icon != null)
-          Icon(icon, size: 16, color: color.withOpacity(0.8)),
+        if (icon != null) Icon(icon, size: 16, color: color.withOpacity(0.8)),
         if (icon != null) const SizedBox(height: CosarcSpacing.xs),
         Text(
           label.toUpperCase(),

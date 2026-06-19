@@ -15,6 +15,7 @@ import '../settings/edit_profile_screen.dart';
 import '../settings/help_support_screen.dart';
 import '../settings/notifications_settings_screen.dart';
 import '../settings/security_settings_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -59,7 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Count this month's workouts from workout_logs
       final now = DateTime.now();
-      final firstOfMonth = DateTime(now.year, now.month, 1).toIso8601String().split('T')[0];
+      final firstOfMonth =
+          DateTime(now.year, now.month, 1).toIso8601String().split('T')[0];
       final wlResponse = await supabase
           .from('workout_logs')
           .select('id')
@@ -252,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.emoji_events_rounded,
                             color: CosarcColors.primary,
                             size: 20,
@@ -688,7 +690,7 @@ class _SettingsRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.arrow_forward_ios_rounded,
                 color: CosarcColors.textTertiary,
                 size: 14,
@@ -706,8 +708,8 @@ class _SectionDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: CosarcSpacing.lg),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: CosarcSpacing.lg),
       child: Divider(height: 1, color: CosarcColors.divider),
     );
   }

@@ -38,7 +38,8 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
   Future<void> _loadFactor() async {
     try {
       final factors = await _authService.listMfaFactors();
-      final verified = factors.totp.where((f) => f.status.toString().contains('verified'));
+      final verified =
+          factors.totp.where((f) => f.status.toString().contains('verified'));
       if (verified.isNotEmpty) {
         _factorId = verified.first.id;
       }
@@ -92,6 +93,7 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(
                   horizontal: CosarcSpacing.screenHorizontal,
                 ),

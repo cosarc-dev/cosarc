@@ -22,16 +22,16 @@ class CosarcCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final decoration = BoxDecoration(
-      color: highlight
-          ? CosarcColors.primaryMuted
-          : CosarcColors.glassFill(0.05),
+      color:
+          highlight ? CosarcColors.primaryMuted : CosarcColors.glassFill(0.05),
       borderRadius: BorderRadius.circular(CosarcSpacing.radiusXl),
       border: Border.all(
         color: highlight
             ? CosarcColors.primary.withOpacity(0.35)
             : CosarcColors.glassBorder(),
       ),
-      boxShadow: highlight ? CosarcColors.glow(CosarcColors.primary, 0.1) : null,
+      boxShadow:
+          highlight ? CosarcColors.glow(CosarcColors.primary, 0.1) : null,
     );
 
     final content = Padding(

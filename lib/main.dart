@@ -34,7 +34,8 @@ Future<void> main() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final savedTheme = prefs.getString('theme') ?? 'Dark';
-    themeNotifier.value = savedTheme == 'System' ? ThemeMode.system : ThemeMode.dark;
+    themeNotifier.value =
+        savedTheme == 'System' ? ThemeMode.system : ThemeMode.dark;
   } catch (e) {
     debugPrint('SharedPreferences read failed: $e');
   }
@@ -80,7 +81,8 @@ class _CosarcAppState extends State<CosarcApp> {
       if (session != null) {
         _isHandlingAuth = true;
 
-        debugPrint('Auth state changed - user logged in: ${session.user.email}');
+        debugPrint(
+            'Auth state changed - user logged in: ${session.user.email}');
 
         await Future.delayed(const Duration(milliseconds: 500));
 

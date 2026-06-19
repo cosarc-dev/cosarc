@@ -24,13 +24,11 @@ class AuthService {
   }) async {
     try {
       final cleanEmail = email.trim();
-      final response = await supabase.auth
-          .signUp(
-            email: cleanEmail,
-            password: password,
-            data: {'full_name': name.trim()},
-          )
-          .timeout(const Duration(seconds: 20));
+      final response = await supabase.auth.signUp(
+        email: cleanEmail,
+        password: password,
+        data: {'full_name': name.trim()},
+      ).timeout(const Duration(seconds: 20));
 
       final user = response.user;
       if (user == null) {
@@ -163,18 +161,23 @@ class AuthService {
     }
   }
 
-  Future<void> sendEmailOtp(String email, {bool shouldCreateUser = true}) async {
-    await supabase.auth.signInWithOtp(
-      email: email.trim(),
-      shouldCreateUser: shouldCreateUser,
-    ).timeout(const Duration(seconds: 20));
+  Future<void> sendEmailOtp(String email,
+      {bool shouldCreateUser = true}) async {
+    await supabase.auth
+        .signInWithOtp(
+          email: email.trim(),
+          shouldCreateUser: shouldCreateUser,
+        )
+        .timeout(const Duration(seconds: 20));
   }
 
   Future<void> sendPhoneOtp(String phone) async {
-    await supabase.auth.signInWithOtp(
-      phone: phone.trim(),
-      channel: OtpChannel.sms,
-    ).timeout(const Duration(seconds: 20));
+    await supabase.auth
+        .signInWithOtp(
+          phone: phone.trim(),
+          channel: OtpChannel.sms,
+        )
+        .timeout(const Duration(seconds: 20));
   }
 
   Future<AuthResponse> verifyOtp({
@@ -182,28 +185,34 @@ class AuthService {
     String? phone,
     required String token,
   }) async {
-    final response = await supabase.auth.verifyOTP(
-      type: email != null ? OtpType.email : OtpType.sms,
-      email: email?.trim(),
-      phone: phone?.trim(),
-      token: token.trim(),
-    ).timeout(const Duration(seconds: 20));
+    final response = await supabase.auth
+        .verifyOTP(
+          type: email != null ? OtpType.email : OtpType.sms,
+          email: email?.trim(),
+          phone: phone?.trim(),
+          token: token.trim(),
+        )
+        .timeout(const Duration(seconds: 20));
 
     await ensureMemberExists(response.user);
     return response;
   }
 
   Future<void> resetPassword(String email) async {
-    await supabase.auth.resetPasswordForEmail(
-      email.trim(),
-      redirectTo: kIsWeb ? Uri.base.toString() : null,
-    ).timeout(const Duration(seconds: 20));
+    await supabase.auth
+        .resetPasswordForEmail(
+          email.trim(),
+          redirectTo: kIsWeb ? Uri.base.toString() : null,
+        )
+        .timeout(const Duration(seconds: 20));
   }
 
   Future<void> updatePassword(String newPassword) async {
-    await supabase.auth.updateUser(
-      UserAttributes(password: newPassword),
-    ).timeout(const Duration(seconds: 20));
+    await supabase.auth
+        .updateUser(
+          UserAttributes(password: newPassword),
+        )
+        .timeout(const Duration(seconds: 20));
   }
 
   Future<Map<String, dynamic>?> ensureMemberExists(
@@ -376,7 +385,8 @@ class AuthService {
   }
 
   Future<TwoFactorMethod> getPreferredTwoFactorMethod() async {
-    final method = currentUser?.userMetadata?['preferred_2fa_method'] as String?;
+    final method =
+        currentUser?.userMetadata?['preferred_2fa_method'] as String?;
     return TwoFactorMethod.values.firstWhere(
       (value) => value.name == method,
       orElse: () => TwoFactorMethod.totp,
@@ -393,9 +403,11 @@ class AuthService {
 
   Future<void> signOut({bool everywhere = false}) async {
     try {
-      await supabase.auth.signOut(
-        scope: everywhere ? SignOutScope.global : SignOutScope.local,
-      ).timeout(const Duration(seconds: 10));
+      await supabase.auth
+          .signOut(
+            scope: everywhere ? SignOutScope.global : SignOutScope.local,
+          )
+          .timeout(const Duration(seconds: 10));
       if (!kIsWeb) await _googleSignIn.signOut();
     } catch (e) {
       debugPrint('Signout error: $e');
@@ -440,8 +452,7 @@ class AuthService {
         message.contains('user_not_found')) {
       return 'No account found with this email. Please sign up first.';
     }
-    if (message.contains('phone not confirmed') ||
-        message.contains('phone')) {
+    if (message.contains('phone not confirmed') || message.contains('phone')) {
       return 'Phone verification failed. Please try again.';
     }
     if (message.contains('network') || message.contains('socket')) {

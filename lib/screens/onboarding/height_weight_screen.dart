@@ -33,7 +33,8 @@ class HeightWeightScreenState extends State<HeightWeightScreen> {
     });
   }
 
-  Widget _metricField(String label, TextEditingController controller, String unit, IconData icon) {
+  Widget _metricField(String label, TextEditingController controller,
+      String unit, IconData icon) {
     return Expanded(
       child: CosarcGlass(
         padding: const EdgeInsets.all(CosarcSpacing.lg),
@@ -47,7 +48,9 @@ class HeightWeightScreenState extends State<HeightWeightScreen> {
               controller: controller,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: CosarcTypography.metric('', color: CosarcColors.textPrimary).copyWith(fontSize: 28),
+              style:
+                  CosarcTypography.metric('', color: CosarcColors.textPrimary)
+                      .copyWith(fontSize: 28),
               decoration: InputDecoration(
                 suffixText: unit,
                 suffixStyle: CosarcTypography.caption(context),
@@ -81,17 +84,22 @@ class HeightWeightScreenState extends State<HeightWeightScreen> {
                     onTap: () => toggleUnit(true),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: CosarcSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: CosarcSpacing.sm),
                       decoration: BoxDecoration(
-                        color: isFtKg ? CosarcColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                        color:
+                            isFtKg ? CosarcColors.primary : Colors.transparent,
+                        borderRadius:
+                            BorderRadius.circular(CosarcSpacing.radiusPill),
                       ),
                       child: Text(
                         'ft / kg',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: isFtKg ? CosarcColors.ink : CosarcColors.textSecondary,
+                          color: isFtKg
+                              ? CosarcColors.ink
+                              : CosarcColors.textSecondary,
                         ),
                       ),
                     ),
@@ -102,17 +110,22 @@ class HeightWeightScreenState extends State<HeightWeightScreen> {
                     onTap: () => toggleUnit(false),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: CosarcSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: CosarcSpacing.sm),
                       decoration: BoxDecoration(
-                        color: !isFtKg ? CosarcColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                        color:
+                            !isFtKg ? CosarcColors.primary : Colors.transparent,
+                        borderRadius:
+                            BorderRadius.circular(CosarcSpacing.radiusPill),
                       ),
                       child: Text(
                         'cm / lbs',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: !isFtKg ? CosarcColors.ink : CosarcColors.textSecondary,
+                          color: !isFtKg
+                              ? CosarcColors.ink
+                              : CosarcColors.textSecondary,
                         ),
                       ),
                     ),
@@ -124,9 +137,11 @@ class HeightWeightScreenState extends State<HeightWeightScreen> {
           const SizedBox(height: CosarcSpacing.lg),
           Row(
             children: [
-              _metricField('Height', heightController, isFtKg ? 'ft' : 'cm', Icons.height_rounded),
+              _metricField('Height', heightController, isFtKg ? 'ft' : 'cm',
+                  Icons.height_rounded),
               const SizedBox(width: CosarcSpacing.md),
-              _metricField('Weight', weightController, isFtKg ? 'kg' : 'lbs', Icons.monitor_weight_outlined),
+              _metricField('Weight', weightController, isFtKg ? 'kg' : 'lbs',
+                  Icons.monitor_weight_outlined),
             ],
           ),
         ],

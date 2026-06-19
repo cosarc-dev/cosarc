@@ -293,8 +293,8 @@ class _LoginScreenState extends State<LoginScreen>
                             color: CosarcColors.textTertiary,
                             size: 20,
                           ),
-                          onPressed: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                       ),
                     ],
@@ -314,7 +314,8 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(width: CosarcSpacing.xs),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => setState(() => _rememberMe = !_rememberMe),
+                            onTap: () =>
+                                setState(() => _rememberMe = !_rememberMe),
                             child: Text(
                               'Remember me',
                               style: CosarcTypography.caption(context),
@@ -361,7 +362,7 @@ class _LoginScreenState extends State<LoginScreen>
                               style: CosarcTypography.caption(context),
                             ),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.chevron_right_rounded,
                             color: CosarcColors.textTertiary,
                             size: 18,

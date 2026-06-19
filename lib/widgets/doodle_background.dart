@@ -14,7 +14,7 @@ class DoodleBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned.fill(
+          const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: CosarcColors.appBackgroundGradient,

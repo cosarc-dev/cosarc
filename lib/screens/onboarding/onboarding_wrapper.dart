@@ -233,7 +233,8 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
                   ),
                   const SizedBox(height: CosarcSpacing.md),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(CosarcSpacing.radiusPill),
+                    borderRadius:
+                        BorderRadius.circular(CosarcSpacing.radiusPill),
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: progress),
                       duration: CosarcMotion.medium,
@@ -242,7 +243,8 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
                         value: value,
                         minHeight: 3,
                         backgroundColor: CosarcColors.glassFill(0.08),
-                        valueColor: const AlwaysStoppedAnimation(CosarcColors.primary),
+                        valueColor:
+                            const AlwaysStoppedAnimation(CosarcColors.primary),
                       ),
                     ),
                   ),
@@ -275,7 +277,8 @@ class _OnboardingWrapperState extends State<OnboardingWrapper> {
             Padding(
               padding: const EdgeInsets.all(CosarcSpacing.screenHorizontal),
               child: CosarcButton(
-                label: step == screens.length - 1 ? 'Complete Setup' : 'Continue',
+                label:
+                    step == screens.length - 1 ? 'Complete Setup' : 'Continue',
                 isLoading: _isSaving,
                 onPressed: _isSaving ? null : next,
               ),
